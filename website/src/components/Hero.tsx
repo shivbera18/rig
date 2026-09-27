@@ -1,5 +1,6 @@
 import { INSTALL_CMD, TYPED_PHRASES } from '../content';
 import { copyText, useToast, useTypedLine } from '../hooks';
+import pkg from '../../package.json';
 
 export function Hero(): JSX.Element {
   const { toast, show } = useToast();
@@ -10,7 +11,7 @@ export function Hero(): JSX.Element {
 
   return (
     <section className="hero relative z-10">
-      <p className="kicker animate-fade-rise">interactive + headless coding-agent CLI · v0.4.1</p>
+      <p className="kicker animate-fade-rise">interactive + headless coding-agent CLI · v{pkg.version}</p>
       <h1 className="animate-fade-rise">
         Where <em>dreams</em> run through the silence.
       </h1>

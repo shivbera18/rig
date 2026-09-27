@@ -49,6 +49,21 @@ function tick() {
 }
 tick();
 
+// FAQ accordion
+document.querySelectorAll('.faq-item .faq-q').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const item = btn.closest('.faq-item');
+    if (!item) return;
+    const open = item.getAttribute('data-open') === 'true';
+    document.querySelectorAll('.faq-item').forEach((el) => {
+      el.setAttribute('data-open', 'false');
+      el.querySelector('.faq-q')?.setAttribute('aria-expanded', 'false');
+    });
+    item.setAttribute('data-open', String(!open));
+    btn.setAttribute('aria-expanded', String(!open));
+  });
+});
+
 // GSAP scroll reveals
 if (window.gsap && window.ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
@@ -59,8 +74,13 @@ if (window.gsap && window.ScrollTrigger) {
       scrollTrigger: { trigger: el, start: 'top 88%' },
     });
   });
-  gsap.to('.bg-video', {
-    yPercent: 12, ease: 'none',
-    scrollTrigger: { trigger: document.body, start: 'top top', end: 'max', scrub: true },
+  // Hero video scrolls up and away with the first viewport.
+  gsap.to('.hero-stage .bg-video', {
+    yPercent: -14, ease: 'none',
+    scrollTrigger: { trigger: '.hero-stage', start: 'top top', end: 'bottom top', scrub: true },
+  });
+  gsap.to('.hero-terminal', {
+    y: -30, ease: 'none',
+    scrollTrigger: { trigger: '.hero-stage', start: 'top top', end: 'bottom top', scrub: true },
   });
 }

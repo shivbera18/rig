@@ -11,13 +11,11 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="bg-stage" aria-hidden="true">
-  <video class="bg-video" autoplay loop muted playsinline>
+<div class="hero-stage">
+  <video class="bg-video" autoplay loop muted playsinline aria-hidden="true">
     <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4" type="video/mp4">
   </video>
-  <div class="bg-shade"></div>
-</div>
-
+  <div class="bg-shade" aria-hidden="true"></div>
 <header class="nav relative z-10">
   <div class="nav-inner">
     <a class="logo" href="#top">rig<sup>®</sup></a>
@@ -50,12 +48,13 @@
 <span class="t-dim">(1.4s · mujx0kv8-4s30iw)</span></code></pre>
     </div>
   </section>
+</div>
 
+<main id="top">
   <section id="install" class="section band-install">
     <div class="wrap">
       <p class="sec-kicker">Install</p>
       <h2>One command. Sixty seconds. <em>A harness.</em></h2>
-      <p class="sec-sub">Requires Node ≥ 22. Global install gives you the <code>rig</code> binary everywhere.</p>
       <div class="cmd-grid">
         <div class="cmd-card" data-reveal>
           <p class="cmd-label">Install globally</p>
@@ -122,7 +121,41 @@ rig auth refresh / rig auth use &lt;provider&gt; &lt;id&gt;</code></pre>
     </div>
   </section>
 
-  <section id="auth" class="section band-auth">
+  <section id="flow" class="section band-flow">
+    <div class="wrap">
+      <p class="sec-kicker">How it runs</p>
+      <h2>Prompt in. <em>Patch out.</em></h2>
+      <p class="sec-sub">One pipeline from keystroke to merged diff. Every stage streams live in the session.</p>
+      <ol class="flow">
+        <li data-reveal><span class="flow-num">01</span><div><h3>Pool picks a credential</h3><p>Round-robin across stored accounts, refreshes expiring tokens, falls over on 401/403.</p></div></li>
+        <li data-reveal><span class="flow-num">02</span><div><h3>Dispatch streams the model</h3><p>OpenAI completions, responses, or Anthropic messages. Text arrives token by token.</p></div></li>
+        <li data-reveal><span class="flow-num">03</span><div><h3>Turn loop runs tools</h3><p><code>read</code> <code>write</code> <code>edit</code> <code>bash</code> <code>web_search</code> <code>task</code>, parallel by default.</p></div></li>
+        <li data-reveal><span class="flow-num">04</span><div><h3>Subagents merge patches</h3><p>Detached worktrees, strict output schemas, <code>git apply</code> back into your tree.</p></div></li>
+        <li data-reveal><span class="flow-num">05</span><div><h3>Thread persists</h3><p>Resume, fork, rewind, compact. <code>rig exec --continue</code> picks up anywhere.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="sessions" class="section band-sessions">
+    <div class="wrap">
+      <p class="sec-kicker">Sessions that outlive the terminal</p>
+      <h2>Close the laptop. <em>Keep the thread.</em></h2>
+      <div class="split">
+        <pre data-reveal><code><span class="t-dim">$</span> rig exec "again" --continue
+<span class="t-dim">resumed mujx0kv8 · 14 msgs carried</span>
+<span class="t-dim">$</span> rig sessions list
+<span class="t-dim">* mujx0kv8  stub/m  16 msgs
+  mujx0l0n  stub/m  4 msgs</span></code></pre>
+        <ul class="checklist">
+          <li data-reveal><strong>Resume</strong> the most recent thread or fork any saved one by id.</li>
+          <li data-reveal><strong>Compact</strong> long threads into a summary plus the last exchanges.</li>
+          <li data-reveal><strong>Export</strong> Markdown or copy the last answer to the clipboard.</li>
+          <li data-reveal><strong>Headless handoff</strong>: <code>--format json</code> pipes results into CI.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
     <div class="wrap">
       <p class="sec-kicker">Auth that survives reality</p>
       <h2>Keys today. <em>OAuth when ready.</em></h2>
@@ -144,20 +177,73 @@ rig auth refresh</code></pre>
     </div>
   </section>
 
+  <section id="faq" class="section band-faq">
+    <div class="wrap">
+      <p class="sec-kicker">Questions</p>
+      <h2>Asked <em>often.</em></h2>
+      <div class="faq">
+        <div class="faq-item" data-open="true" data-reveal>
+          <button class="faq-q" type="button" aria-expanded="true">Which models work?<span class="plus">+</span></button>
+          <div class="faq-a"><div><p>Any provider speaking OpenAI completions, OpenAI responses, or Anthropic messages. Map them in <code>config.yaml</code>, then address roles (<code>@smol @default @vision</code>) instead of raw ids.</p></div></div>
+        </div>
+        <div class="faq-item" data-reveal>
+          <button class="faq-q" type="button" aria-expanded="false">Where do sessions live?<span class="plus">+</span></button>
+          <div class="faq-a"><div><p>JSON files under <code>~/.rig/sessions/</code> (or <code>~/.rig-&lt;profile&gt;</code>). Copy them, version them, delete them. Nothing is locked in a database.</p></div></div>
+        </div>
+        <div class="faq-item" data-reveal>
+          <button class="faq-q" type="button" aria-expanded="false">How do subagents stay safe?<span class="plus">+</span></button>
+          <div class="faq-a"><div><p><code>task</code> runs in a detached git worktree and merges back with <code>git apply --check</code> first. A failed merge keeps the directory and prints its path.</p></div></div>
+        </div>
+        <div class="faq-item" data-reveal>
+          <button class="faq-q" type="button" aria-expanded="false">Can CI use rig?<span class="plus">+</span></button>
+          <div class="faq-a"><div><p>Yes. <code>rig exec --format json --output result.json</code> or <code>--format stream-json</code> for live event lines. Exit codes follow the run.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="section band-finale">
     <div class="wrap center">
       <h2 data-reveal>Your next run <em>remembers this one.</em></h2>
       <div class="hero-cta" data-reveal>
-        <a class="btn-glass btn-lg" href="#install">Begin Journey</a>
+        <a class="btn-glass btn-lg btn-dark" href="#install">Begin Journey</a>
       </div>
-      <p class="fine">MIT · <code>@shivcdhry/rig</code> · Node ≥ 22 · <a href="https://github.com/shivbera18/rig">github.com/shivbera18/rig</a></p>
+      <p class="fine">MIT · <code>@shivcdhry/rig</code> · Node ≥ 22</p>
     </div>
   </section>
 </main>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="app.js"></script>
-</body>
-</html>
+<footer class="footer">
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <a class="logo" href="#top">rig<sup>®</sup></a>
+      <p>The coding harness that stays in session. Interactive threads, headless runs, one thread model.</p>
+    </div>
+    <div>
+      <h4>Start</h4>
+      <ul>
+        <li><a href="#install">Install</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#commands">Commands</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Run</h4>
+      <ul>
+        <li><a href="#flow">Pipeline</a></li>
+        <li><a href="#sessions">Sessions</a></li>
+        <li><a href="#auth">Auth</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <ul>
+        <li><a href="https://github.com/shivbera18/rig">GitHub</a></li>
+        <li><a href="https://www.npmjs.com/package/@shivcdhry/rig">npm</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-base"><span>rig · MIT · v0.4.1</span><span>Instrument Serif + Inter · video loops, never blocks</span></div>
+</footer>
+

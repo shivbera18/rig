@@ -1,5 +1,6 @@
-# rig
+<p align="center"><img src="website/public/logo-512.png" width="96" alt="rig logo: two agent prompts merging into a cursor block, transparent monochrome"></p>
 
+# rig
 Interactive + headless coding-agent CLI: multi-account auth pool with
 fallback, git-worktree-isolated subagents, model-role agents
 (`@smol`/`@default`/`@vision`), web search, and persistent sessions.

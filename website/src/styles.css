@@ -37,8 +37,12 @@ a { color: inherit; }
 
 .nav { position: relative; z-index: 10; }
 .nav-inner { display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; max-width: 80rem; margin: 0 auto; }
-.logo { font-family: 'Instrument Serif', serif; font-size: 1.9rem; letter-spacing: -0.02em; text-decoration: none; }
-.logo sup { font-size: 0.7rem; }
+.logo, .logo-word { font-family: 'Instrument Serif', serif; font-size: 1.9rem; letter-spacing: -0.02em; text-decoration: none; }
+.logo sup, .logo-word sup { font-size: 0.7rem; }
+.logo-link { text-decoration: none; display: inline-flex; }
+.logo-lockup { display: inline-flex; align-items: center; }
+.logo-lockup img { display: block; border-radius: 7px; filter: invert(1); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .nav-links { display: none; gap: 2rem; }
 @media (min-width: 768px) { .nav-links { display: flex; } }
 .nav-links a { font-size: 0.875rem; color: hsl(var(--muted-foreground)); text-decoration: none; transition: color 0.2s; }

@@ -95,6 +95,16 @@ export async function runUpdate(opts: { check?: boolean; yes?: boolean }): Promi
   const r = await run(npmCmd(), npmArgs(plan.command.slice(1)));
   clearInterval(spin);
   process.stderr.write("\r");
+  if (r.code !== 0 && /EEXIST|file already exists/i.test(r.stderr)) {
+    process.stderr.write(`existing shim detected — retrying with --force…\n`);
+    const retry = await run(npmCmd(), npmArgs([...plan.command.slice(1), "--force"]));
+    if (retry.code === 0) {
+      console.log(`updated to ${plan.latest} — restart your shell sessions to use it`);
+      return;
+    }
+    console.error(retry.stderr.trim().split("\n").slice(-5).join("\n"));
+    throw new Error(`update failed (exit ${retry.code}); try manually: ${plan.command.join(" ")} --force`);
+  }
   if (r.code !== 0) {
     console.error(r.stderr.trim().split("\n").slice(-5).join("\n"));
     throw new Error(`update failed (exit ${r.code}); try manually: ${plan.command.join(" ")}`);

@@ -3,10 +3,21 @@ import path from "node:path";
 import { getConfigPath, getDataDir, loadConfig } from "../config.js";
 import { listSessions, loadSession, mostRecentSession, newSessionId } from "../session/store.js";
 import { runOnce } from "../cli/runner.js";
-import { Screen, padToWidth, truncateToWidth, visibleWidth, wrapText } from "./screen.js";
+import { Screen, padToWidth, truncateToWidth, wrapText } from "./screen.js";
 import { attachSuggest } from "./suggest.js";
 import { completeSlash, contextLines, dispatchSlash, helpLines, statusLines, usageLines } from "./commands.js";
 import type { CommandCtx } from "./commands.js";
+import { RIG_DARK, centerToWidth, gradientWordmark, hexFg, wordmarkFor } from "./theme.js";
+
+const DIM = "\u001b[2m";
+const BOLD = "\u001b[1m";
+const RESET = "\u001b[0m";
+const GREEN = hexFg(RIG_DARK.success);
+const YELLOW = hexFg(RIG_DARK.warning);
+const CYAN = hexFg(RIG_DARK.brand);
+const RED = hexFg(RIG_DARK.error);
+const BLUE = hexFg("#68c0ff");
+const MAGENTA = hexFg(RIG_DARK.heading);
 
 export interface TuiOpts {
   model?: string;
@@ -16,21 +27,10 @@ export interface TuiOpts {
   continue?: boolean;
 }
 
-const DIM = "\u001b[2m";
-const BOLD = "\u001b[1m";
-const GREEN = "\u001b[32m";
-const YELLOW = "\u001b[33m";
-const CYAN = "\u001b[36m";
-const RED = "\u001b[31m";
-const RESET = "\u001b[0m";
-
-const MARK = [`${BOLD}${CYAN}  ○─╮${RESET}`, `${BOLD}${CYAN}  ○─╯▌${RESET}`];
-
 interface Line {
   text: string;
-  kind: "plain" | "dim" | "user" | "rig" | "rig-stream" | "tool" | "error" | "ok";
+  kind: "plain" | "dim" | "user" | "rig" | "rig-stream" | "tool" | "error" | "ok" | "heading" | "link";
 }
-
 export async function runTui(opts: TuiOpts): Promise<void> {
   const { config } = loadConfig(getConfigPath(undefined, opts.profile));
   let model = opts.model ?? config.defaultModel;
@@ -90,30 +90,67 @@ export async function runTui(opts: TuiOpts): Promise<void> {
   let exited = false;
 
   const screen = new Screen();
+
+  // Scrollback offset: 0 = following live tail. PgUp/PgDn/Home/End move it;
+  // any new output or typing snaps back to follow.
+  let scrollBack = 0;
+  const follow = (): void => {
+    scrollBack = 0;
+  };
   const paint = (): void => {
     if (!screen.isActive || exited) return;
     const w = screen.width;
     const h = screen.height;
     const lines: string[] = [];
-    // Header: mark + status, always visible.
-    lines.push(...MARK);
-    for (const s of statusLines(opts.profile, model, sessionId, DIM, RESET)) {
-      for (const wrapped of wrapText(s, w)) lines.push(`${DIM}${wrapped}${RESET}`);
+    // Header: gradient RIG wordmark (width-adaptive) + thin status line.
+    for (const art of wordmarkFor(w)) {
+      void art;
     }
-    lines.push(`${DIM}${"─".repeat(Math.max(8, Math.min(w, 80)))}${RESET}`);
-    // Transcript viewport: last N lines above composer.
-    const reserved = 6 + (suggestOn ? Math.min(suggest.length, 8) + 2 : 0);
+    for (const g of gradientWordmark(RIG_DARK)) lines.push(centerToWidth(`${g}${RESET}`, w));
+    for (const s of statusLines(opts.profile, model, sessionId, BLUE, RESET)) {
+      for (const wrapped of wrapText(s, w)) lines.push(`${BLUE}${wrapped}${RESET}`);
+    }
+    lines.push(`${hexFg(RIG_DARK.border)}${"─".repeat(Math.max(8, Math.min(w, 80)))}${RESET}`);
+    // Transcript viewport with scroll offset.
+    const suggestRows = suggestOn ? Math.min(suggest.length, 8) + 2 : 0;
+    const reserved = 8 + suggestRows;
     const room = Math.max(4, h - lines.length - reserved);
-    const tail = feed.slice(-room);
+    const end = feed.length - scrollBack;
+    const tail = feed.slice(Math.max(0, end - room), Math.max(0, end));
     for (const l of tail) {
       const prefix =
-        l.kind === "user" ? `${BOLD}› ${RESET}` : l.kind === "rig" ? `${CYAN}◈ ${RESET}` : l.kind === "tool" ? `${DIM}· ${RESET}` : l.kind === "error" ? `${YELLOW}! ${RESET}` : l.kind === "ok" ? `${GREEN}✓ ${RESET}` : "";
+        l.kind === "user"
+          ? `${BOLD}› ${RESET}`
+          : l.kind === "rig" || l.kind === "rig-stream"
+            ? `${CYAN}◈ ${RESET}`
+            : l.kind === "tool"
+              ? `${DIM}· ${RESET}`
+              : l.kind === "error"
+                ? `${RED}! ${RESET}`
+                : l.kind === "ok"
+                  ? `${GREEN}✓ ${RESET}`
+                  : l.kind === "heading"
+                    ? `${MAGENTA}◆ ${RESET}`
+                    : "";
       const style =
-        l.kind === "user" ? BOLD : l.kind === "error" ? YELLOW : l.kind === "dim" || l.kind === "tool" ? DIM : "";
+        l.kind === "user"
+          ? BOLD
+          : l.kind === "error"
+            ? RED
+            : l.kind === "ok"
+              ? GREEN
+              : l.kind === "heading"
+                ? MAGENTA
+                : l.kind === "link"
+                  ? BLUE
+                  : l.kind === "dim" || l.kind === "tool" || l.kind === "rig-stream"
+                    ? DIM
+                    : "";
       for (const wrapped of wrapText(`${prefix}${l.text}`, w)) {
         lines.push(style ? `${style}${wrapped}${RESET}` : wrapped);
       }
     }
+    if (scrollBack > 0) lines.push(`${YELLOW}▲ scrolled ${scrollBack} lines — End to follow${RESET}`);
     while (lines.length < h - reserved + 2) lines.push("");
     // Slash overlay above composer.
     if (suggestOn && suggest.length > 0) {
@@ -123,16 +160,20 @@ export async function runTui(opts: TuiOpts): Promise<void> {
         lines.push(`${mark} ${GREEN}${cmd}${RESET}  ${DIM}${desc.slice(0, Math.max(20, w - 30))}${RESET}`);
       });
     }
-    // Composer.
-    const prompt = running ? `${YELLOW}◌${RESET} ` : `${BOLD}›${RESET} `;
+    // Composer: colored bordered input box (border + tinted prompt row).
+    const boxW = Math.max(20, Math.min(w - 2, 100));
+    const prompt = running ? `${YELLOW}◌${RESET} ` : `${GREEN}›${RESET} `;
     const before = input.slice(0, cursor);
     const after = input.slice(cursor);
-    const shown = truncateToWidth(`${before}▊${after}`, w - 4);
-    lines.push(`${prompt}${shown}`);
-    // Status bar.
-    const bar = running
-      ? `${YELLOW}running${["⠋", "⠙", "⠹", "⠸", "⠼", "⠴"][spinner % 6]}${RESET}  ${DIM}Ctrl+C interrupts · /stop · /queue${RESET}`
-      : `${DIM}${model} · ${sessionId.slice(0, 8)} · Tab completes / · ↑/↓ history · Ctrl+C quits${RESET}`;
+    const shown = truncateToWidth(`${before}▊${after}`, boxW - 6);
+    const top = `${CYAN}╭${"─".repeat(boxW - 2)}╮${RESET}`;
+    const mid = `${CYAN}│${RESET} ${prompt}${shown}${" ".repeat(Math.max(0, boxW - 6 - [...shown.replace(/\u001b\[[0-9;]*m/g, "")].length))} ${CYAN}│${RESET}`;
+    const bot = `${CYAN}╰${"─".repeat(boxW - 2)}╯${RESET}`;
+    lines.push(top, mid, bot);
+    // Status bar: model · session · queue · approval, color-coded state.
+    const stateDot = running ? `${YELLOW}●${RESET}` : `${GREEN}●${RESET}`;
+    const queueBit = queue.length > 0 ? ` · ${YELLOW}queue ${queue.length}${RESET}` : "";
+    const bar = `${stateDot} ${BLUE}${model}${RESET} · ${DIM}${sessionId.slice(0, 8)}${RESET} · approval:${approval}${planMode ? ` · ${MAGENTA}plan${RESET}` : ""}${queueBit} · ${DIM}Tab / · PgUp/PgDn scroll · Ctrl+C quits${RESET}`;
     lines.push(padToWidth(truncateToWidth(bar, w), w));
     screen.paint(lines);
   };
@@ -403,6 +444,15 @@ export async function runTui(opts: TuiOpts): Promise<void> {
       paint();
       return;
     }
+    if (s === "\x1b[5~" || s === "\x1b[6~" || s === "\x1b[H" || s === "\x1b[1~" || s === "\x1b[F" || s === "\x1b[4~") {
+      const page = Math.max(1, screen.height - 12);
+      if (s === "\x1b[5~") scrollBack = Math.min(feed.length, scrollBack + page);
+      else if (s === "\x1b[6~") scrollBack = Math.max(0, scrollBack - page);
+      else if (s === "\x1b[H" || s === "\x1b[1~") scrollBack = feed.length;
+      else follow();
+      paint();
+      return;
+    }
     if (s === "\x1b[C") {
       cursor = Math.min(input.length, cursor + 1);
       paint();
@@ -455,18 +505,4 @@ export async function runTui(opts: TuiOpts): Promise<void> {
   process.stdin.removeListener("data", onData);
   if (process.stdin.isTTY) process.stdin.setRawMode(false);
   screen.stop();
-  void attachUnused;
-  void visibleWidth;
 }
-
-function attachUnused(): void {
-  // Placeholder to keep suggest helper importable without cycles.
-  void completeSlash;
-  void contextLines;
-  void usageLines;
-  void helpLines;
-}
-
-void listSessions;
-void mostRecentSession;
-void newSessionId;

@@ -51,14 +51,14 @@ async function main(): Promise<void> {
 
   program
     .command("tui")
-    .description("interactive rig session (readline)")
+    .description("interactive rig session (fullscreen)")
     .option("--model <m>", "provider/model or @smol|@default|@vision")
     .option("--max-steps <n>", "max tool steps", (v: string) => parseInt(v, 10))
     .option("--session <id>", "continue or fork a named session thread")
     .option("-c, --continue", "continue the most recent session")
     .action(
       async (opts: { model?: string; maxSteps?: number; session?: string; continue?: boolean }) => {
-        const { runTui } = await import("./tui/tui.js");
+        const { runTui } = await import("./tui/fullscreen.js");
         await runTui({ ...opts, profile: program.opts().profile as string | undefined });
       },
     );
@@ -144,7 +144,7 @@ async function main(): Promise<void> {
 
   // Bare `rig` drops into the interactive session, like other coding harnesses.
   if (process.argv.length <= 2) {
-    const { runTui } = await import("./tui/tui.js");
+    const { runTui } = await import("./tui/fullscreen.js");
     await runTui({ profile: program.opts().profile as string | undefined });
     return;
   }

@@ -1,8 +1,9 @@
 import { LOGIN_PROVIDERS, setupHint } from "./catalog.js";
 import { LoginFailedError, apiKeyLogin, deviceCodeLogin, oauthCodeLogin, promptLine } from "./engines.js";
-import { removeProviderCreds, upsertCredential } from "./store.js";
+import { loadStore, removeProviderCreds, saveStore, upsertCredential } from "./store.js";
 import type { StoredCredential } from "./store.js";
 import { getConfigPath, loadConfig } from "../config.js";
+import { refreshIfNeeded } from "./pool.js";
 
 export interface CliOpts {
   profile?: string | undefined;
@@ -15,6 +16,11 @@ interface FreshSecret {
   email?: string;
 }
 
+const GREEN = "\u001b[32m";
+const DIM = "\u001b[2m";
+const YELLOW = "\u001b[33m";
+const RESET = "\u001b[0m";
+
 async function pickProvider(): Promise<string> {
   LOGIN_PROVIDERS.forEach((p, i) => {
     console.log(`  ${i + 1}. ${p.id} — ${p.name}`);
@@ -23,9 +29,9 @@ async function pickProvider(): Promise<string> {
   const n = Number.parseInt(answer, 10);
   const picked = Number.isInteger(n) ? LOGIN_PROVIDERS[n - 1] : undefined;
   if (!picked) {
-    process.stderr.write(`Login failed: invalid selection '${answer}'\n`);
+    process.stderr.write(`Login failed: invalid selection.\n`);
     process.exitCode = 1;
-    throw new LoginFailedError(answer);
+    throw new LoginFailedError("invalid selection");
   }
   return picked.id;
 }
@@ -51,6 +57,14 @@ function relistModels(provider: string, explicitProfile?: string): void {
     return;
   }
   for (const m of Object.keys(entry.models)) console.log(`  - ${provider}/${m}`);
+}
+
+function expiryNote(cred: StoredCredential): string {
+  if (!cred.expiresAtMs) return "no expiry";
+  const ms = cred.expiresAtMs - Date.now();
+  if (ms <= 0) return "expired";
+  const h = Math.round(ms / 3_600_000);
+  return h < 48 ? `expires in ${h}h` : `expires in ${Math.round(h / 24)}d`;
 }
 
 // Local login flow: pick → engine by login kind → persist → re-list models.
@@ -100,7 +114,70 @@ export async function runLogin(provider: string | undefined, opts: CliOpts): Pro
   }
 }
 
+// Multi-account status: every stored row with health, expiry and usage.
+export async function runAuthStatus(opts: CliOpts): Promise<void> {
+  const creds = loadStore(opts.profile);
+  if (creds.length === 0) {
+    console.log("no credentials stored — run `rig login`");
+    return;
+  }
+  const byProvider: Record<string, StoredCredential[]> = {};
+  for (const c of creds) {
+    (byProvider[c.provider] ??= []).push(c);
+  }
+  for (const [provider, rows] of Object.entries(byProvider)) {
+    console.log(`${GREEN}${provider}${RESET} (${rows.length} account${rows.length === 1 ? "" : "s"})`);
+    for (const c of rows) {
+      const health = (c.failCount ?? 0) > 0 ? `${YELLOW}${c.failCount} failures${RESET}` : `${GREEN}healthy${RESET}`;
+      const exp = !c.expiresAtMs ? "no expiry" : c.expiresAtMs <= Date.now() ? "expired" : `expires in ${Math.max(1, Math.round((c.expiresAtMs - Date.now()) / 3_600_000))}h`;
+      console.log(`  ${c.id}${c.email ? ` <${c.email}>` : ""} — ${health} · ${exp}${c.lastUsedAtMs ? ` · last used ${new Date(c.lastUsedAtMs).toLocaleString()}` : ""}`);
+    }
+  }
+}
 export async function runLogout(provider: string, opts: CliOpts): Promise<void> {
   const n = removeProviderCreds(provider, opts.profile);
   console.log(`Removed ${n} credential${n === 1 ? "" : "s"} for ${provider}.`);
+}
+
+// Switch the preferred account: pool order is (failCount, lastUsedAtMs), so
+// stamping every other row as just-used makes `id` the next pick.
+export async function runAuthUse(provider: string, id: string, opts: CliOpts): Promise<void> {
+  const all = loadStore(opts.profile);
+  if (!all.some((c) => c.provider === provider && c.id === id)) {
+    console.log(`no credential '${id}' for provider '${provider}'`);
+    return;
+  }
+  const now = Date.now();
+  for (const c of all) {
+    if (c.provider === provider && c.id !== id) c.lastUsedAtMs = now;
+  }
+  const preferred = all.find((c) => c.provider === provider && c.id === id);
+  if (preferred) preferred.lastUsedAtMs = 0;
+  saveStore(all, opts.profile);
+  console.log(`preferred account for ${provider}: ${id}`);
+}
+// Refresh every refreshable credential now instead of waiting for a call.
+export async function runAuthRefresh(opts: CliOpts): Promise<void> {
+  const creds = loadStore(opts.profile);
+  let ok = 0;
+  let skipped = 0;
+  for (const c of creds) {
+    if (!c.refresh) {
+      skipped++;
+      continue;
+    }
+    try {
+      const before = c.access;
+      const next = await refreshIfNeeded({ ...c, expiresAtMs: 0 }, opts.profile);
+      if (next.access !== before) {
+        ok++;
+        console.log(`${c.provider}/${c.id}: refreshed`);
+      } else {
+        console.log(`${c.provider}/${c.id}: refresh failed, kept old token`);
+      }
+    } catch (err) {
+      console.log(`${c.provider}/${c.id}: refresh error (${err instanceof Error ? err.message : String(err)})`);
+    }
+  }
+  console.log(`${DIM}refreshed ${ok}, skipped ${skipped} without refresh tokens${RESET}`);
 }

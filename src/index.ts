@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { getConfigPath, loadConfig } from "./config.js";
 import { runExec } from "./cli/exec.js";
-import { runLogin, runLogout } from "./auth/cli.js";
+import { runAuthRefresh, runAuthStatus, runAuthUse, runLogin, runLogout } from "./auth/cli.js";
 import { runAuthCheck } from "./auth/pool.js";
 
 async function main(): Promise<void> {
@@ -100,6 +100,24 @@ async function main(): Promise<void> {
     .description("probe every stored credential")
     .action(async () => {
       await runAuthCheck({ profile: program.opts().profile as string | undefined });
+    });
+  auth
+    .command("status")
+    .description("show every stored account with health and expiry")
+    .action(async () => {
+      await runAuthStatus({ profile: program.opts().profile as string | undefined });
+    });
+  auth
+    .command("refresh")
+    .description("refresh every refreshable credential now")
+    .action(async () => {
+      await runAuthRefresh({ profile: program.opts().profile as string | undefined });
+    });
+  auth
+    .command("use <provider> <id>")
+    .description("prefer one stored account for a provider")
+    .action(async (provider: string, id: string) => {
+      await runAuthUse(provider, id, { profile: program.opts().profile as string | undefined });
     });
 
   const pv = program.command("provider").description("provider info");

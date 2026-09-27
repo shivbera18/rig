@@ -8,6 +8,8 @@ export interface Session {
   model: string;
   messages: ChatMessage[];
   updatedAtMs: number;
+  name?: string;
+  archived?: boolean;
 }
 
 export function sessionDir(explicitProfile?: string | undefined): string {
@@ -44,7 +46,7 @@ export function saveSession(s: Session, explicitProfile?: string | undefined): v
   fs.renameSync(tmp, p);
 }
 
-export function listSessions(explicitProfile?: string | undefined): Session[] {
+export function listSessions(explicitProfile?: string | undefined, includeArchived = false): Session[] {
   const dir = sessionDir(explicitProfile);
   let files: string[];
   try {
@@ -56,7 +58,9 @@ export function listSessions(explicitProfile?: string | undefined): Session[] {
   const out: Session[] = [];
   for (const f of files) {
     try {
-      out.push(JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")) as Session);
+      const s = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")) as Session;
+      if (!includeArchived && s.archived === true) continue;
+      out.push(s);
     } catch {
       // skip corrupt session files
     }

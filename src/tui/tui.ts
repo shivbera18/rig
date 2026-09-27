@@ -43,24 +43,42 @@ const SLASH: SlashDef[] = [
   { name: "context", description: "Show carried context snapshot", usage: "/context" },
   { name: "compact", description: "Summarise thread into a fresh compacted session", usage: "/compact [keep-last-n]", args: "n" },
   { name: "export", description: "Export thread as Markdown", usage: "/export [file]", args: "file" },
-  { name: "copy", description: "Copy last answer to clipboard (pbcopy/xclip/clip fallback)", usage: "/copy" },
+  { name: "copy", description: "Copy last answer to clipboard", usage: "/copy" },
   { name: "sessions", description: "List saved sessions", usage: "/sessions" },
   { name: "resume", description: "Switch to a session", usage: "/resume <id>", args: "id" },
   { name: "fork", description: "Fork current thread under a new id", usage: "/fork" },
   { name: "rewind", description: "Drop last exchange from the thread", usage: "/rewind" },
   { name: "retry", description: "Re-run last prompt", usage: "/retry" },
+  { name: "rename", description: "Rename the active session", usage: "/rename <name>", args: "name" },
+  { name: "archive", description: "Archive the active session", usage: "/archive" },
   { name: "history", description: "Show prompt history", usage: "/history" },
+  { name: "transcript", description: "Browse the full thread with message numbers", usage: "/transcript [n]", args: "n" },
   { name: "queue", description: "Queue a prompt while a run is live, or list queue", usage: "/queue [prompt]", args: "prompt" },
   { name: "stop", description: "Interrupt the live run", usage: "/stop" },
   { name: "login", description: "Log in to a provider", usage: "/login [provider]", args: "provider" },
   { name: "logout", description: "Remove credentials for a provider", usage: "/logout <provider>", args: "provider" },
+  { name: "auth-status", description: "Show every stored account", usage: "/auth-status" },
+  { name: "auth-refresh", description: "Refresh refreshable credentials now", usage: "/auth-refresh" },
+  { name: "auth-use", description: "Prefer one stored account", usage: "/auth-use <provider> <id>", args: "provider id" },
   { name: "doctor", description: "Check config, creds and sessions", usage: "/doctor" },
   { name: "provider", description: "List configured providers and models", usage: "/provider" },
   { name: "agents", description: "List bundled agents", usage: "/agents" },
+  { name: "config", description: "Show effective read-only configuration", usage: "/config" },
+  { name: "settings", description: "Show runtime settings", usage: "/settings" },
+  { name: "theme", description: "Choose accent color (cyan|green|yellow|none)", usage: "/theme [color]", args: "color" },
   { name: "tools", description: "List builtin tools", usage: "/tools" },
+  { name: "allow", description: "Allowlist a tool for this session", usage: "/allow <tool>", args: "tool" },
+  { name: "deny", description: "Block a tool for this session", usage: "/deny <tool>", args: "tool" },
+  { name: "permissions", description: "Show write-approval mode (ask|auto)", usage: "/permissions [ask|auto]", args: "mode" },
+  { name: "plan", description: "Switch plan mode or view the working plan", usage: "/plan [on|off|show]", args: "mode" },
+  { name: "goal", description: "Set or show the session goal", usage: "/goal [text]", args: "text" },
+  { name: "tasks", description: "Inspect queued and finished runs", usage: "/tasks" },
+  { name: "add-dir", description: "Add a working directory to context", usage: "/add-dir <path>", args: "path" },
+  { name: "changelog", description: "Show recent rig changes", usage: "/changelog" },
+  { name: "hotkeys", description: "Show keyboard shortcuts", usage: "/hotkeys" },
   { name: "update", description: "Check for rig updates (add --install to apply)", usage: "/update [--install]", args: "flags" },
-  { name: "permissions", description: "Show/ask write-approval mode (ask|auto)", usage: "/permissions [ask|auto]", args: "mode" },
   { name: "review", description: "Review thread: counts, errors, open questions", usage: "/review" },
+  { name: "feedback", description: "Save redacted feedback to the data dir", usage: "/feedback <text>", args: "text" },
   { name: "quit", description: "Exit", usage: "/quit" },
 ];
 
@@ -156,6 +174,12 @@ export async function runTui(opts: TuiOpts): Promise<void> {
     throw new Error("no previous session found");
   }
   let approval: "ask" | "auto" = "ask";
+  let accent: "cyan" | "green" | "yellow" | "none" = "cyan";
+  let planMode = false;
+  let goal: string | undefined;
+  const extraDirs: string[] = [];
+  const deniedTools: Record<string, true> = {};
+  const allowedTools: Record<string, true> = {};
   const historyFile = path.join(getDataDir(opts.profile), "tui-history");
   let promptHistory: string[] = [];
   try {
@@ -176,8 +200,8 @@ export async function runTui(opts: TuiOpts): Promise<void> {
   };
   let histIdx = -1;
   const queue: string[] = [];
+  const tasks: Array<{ label: string; status: string; atMs: number }> = [];
   let lastPrompt: string | undefined;
-
   console.log(BANNER);
   console.log(statusText(opts.profile, model, sessionId));
   if (loadSession(sessionId, opts.profile) !== undefined) console.log(`${DIM}resumed ${sessionId}${RESET}`);
@@ -217,11 +241,13 @@ export async function runTui(opts: TuiOpts): Promise<void> {
     abort = new AbortController();
     const { signal } = abort;
     lastPrompt = text;
+    const effective = planMode ? `[plan mode: investigate and propose a plan, do not modify files] ${text}` : text;
+    const goalPrefix = goal ? `[session goal: ${goal}] ` : "";
     running = (async () => {
       try {
         const started = Date.now();
         let first = true;
-        const { text: answer, sessionId: id } = await runOnce(text, {
+        const { text: answer, sessionId: id } = await runOnce(`${goalPrefix}${effective}`, {
           model,
           maxSteps: opts.maxSteps ?? config.maxSteps ?? 30,
           profile: opts.profile,
@@ -250,8 +276,10 @@ export async function runTui(opts: TuiOpts): Promise<void> {
         });
         sessionId = id;
         process.stdout.write(`\n${DIM}(${(Date.now() - started) / 1000}s · ${id})${RESET}\n`);
+        tasks.push({ label: text.slice(0, 100), status: "done", atMs: Date.now() });
         void answer;
       } catch (err) {
+        tasks.push({ label: text.slice(0, 100), status: signal.aborted ? "interrupted" : "error", atMs: Date.now() });
         if (signal.aborted) console.log(`${YELLOW}interrupted${RESET}`);
         else console.log(`${YELLOW}error: ${err instanceof Error ? err.message : String(err)}${RESET}`);
       } finally {
@@ -372,9 +400,29 @@ export async function runTui(opts: TuiOpts): Promise<void> {
         await runPrompt(lastPrompt);
         break;
       }
-      case "/history": {
-        const tail = promptHistory.slice(-15);
-        console.log(tail.length === 0 ? "no history" : tail.map((h, i) => `  ${i + 1}. ${h.slice(0, 100)}`).join("\n"));
+      case "/rename": {
+        const cur = loadSession(sessionId, opts.profile);
+        if (!cur) {
+          console.log("no active thread");
+          break;
+        }
+        if (!args) {
+          console.log(cur.name ? `name: ${cur.name}` : "usage: /rename <name>");
+          break;
+        }
+        saveSession({ ...cur, name: args.slice(0, 80), updatedAtMs: Date.now() }, opts.profile);
+        console.log(`${DIM}renamed → ${args.slice(0, 80)}${RESET}`);
+        break;
+      }
+      case "/archive": {
+        const cur = loadSession(sessionId, opts.profile);
+        if (!cur) {
+          console.log("no active thread");
+          break;
+        }
+        saveSession({ ...cur, archived: true, updatedAtMs: Date.now() }, opts.profile);
+        sessionId = newSessionId();
+        console.log(`${DIM}archived; new thread ${sessionId}${RESET}`);
         break;
       }
       case "/model": {
@@ -483,6 +531,26 @@ export async function runTui(opts: TuiOpts): Promise<void> {
         }
         break;
       }
+      case "/auth-status": {
+        const { runAuthStatus } = await import("../auth/cli.js");
+        await runAuthStatus({ profile: opts.profile });
+        break;
+      }
+      case "/auth-refresh": {
+        const { runAuthRefresh } = await import("../auth/cli.js");
+        await runAuthRefresh({ profile: opts.profile });
+        break;
+      }
+      case "/auth-use": {
+        const [provider, id] = args.split(/\s+/);
+        if (!provider || !id) {
+          console.log("usage: /auth-use <provider> <id>");
+        } else {
+          const { runAuthUse } = await import("../auth/cli.js");
+          await runAuthUse(provider, id, { profile: opts.profile });
+        }
+        break;
+      }
       case "/doctor": {
         const { config, path: cfgPath } = loadConfig(getConfigPath(undefined, opts.profile));
         const creds = loadStore(opts.profile);
@@ -518,18 +586,65 @@ export async function runTui(opts: TuiOpts): Promise<void> {
       }
       case "/tools": {
         const { builtinTools } = await import("../tools/index.js");
-        console.log(builtinTools().map((t) => `  ${t.name} — ${t.description}`).join("\n"));
+        const rows = builtinTools().map((t) => {
+          const state = deniedTools[t.name] ? `${RED}denied${RESET}` : allowedTools[t.name] ? `${GREEN}allowed${RESET}` : "default";
+          return `  ${t.name} — ${t.description} [${state}]`;
+        });
+        console.log(rows.join("\n"));
         break;
       }
-      case "/permissions": {
+      case "/allow": {
         if (!args) {
-          console.log(`write approval: ${approval}  (usage: /permissions ask|auto)`);
-        } else if (args === "ask" || args === "auto") {
-          approval = args;
-          console.log(`${DIM}write approval → ${args}${RESET}`);
-        } else {
-          console.log(`usage: /permissions ask|auto`);
+          console.log("usage: /allow <tool>");
+          break;
         }
+        allowedTools[args] = true;
+        delete deniedTools[args];
+        console.log(`${DIM}${args} allowlisted for this session${RESET}`);
+        break;
+      }
+      case "/deny": {
+        if (!args) {
+          console.log("usage: /deny <tool>");
+          break;
+        }
+        deniedTools[args] = true;
+        delete allowedTools[args];
+        console.log(`${DIM}${args} blocked for this session${RESET}`);
+        break;
+      }
+      case "/transcript": {
+        const cur = loadSession(sessionId, opts.profile);
+        if (!cur) {
+          console.log("no active thread");
+          break;
+        }
+        const n = Math.max(1, parseInt(args || "20", 10) || 20);
+        const tail = cur.messages.slice(-n);
+        const start = cur.messages.length - tail.length;
+        for (let i = 0; i < tail.length; i++) {
+          const m = tail[i];
+          if (!m) continue;
+          const tag = m.role === "user" ? "you" : m.role === "assistant" ? "rig" : `tool:${m.name ?? ""}`;
+          console.log(`${DIM}[${start + i}]${RESET} ${GREEN}${tag}${RESET}: ${m.content.slice(0, 300)}${m.content.length > 300 ? "…" : ""}`);
+        }
+        break;
+      }
+      case "/steer": {
+        if (!args) {
+          console.log("usage: /steer <note>");
+          break;
+        }
+        queue.unshift(`[steering] ${args}`);
+        console.log(`${DIM}steering note queued first (${queue.length})${RESET}`);
+        break;
+      }
+      case "/tasks": {
+        if (tasks.length === 0 && queue.length === 0) console.log("no runs yet");
+        for (const t of tasks.slice(-10)) {
+          console.log(`  [${t.status}] ${t.label.slice(0, 90)} (${new Date(t.atMs).toLocaleTimeString()})`);
+        }
+        if (queue.length > 0) console.log(`  queued: ${queue.length}`);
         break;
       }
       case "/update": {
@@ -543,6 +658,86 @@ export async function runTui(opts: TuiOpts): Promise<void> {
           } else console.log(`update available: ${plan.current} → ${plan.latest}  (/update --install to apply)`);
         } catch (err) {
           console.log(`${YELLOW}error: ${err instanceof Error ? err.message : String(err)}${RESET}`);
+        }
+        break;
+      }
+      case "/config": {
+        const { config, path: cfgPath } = loadConfig(getConfigPath(undefined, opts.profile));
+        console.log(`config: ${cfgPath}`);
+        console.log(`defaultModel: ${config.defaultModel}`);
+        console.log(`defaultLightModel: ${config.defaultLightModel ?? "(unset)"}`);
+        console.log(`maxSteps: ${config.maxSteps ?? 30}  maxConcurrency: ${config.maxConcurrency ?? 4}`);
+        console.log(`providers: ${Object.keys(config.provider).join(", ") || "none"}`);
+        break;
+      }
+      case "/settings": {
+        console.log(`model: ${model}  approval: ${approval}  accent: ${accent}  planMode: ${planMode ? "on" : "off"}`);
+        console.log(`goal: ${goal ?? "(unset)"}  dirs: ${[process.cwd(), ...extraDirs].join(", ")}`);
+        console.log(`profile: ${opts.profile ?? "(default)"}  thread: ${sessionId}`);
+        break;
+      }
+      case "/theme": {
+        if (!args) console.log(`accent: ${accent}  (cyan|green|yellow|none)`);
+        else if (args === "cyan" || args === "green" || args === "yellow" || args === "none") {
+          accent = args;
+          console.log(`${DIM}accent → ${args}${RESET}`);
+        } else console.log("usage: /theme cyan|green|yellow|none");
+        break;
+      }
+      case "/plan": {
+        if (!args || args === "show") console.log(planMode ? "plan mode: on (proposes, does not modify)" : "plan mode: off");
+        else if (args === "on") {
+          planMode = true;
+          console.log(`${DIM}plan mode on${RESET}`);
+        } else if (args === "off") {
+          planMode = false;
+          console.log(`${DIM}plan mode off${RESET}`);
+        } else console.log("usage: /plan [on|off|show]");
+        break;
+      }
+      case "/goal": {
+        if (!args) console.log(goal ? `goal: ${goal}` : "no goal set (usage: /goal <text>)");
+        else {
+          goal = args.slice(0, 300);
+          console.log(`${DIM}goal set${RESET}`);
+        }
+        break;
+      }
+      case "/add-dir": {
+        if (!args) console.log(`dirs: ${[process.cwd(), ...extraDirs].join("\n  ")}`);
+        else {
+          try {
+            fs.accessSync(args);
+            extraDirs.push(args);
+            console.log(`${DIM}added ${args}${RESET}`);
+          } catch {
+            console.log(`${YELLOW}not found: ${args}${RESET}`);
+          }
+        }
+        break;
+      }
+      case "/changelog": {
+        console.log(
+          [
+            "v0.3.0 — rig update command (CLI + TUI)",
+            "v0.2.0 — interactive session, threads, exec formats, env-only login",
+            "v0.1.0 — headless runs, auth pool, worktree subagents, roles, search",
+          ].join("\n"),
+        );
+        break;
+      }
+      case "/hotkeys": {
+        console.log(["  Tab — complete /command", "  ↑/↓ — prompt history", "  Ctrl+C — interrupt run, again exits", "  Enter — send"].join("\n"));
+        break;
+      }
+      case "/feedback": {
+        if (!args) console.log("usage: /feedback <text>");
+        else {
+          const fp = path.join(getDataDir(opts.profile), "feedback.log");
+          fs.mkdirSync(path.dirname(fp), { recursive: true });
+          const redacted = args.replace(/(sk-|api[_-]?key=)[^\s]+/gi, "$1…");
+          fs.appendFileSync(fp, `${new Date().toISOString()} ${redacted.slice(0, 500)}\n`);
+          console.log(`${DIM}thanks — saved${RESET}`);
         }
         break;
       }

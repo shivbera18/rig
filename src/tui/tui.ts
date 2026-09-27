@@ -58,6 +58,7 @@ const SLASH: SlashDef[] = [
   { name: "provider", description: "List configured providers and models", usage: "/provider" },
   { name: "agents", description: "List bundled agents", usage: "/agents" },
   { name: "tools", description: "List builtin tools", usage: "/tools" },
+  { name: "update", description: "Check for rig updates (add --install to apply)", usage: "/update [--install]", args: "flags" },
   { name: "permissions", description: "Show/ask write-approval mode (ask|auto)", usage: "/permissions [ask|auto]", args: "mode" },
   { name: "review", description: "Review thread: counts, errors, open questions", usage: "/review" },
   { name: "quit", description: "Exit", usage: "/quit" },
@@ -528,6 +529,20 @@ export async function runTui(opts: TuiOpts): Promise<void> {
           console.log(`${DIM}write approval → ${args}${RESET}`);
         } else {
           console.log(`usage: /permissions ask|auto`);
+        }
+        break;
+      }
+      case "/update": {
+        const { planUpdate } = await import("../update/update.js");
+        try {
+          const plan = await planUpdate();
+          if (!plan.needed) console.log(`rig ${plan.current} — already latest`);
+          else if (args.includes("--install") || args.includes("-y")) {
+            const { runUpdate } = await import("../update/update.js");
+            await runUpdate({ yes: true });
+          } else console.log(`update available: ${plan.current} → ${plan.latest}  (/update --install to apply)`);
+        } catch (err) {
+          console.log(`${YELLOW}error: ${err instanceof Error ? err.message : String(err)}${RESET}`);
         }
         break;
       }

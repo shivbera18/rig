@@ -55,6 +55,16 @@ async function main(): Promise<void> {
     );
 
   program
+    .command("update")
+    .description("update rig to the latest version")
+    .option("--check", "only check, do not install")
+    .option("-y, --yes", "skip confirmation")
+    .action(async (opts: { check?: boolean; yes?: boolean }) => {
+      const { runUpdate } = await import("./update/update.js");
+      await runUpdate(opts);
+    });
+
+  program
     .command("login [provider]")
     .description("log in to a provider")
     .action(async (provider?: string) => {

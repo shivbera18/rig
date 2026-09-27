@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.rig-*
+*.tmp
+.DS_Store

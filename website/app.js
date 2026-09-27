@@ -13,7 +13,7 @@ document.querySelectorAll('[data-copy]').forEach((el) => {
     const text = el.getAttribute('data-copy') || '';
     try {
       await navigator.clipboard.writeText(text);
-      showToast('Copied to clipboard');
+      showToast(`Copied: ${text.slice(0, 48)}${text.length > 48 ? '…' : ''}`);
     } catch {
       showToast(text);
     }
@@ -64,7 +64,7 @@ document.querySelectorAll('.faq-item .faq-q').forEach((btn) => {
   });
 });
 
-// GSAP scroll reveals
+// GSAP scroll reveals (video stays fixed fullscreen; content floats over it).
 if (window.gsap && window.ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
   gsap.utils.toArray('[data-reveal]').forEach((el, i) => {
@@ -73,14 +73,5 @@ if (window.gsap && window.ScrollTrigger) {
       delay: (i % 3) * 0.06,
       scrollTrigger: { trigger: el, start: 'top 88%' },
     });
-  });
-  // Hero video scrolls up and away with the first viewport.
-  gsap.to('.hero-stage .bg-video', {
-    yPercent: -14, ease: 'none',
-    scrollTrigger: { trigger: '.hero-stage', start: 'top top', end: 'bottom top', scrub: true },
-  });
-  gsap.to('.hero-terminal', {
-    y: -30, ease: 'none',
-    scrollTrigger: { trigger: '.hero-stage', start: 'top top', end: 'bottom top', scrub: true },
   });
 }

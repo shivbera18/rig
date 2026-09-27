@@ -24,8 +24,8 @@ const CYAN = "\u001b[36m";
 const RED = "\u001b[31m";
 const RESET = "\u001b[0m";
 
-const BANNER = `${BOLD}${CYAN}  █▀█ ▄█ ▄▀█${RESET}
-${BOLD}${CYAN}  █▀▄ ░█ █░█${RESET}  ${DIM}type /help · / to browse commands · Tab completes${RESET}`;
+const BANNER = `${BOLD}${CYAN}  ○─╮${RESET}
+${BOLD}${CYAN}  ○─╯▌${RESET}  ${DIM}rig · type /help · / to browse commands · Tab completes${RESET}`;
 
 interface SlashDef {
   name: string;

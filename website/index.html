@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rig — the coding harness that stays in session</title>
+<meta name="description" content="rig is an interactive + headless coding-agent CLI: persistent sessions, multi-account auth pool, worktree-isolated subagents, model roles, web search.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="bg-stage" aria-hidden="true">
+  <video class="bg-video" autoplay loop muted playsinline>
+    <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4" type="video/mp4">
+  </video>
+  <div class="bg-shade"></div>
+</div>
+
+<header class="nav relative z-10">
+  <div class="nav-inner">
+    <a class="logo" href="#top">rig<sup>®</sup></a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#top" class="active">Home</a>
+      <a href="#install">Install</a>
+      <a href="#features">Features</a>
+      <a href="#commands">Commands</a>
+      <a href="#auth">Auth</a>
+    </nav>
+    <a class="btn-glass btn-sm" href="#install">Begin Journey</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero relative z-10">
+    <p class="kicker animate-fade-rise">interactive + headless coding-agent CLI · v0.4.1</p>
+    <h1 class="animate-fade-rise">Where <em>rigs</em> run through the silence.</h1>
+    <p class="sub animate-fade-rise-delay">Bare <code>rig</code> drops you into a persistent session. Forty-five slash commands, streaming answers, subagents in isolated worktrees. When the run ends, the thread stays.</p>
+    <div class="hero-cta animate-fade-rise-delay-2">
+      <a class="btn-glass btn-lg" href="#install">Begin Journey</a>
+      <button class="btn-ghost" data-copy="npm install -g @shivcdhry/rig" type="button">Copy install command</button>
+    </div>
+    <div class="hero-terminal animate-fade-rise-delay-2" aria-label="rig session preview">
+      <div class="term-bar"><span></span><span></span><span></span><em>rig — session mujx0kv8</em></div>
+      <pre class="term-body"><code><span class="t-dim">$</span> <span class="t-cmd" id="typed-line"></span><span class="caret">▊</span>
+<span class="t-dim">· read package.json</span>
+<span class="t-dim">· edit src/index.ts</span>
+<span class="t-ok">package name is rig</span>
+<span class="t-dim">(1.4s · mujx0kv8-4s30iw)</span></code></pre>
+    </div>
+  </section>
+
+  <section id="install" class="section band-install">
+    <div class="wrap">
+      <p class="sec-kicker">Install</p>
+      <h2>One command. Sixty seconds. <em>A harness.</em></h2>
+      <p class="sec-sub">Requires Node ≥ 22. Global install gives you the <code>rig</code> binary everywhere.</p>
+      <div class="cmd-grid">
+        <div class="cmd-card" data-reveal>
+          <p class="cmd-label">Install globally</p>
+          <pre><code>npm install -g @shivcdhry/rig</code></pre>
+          <button data-copy="npm install -g @shivcdhry/rig" type="button">Copy</button>
+        </div>
+        <div class="cmd-card" data-reveal>
+          <p class="cmd-label">Run once, no install</p>
+          <pre><code>npx @shivcdhry/rig exec "list TODOs in this repo"</code></pre>
+          <button data-copy="npx @shivcdhry/rig exec &quot;list TODOs in this repo&quot;" type="button">Copy</button>
+        </div>
+        <div class="cmd-card" data-reveal>
+          <p class="cmd-label">Update later</p>
+          <pre><code>rig update</code></pre>
+          <button data-copy="rig update" type="button">Copy</button>
+        </div>
+        <div class="cmd-card" data-reveal>
+          <p class="cmd-label">First session</p>
+          <pre><code>rig
+rig tui --model @smol</code></pre>
+          <button data-copy="rig tui --model @smol" type="button">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="section band-features">
+    <div class="wrap">
+      <p class="sec-kicker">Why rig</p>
+      <h2>Built for long runs, <em>not one-shots.</em></h2>
+      <div class="feat-grid">
+        <article data-reveal><h3>Persistent sessions</h3><p>Every answer saves to <code>~/.rig/sessions/</code>. Resume, fork, rewind, retry, compact. The thread outlives the terminal.</p></article>
+        <article data-reveal><h3>45 slash commands</h3><p>Status, usage, context, transcript, plan mode, goals, steering notes, task queue. Tab completes, fuzzy match forgives typos.</p></article>
+        <article data-reveal><h3>Multi-account auth pool</h3><p>Round-robin credentials with 401/403 fallback. <code>auth status</code>, <code>auth refresh</code>, <code>auth use</code> keep every account healthy.</p></article>
+        <article data-reveal><h3>Isolated subagents</h3><p><code>task</code> spawns agents in detached git worktrees and merges their diffs back as patches. Your tree stays clean.</p></article>
+        <article data-reveal><h3>Model roles</h3><p><code>@smol</code> for mechanical edits, <code>@default</code> for deep work, <code>@vision</code> for images. One flag switches the chain.</p></article>
+        <article data-reveal><h3>CI-friendly headless</h3><p><code>exec --format json</code> and <code>--format stream-json</code> pipe structured results into scripts, with <code>--output</code> and <code>--quiet</code>.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="commands" class="section band-commands">
+    <div class="wrap">
+      <p class="sec-kicker">Command deck</p>
+      <h2>Everything the session <em>can do.</em></h2>
+      <div class="tabs" role="tablist" aria-label="Command groups">
+        <button role="tab" aria-selected="true" data-tab="session" type="button">Session</button>
+        <button role="tab" aria-selected="false" data-tab="run" type="button">Run control</button>
+        <button role="tab" aria-selected="false" data-tab="auth" type="button">Auth</button>
+        <button role="tab" aria-selected="false" data-tab="meta" type="button">Meta</button>
+      </div>
+      <div class="tab-panels">
+        <pre data-panel="session" data-reveal><code>/new /resume /fork /rewind /retry /rename /archive
+/sessions /transcript /history /compact /export /copy
+/model /status /usage /context</code></pre>
+        <pre data-panel="run" data-reveal hidden><code>/queue /stop /steer /tasks /plan /goal
+/allow /deny /permissions /agents /tools /add-dir</code></pre>
+        <pre data-panel="auth" data-reveal hidden><code>rig login / rig logout
+rig auth check / rig auth status
+rig auth refresh / rig auth use &lt;provider&gt; &lt;id&gt;</code></pre>
+        <pre data-panel="meta" data-reveal hidden><code>/doctor /provider /config /settings /theme
+/hotkeys /changelog /feedback /update /review /quit</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="auth" class="section band-auth">
+    <div class="wrap">
+      <p class="sec-kicker">Auth that survives reality</p>
+      <h2>Keys today. <em>OAuth when ready.</em></h2>
+      <p class="sec-sub"><code>opencode-zen</code> takes an API key now. OAuth providers activate via env client IDs, then <code>rig login</code> just works.</p>
+      <div class="cmd-grid">
+        <div class="cmd-card" data-reveal>
+          <p class="cmd-label">Log in</p>
+          <pre><code>rig login
+rig login opencode-zen</code></pre>
+          <button data-copy="rig login opencode-zen" type="button">Copy</button>
+        </div>
+        <div class="cmd-card" data-reveal>
+          <p class="cmd-label">Stay healthy</p>
+          <pre><code>rig auth status
+rig auth refresh</code></pre>
+          <button data-copy="rig auth status" type="button">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band-finale">
+    <div class="wrap center">
+      <h2 data-reveal>Your next run <em>remembers this one.</em></h2>
+      <div class="hero-cta" data-reveal>
+        <a class="btn-glass btn-lg" href="#install">Begin Journey</a>
+      </div>
+      <p class="fine">MIT · <code>@shivcdhry/rig</code> · Node ≥ 22 · <a href="https://github.com/shivbera18/rig">github.com/shivbera18/rig</a></p>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

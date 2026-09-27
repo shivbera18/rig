@@ -72,8 +72,7 @@ a { color: inherit; }
 .btn-ghost:hover { border-color: hsl(0 0% 100%); transform: scale(1.03); }
 .btn-ghost:active { transform: scale(0.97); }
 .btn-copy { display: inline-flex; align-items: center; gap: 0.9rem; padding: 0.9rem 0.9rem 0.9rem 1.4rem; max-width: min(30rem, 100%); }
-.btn-copy code { background: rgba(0,0,0,0.35); color: hsl(0 0% 100%); font-size: 0.85rem; padding: 0.35em 0.7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.btn-copy span { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; border-left: 1px solid rgba(255,255,255,0.25); padding-left: 0.9rem; padding-right: 0.5rem; flex-shrink: 0; }
+.btn-copy code { background: transparent; color: inherit; font-size: 0.85rem; padding: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; user-select: text; }
 
 .hero { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 90px 1.5rem 10rem; }
 .kicker { color: hsl(var(--muted-foreground)); font-size: 0.875rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 1.5rem; }

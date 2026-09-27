@@ -30,9 +30,8 @@ export const editTool: Tool = {
     const i = raw.indexOf(a.oldText);
     if (i < 0) return `error: oldText not found in ${a.path}`;
     await fs.promises.writeFile(p, raw.slice(0, i) + a.newText + raw.slice(i + a.oldText.length), "utf8");
-    // Diff display is capped at 2000 chars and computed in a single pass:
-    // per MINIMAX_CHANGES.md (2026-09-21), a second patch pass doubles cost
-    // for no user-visible gain on a first-occurrence replace.
+    // Diff preview is capped at 2000 chars and computed in a single pass —
+    // a second patch pass doubles cost for no user-visible gain.
     const preview = `-${a.oldText}\n+${a.newText}`.slice(0, 2000);
     return `edited ${a.path}\n${preview}`;
   },

@@ -20,6 +20,9 @@ export interface RunTurnOpts {
   signal?: AbortSignal;
   sequential?: boolean;
   cwd?: string;
+  onText?: (delta: string) => void;
+  onToolStart?: (name: string, args: string) => void;
+  onToolEnd?: (name: string, preview: string) => void;
 }
 
 interface PendingCall {
@@ -43,8 +46,10 @@ export async function runTurn(opts: RunTurnOpts): Promise<AgentMessage[]> {
     const streamOpts: { signal?: AbortSignal } = {};
     if (opts.signal !== undefined) streamOpts.signal = opts.signal;
     for await (const e of opts.streamFn(opts.model, messages, streamOpts)) {
-      if (e.type === "text") text += e.delta;
-      else calls.push({ id: e.id, name: e.name, args: e.args });
+      if (e.type === "text") {
+        text += e.delta;
+        opts.onText?.(e.delta);
+      } else calls.push({ id: e.id, name: e.name, args: e.args });
     }
     if (text) {
       out.push({ role: "assistant", content: text });
@@ -74,24 +79,24 @@ export async function runTurn(opts: RunTurnOpts): Promise<AgentMessage[]> {
           isError: true,
         };
       }
+      opts.onToolStart?.(c.name, c.args);
+      let content: string;
       try {
-        return { role: "toolResult", toolCallId: c.id, name: c.name, content: await tool.execute(args, ctx) };
+        content = await tool.execute(args, ctx);
       } catch (err) {
-        return {
-          role: "toolResult",
-          toolCallId: c.id,
-          name: c.name,
-          content: `error: ${(err as Error).message}`,
-          isError: true,
-        };
+        content = `error: ${(err as Error).message}`;
+        opts.onToolEnd?.(c.name, content.slice(0, 200));
+        return { role: "toolResult", toolCallId: c.id, name: c.name, content, isError: true };
       }
+      opts.onToolEnd?.(c.name, content.slice(0, 200));
+      return { role: "toolResult", toolCallId: c.id, name: c.name, content };
     };
     const results: AgentMessage[] = [];
     if (opts.sequential) {
       for (const c of calls) results.push(await runOne(c));
     } else {
-      // Parallel by default (pi-mono ToolExecutionMode semantics): every call
-      // in one step runs concurrently; pass sequential only when order matters.
+      // Parallel by default: every call in one step runs concurrently;
+      // pass sequential only when order matters.
       results.push(...(await Promise.all(calls.map(runOne))));
     }
     for (const r of results) {

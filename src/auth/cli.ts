@@ -1,4 +1,4 @@
-import { LOGIN_PROVIDERS } from "./catalog.js";
+import { LOGIN_PROVIDERS, setupHint } from "./catalog.js";
 import { LoginFailedError, apiKeyLogin, deviceCodeLogin, oauthCodeLogin, promptLine } from "./engines.js";
 import { removeProviderCreds, upsertCredential } from "./store.js";
 import type { StoredCredential } from "./store.js";
@@ -53,14 +53,16 @@ function relistModels(provider: string, explicitProfile?: string): void {
   for (const m of Object.keys(entry.models)) console.log(`  - ${provider}/${m}`);
 }
 
-// Copy of the omp login-cli.ts flow reduced to the local JSON store:
-// pick → engine by login kind → persist → re-list unlocked models.
+// Local login flow: pick → engine by login kind → persist → re-list models.
 export async function runLogin(provider: string | undefined, opts: CliOpts): Promise<void> {
   try {
     const id = provider ?? (await pickProvider());
     const def = LOGIN_PROVIDERS.find((p) => p.id === id);
     if (!def) {
-      process.stderr.write(`Login failed: unknown provider '${id}'. Run \`rig login\` to pick one.\n`);
+      const hint = setupHint(id);
+      process.stderr.write(
+        `Login failed: unknown provider '${id}'. ${hint ? `${hint}. ` : ""}Run \`rig login\` to pick one.\n`,
+      );
       process.exitCode = 1;
       return;
     }
@@ -80,8 +82,7 @@ export async function runLogin(provider: string | undefined, opts: CliOpts): Pro
         result = await deviceCodeLogin(def.deviceFallback);
       }
       persist(id, result, opts.profile);
-      // omp google-antigravity-project hook hint: project provisioning lives
-      // in the pool slice's refresh/probe; a later 403 means re-login.
+      // Project provisioning hint: a later 403 means re-login.
       if (id === "google-antigravity") {
         console.log("Note: if model calls fail with 403, re-run `rig login google-antigravity` to re-provision the Cloud project.");
       }

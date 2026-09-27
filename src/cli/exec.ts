@@ -1,15 +1,19 @@
 import fs from "node:fs";
 import { getConfigPath, loadConfig } from "../config.js";
-import { streamFor } from "../providers/dispatch.js";
-import { loadStore } from "../auth/store.js";
-import { builtinTools } from "../tools/index.js";
-import { runTurn } from "../turn/loop.js";
-import type { ChatMessage } from "../providers/types.js";
+import { resolveRef, runOnce } from "./runner.js";
+import { loadSession, mostRecentSession, newSessionId } from "../session/store.js";
 
 export interface ExecOpts {
   model?: string;
   maxSteps?: number;
   profile?: string | undefined;
+  session?: string | undefined;
+  continue?: boolean;
+  resume?: string | undefined;
+  printSession?: boolean;
+  format?: "text" | "json" | "stream-json";
+  output?: string | undefined;
+  quiet?: boolean;
 }
 
 export async function runExec(prompt: string, opts: ExecOpts): Promise<void> {
@@ -18,46 +22,59 @@ export async function runExec(prompt: string, opts: ExecOpts): Promise<void> {
   } catch {
     console.error("rig: warning: not a git repository; running in-place with isolation disabled");
   }
-  const { config } = loadConfig(getConfigPath(undefined, opts.profile));
-  let ref = opts.model ?? config.defaultModel;
-  if (ref.startsWith("@")) {
-    // NOTE: await import is genuinely runtime-selected here — the roles module
-    // belongs to a sibling slice and may not exist yet; a static import would
-    // hard-fail the bundle when it hasn't landed.
-    try {
-      ref = (await import("../agents/roles.js")).resolveRoleChain(ref, config);
-    } catch (err) {
-      if (err instanceof Error && err.message.startsWith("unknown model role")) throw err;
-      throw new Error(`unknown model role ${ref}`);
-    }
+  // --continue/--resume/--session: carry history forward instead of starting cold.
+  // --session <id> forks/extends a named thread; --resume <id>/--continue reuse one.
+  const wanted =
+    opts.resume ?? opts.session ?? (opts.continue === true ? mostRecentSession(opts.profile)?.id : undefined);
+  if (opts.continue === true && wanted === undefined) throw new Error("no previous session found");
+  if (opts.resume !== undefined && wanted === undefined) throw new Error("no session found");
+  if (wanted !== undefined && loadSession(wanted, opts.profile) === undefined && opts.session !== undefined) {
+    // --session with an unknown id starts a fresh named thread.
+  } else if (wanted !== undefined && loadSession(wanted, opts.profile) === undefined) {
+    throw new Error(`no session found: ${wanted}`);
   }
-  const slash = ref.indexOf("/");
-  if (slash < 0) throw new Error(`model must be "provider/model", got "${ref}"`);
-  const providerId = ref.slice(0, slash);
-  const entry = config.provider[providerId];
-  if (!entry) throw new Error(`unknown provider "${providerId}" (not in config)`);
-  const apiKey =
-    (entry.apiKeyEnv ? process.env[entry.apiKeyEnv] : undefined) ??
-    loadStore(opts.profile).find((c) => c.provider === providerId)?.access;
-  const bound: { baseUrl: string; providerId: string; apiKey?: string } = {
-    baseUrl: entry.baseUrl,
-    providerId,
-  };
-  if (apiKey !== undefined) bound.apiKey = apiKey;
-  const streamFn = await streamFor(entry.apiFormat, bound);
-  const messages: ChatMessage[] = [{ role: "user", content: prompt }];
-  const history = await runTurn({
-    messages,
-    model: ref,
-    streamFn,
-    tools: builtinTools(),
-    maxSteps: opts.maxSteps ?? config.maxSteps ?? 30,
-  });
-  for (let i = history.length - 1; i >= 0; i--) {
-    const m = history[i];
-    if (m?.role === "assistant") {
-      console.log(m.content);
-      return;
+  const sessionId = wanted ?? (opts.session === undefined ? undefined : opts.session) ?? newSessionId();
+  const { config } = loadConfig(getConfigPath(undefined, opts.profile));
+  const ref = await resolveRef(opts.model, config);
+  const started = Date.now();
+  const events: Array<Record<string, unknown>> = [];
+  const emit = (e: Record<string, unknown>): void => {
+    events.push(e);
+    if (opts.format === "stream-json") {
+      const line = `${JSON.stringify(e)}\n`;
+      if (opts.output !== undefined) fs.appendFileSync(opts.output, line);
+      else process.stdout.write(line);
     }
+  };
+  const { text } = await runOnce(prompt, {
+    model: opts.model,
+    maxSteps: opts.maxSteps,
+    profile: opts.profile,
+    sessionId,
+    onText: (delta) => emit({ type: "text", delta, sessionId }),
+    onToolStart: (name, args) => emit({ type: "tool-start", name, args, sessionId }),
+    onToolEnd: (name, preview) => emit({ type: "tool-end", name, preview, sessionId }),
+  });
+  const result = {
+    sessionId,
+    model: ref,
+    prompt,
+    text,
+    durationMs: Date.now() - started,
+  };
+  if (opts.format === "json") {
+    const line = `${JSON.stringify(result)}\n`;
+    if (opts.output !== undefined) fs.writeFileSync(opts.output, line);
+    else console.log(line.trimEnd());
+  } else if (opts.format === "stream-json") {
+    emit({ type: "result", ...result });
+  } else if (opts.quiet !== true) {
+    if (opts.output !== undefined) fs.writeFileSync(opts.output, text.endsWith("\n") ? text : `${text}\n`);
+    else console.log(text);
+  } else if (opts.output !== undefined) {
+    fs.writeFileSync(opts.output, text.endsWith("\n") ? text : `${text}\n`);
+  }
+  if (opts.printSession === true || opts.resume !== undefined || opts.continue === true || opts.session !== undefined) {
+    console.error(`session: ${sessionId}`);
   }
 }

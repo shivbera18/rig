@@ -4,8 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import readline from "node:readline";
 import type { DeviceCodeLoginDef, OAuthCodeLoginDef } from "./catalog.js";
 
-// Ports omp's registry engines (packages/ai/src/registry/engine/
-// oauth-code.ts, device-code.ts, api-key.ts) reduced to fetch + node:http.
+// Browser + device-code login engines over fetch + node:http.
 // Callers persist via upsertCredential; engines only return fresh secrets.
 
 export interface LoginResult {
@@ -30,7 +29,7 @@ export function promptLine(message: string): Promise<string> {
   });
 }
 
-// Prints the omp `Login failed: …` line and marks exit 1; throws
+// Prints the `Login failed: …` line and marks exit 1; throws
 // LoginFailedError so callers can distinguish an already-reported failure
 // (e.g. the openai-codex device-code fallback) from fresh errors.
 function fail(reason: string): never {
@@ -181,7 +180,7 @@ async function bestEffortEmail(
 
 export async function oauthCodeLogin(def: OAuthCodeLoginDef): Promise<LoginResult> {
   // PKCE S256 (RFC 7636): 96 random bytes → base64url verifier,
-  // sha256+base64url challenge (omp `generatePKCE`).
+  // sha256+base64url challenge.
   const verifier = randomBytes(96).toString("base64url");
   const challenge = createHash("sha256").update(verifier).digest("base64url");
   const state = randomBytes(16).toString("base64url");
@@ -205,7 +204,7 @@ export async function oauthCodeLogin(def: OAuthCodeLoginDef): Promise<LoginResul
     if ((err as NodeJS.ErrnoException).code !== "EADDRINUSE") {
       fail(err instanceof Error ? err.message : String(err));
     }
-    // Occupied loopback port → pasted-code flow (omp `pasteCode` equivalent).
+    // Occupied loopback port → pasted-code fallback.
     console.log(`Port ${def.callbackPort} is busy; finish sign-in in your browser, then paste the code.`);
     console.log(url);
     code = parsePastedCode(await promptLine("Paste the code (or full redirect URL): "));
@@ -217,10 +216,9 @@ export async function oauthCodeLogin(def: OAuthCodeLoginDef): Promise<LoginResul
   }
 }
 
-// openai-codex headless flow (omp `loginOpenAICodexDevice`): non-standard
-// device endpoints — POST usercode, poll token with device_auth_id,
-// 403/404 = pending — then the normal PKCE code exchange.
-async function loginOpenAICodexDevice(def: DeviceCodeLoginDef): Promise<LoginResult> {
+// Headless device flow: non-standard device endpoints — POST usercode, poll
+// token with device_auth_id, 403/404 = pending — then the PKCE code exchange.
+async function loginDeviceCodeHeadless(def: DeviceCodeLoginDef): Promise<LoginResult> {
   let initRes: Response;
   try {
     initRes = await fetch(def.deviceUrl, {
@@ -264,7 +262,7 @@ async function loginOpenAICodexDevice(def: DeviceCodeLoginDef): Promise<LoginRes
 }
 
 export async function deviceCodeLogin(def: DeviceCodeLoginDef): Promise<LoginResult> {
-  if (def.deviceUrl.includes("deviceauth/usercode")) return loginOpenAICodexDevice(def);
+  if (def.deviceUrl.includes("deviceauth/usercode")) return loginDeviceCodeHeadless(def);
   // Standard RFC 8628 device flow: POST device auth, poll per interval, honor expires_in.
   let initRes: Response;
   try {

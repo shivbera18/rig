@@ -6,8 +6,8 @@ import { LOGIN_PROVIDERS, setupHint } from "../auth/catalog.js";
 import { loadStore } from "../auth/store.js";
 import { listSessions, loadSession, mostRecentSession, newSessionId, saveSession } from "../session/store.js";
 import { runOnce } from "../cli/runner.js";
+import { attachSuggest } from "./suggest.js";
 import type { ChatMessage } from "../providers/types.js";
-
 export interface TuiOpts {
   model?: string;
   maxSteps?: number;
@@ -136,19 +136,25 @@ function threadMarkdown(sessionId: string, profile?: string | undefined): string
   return out.join("\n");
 }
 
-function fuzzy(hay: string, needle: string): boolean {
-  let j = 0;
+function fuzzyScore(hay: string, needle: string): number {
+  if (!needle) return 1;
   const h = hay.toLowerCase();
   const n = needle.toLowerCase();
+  if (h.startsWith(n)) return 3;
+  if (h.includes(n)) return 2;
+  let j = 0;
   for (const ch of h) {
     if (ch === n[j]) j++;
-    if (j >= n.length) return true;
+    if (j >= n.length) return 1;
   }
-  return j >= n.length;
+  return 0;
 }
 
-function completeSlash(frag: string): string[] {
-  return SLASH.filter((c) => fuzzy(c.name, frag)).map((c) => `/${c.name}`);
+function completeSlash(frag: string): Array<[string, string]> {
+  return SLASH.map((c) => ({ c, s: fuzzyScore(c.name, frag) }))
+    .filter((r) => r.s > 0)
+    .sort((a, b) => b.s - a.s || a.c.name.localeCompare(b.c.name))
+    .map((r) => [`/${r.c.name}`, r.c.description]);
 }
 
 async function copyToClipboard(text: string): Promise<boolean> {
@@ -205,7 +211,6 @@ export async function runTui(opts: TuiOpts): Promise<void> {
   console.log(BANNER);
   console.log(statusText(opts.profile, model, sessionId));
   if (loadSession(sessionId, opts.profile) !== undefined) console.log(`${DIM}resumed ${sessionId}${RESET}`);
-
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -213,10 +218,10 @@ export async function runTui(opts: TuiOpts): Promise<void> {
     completer: (line: string) => {
       const m = line.match(/(^|\s)(\/\w*)$/);
       if (!m) return [[], line] as [[string[], string][number][], string];
-      return [completeSlash((m[2] ?? "/").slice(1)), m[2] ?? "/"];
+      const hits = completeSlash((m[2] ?? "/").slice(1)).map(([cmd]) => cmd);
+      return [hits, m[2] ?? "/"];
     },
   });
-
   let running: Promise<void> | undefined;
   let abort: AbortController | undefined;
 
@@ -225,17 +230,23 @@ export async function runTui(opts: TuiOpts): Promise<void> {
     else rl.close();
   });
 
-  const ask = (): void => rl.prompt();
-  readline.emitKeypressEvents(process.stdin);
-  process.stdin.on("keypress", (_ch: unknown, key?: { name?: string }) => {
-    if (key?.name !== "up" && key?.name !== "down") return;
-    if (promptHistory.length === 0) return;
-    if (histIdx < 0) histIdx = promptHistory.length;
-    histIdx += key.name === "up" ? -1 : 1;
-    histIdx = Math.max(0, Math.min(promptHistory.length, histIdx));
-    rl.write(null, { ctrl: true, name: "u" });
-    rl.write(promptHistory[histIdx] ?? "");
-  });
+  const { clear: clearSuggest, ask } = attachSuggest(
+    rl,
+    process.stdout,
+    (frag) => completeSlash(frag),
+    DIM,
+    GREEN,
+    RESET,
+    (dir) => {
+      if (promptHistory.length === 0) return;
+      if (histIdx < 0) histIdx = promptHistory.length;
+      histIdx += dir === -1 ? -1 : 1;
+      histIdx = Math.max(0, Math.min(promptHistory.length, histIdx));
+      rl.write(null, { ctrl: true, name: "u" });
+      rl.write(promptHistory[histIdx] ?? "");
+    },
+  );
+  void clearSuggest;
 
   async function runPrompt(text: string): Promise<void> {
     abort = new AbortController();

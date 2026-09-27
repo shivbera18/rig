@@ -12,29 +12,38 @@ async function main(): Promise<void> {
     .option("--profile <name>", "config profile");
 
   program
-    .command("exec <prompt>")
+    .command("exec [prompt]")
     .description("headless agent run (saves a session per run)")
     .option("--model <m>", "provider/model or @smol|@default|@vision")
     .option("--max-steps <n>", "max tool steps", (v: string) => parseInt(v, 10))
-    .option("--session <id>", "continue or fork a named session thread")
-    .option("--resume <id>", "resume a session by id")
+    .option("--session <id>", "run in an existing session thread")
     .option("-c, --continue", "continue the most recent session")
     .option("--print-session", "print the session id to stderr after the run")
-    .option("--format <f>", "output format: text|json|stream-json")
-    .option("--output <file>", "write result to file instead of stdout")
-    .option("--quiet", "suppress text output (use with --output)")
+    .option("--input <source>", "read prompt from file or - for stdin")
+    .option("--cwd <path>", "workspace directory for tools")
+    .option("--file <path>", "attach a file as context (repeatable)", (v: string, p: string[]) => [...p, v], [] as string[])
+    .option("--timeout <duration>", "run timeout, e.g. 30s 2m 500ms")
+    .option("--output-format <f>", "output format: text|json|stream-json")
+    .option("--format <f>", "alias of --output-format")
+    .option("--output-schema <schema>", "JSON Schema file or inline object validating the final answer")
+    .option("-o, --output-last-message <file>", "write the final agent message to a file")
+    .option("--output <file>", "alias of --output-last-message for text format")
+    .option("--quiet", "suppress text output (use with --output-last-message)")
+    .option("--diagnostics-dir <path>", "save bounded run diagnostics to a fresh directory")
     .action(
       async (
-        prompt: string,
-        opts: { model?: string; maxSteps?: number; session?: string; resume?: string; continue?: boolean; printSession?: boolean; format?: string; output?: string; quiet?: boolean },
+        prompt: string | undefined,
+        opts: { model?: string; maxSteps?: number; session?: string; continue?: boolean; printSession?: boolean; input?: string; cwd?: string; file?: string[]; timeout?: string; outputFormat?: string; format?: string; outputSchema?: string; outputLastMessage?: string; output?: string; quiet?: boolean; diagnosticsDir?: string },
       ) => {
-        const { format: rawFormat, ...rest } = opts;
-        if (rawFormat !== undefined && rawFormat !== "text" && rawFormat !== "json" && rawFormat !== "stream-json") {
-          throw new Error(`--format must be text|json|stream-json, got "${rawFormat}"`);
+        const { format: rawFormat, outputFormat, output: rawOutput, outputLastMessage, ...rest } = opts;
+        const format = outputFormat ?? rawFormat;
+        if (format !== undefined && format !== "text" && format !== "json" && format !== "stream-json") {
+          throw new Error(`--output-format must be text|json|stream-json, got "${format}"`);
         }
         await runExec(prompt, {
           ...rest,
-          ...(rawFormat === undefined ? {} : { format: rawFormat }),
+          ...(format === undefined ? {} : { format }),
+          ...(outputLastMessage ?? rawOutput === undefined ? {} : { output: outputLastMessage ?? rawOutput }),
           profile: program.opts().profile as string | undefined,
         });
       },
@@ -143,6 +152,8 @@ async function main(): Promise<void> {
 }
 
 main().catch((err: Error) => {
+  // runExec sets process.exitCode itself (0-5 contract); commander errors
+  // arrive here too. Print once (exec already prefixes its message).
+  if (process.exitCode === undefined || process.exitCode === 0) process.exitCode = 1;
   console.error(err.message);
-  process.exit(1);
 });

@@ -21,10 +21,25 @@ const DIM = "\u001b[2m";
 const YELLOW = "\u001b[33m";
 const RESET = "\u001b[0m";
 
-async function pickProvider(): Promise<string> {
-  LOGIN_PROVIDERS.forEach((p, i) => {
-    console.log(`  ${i + 1}. ${p.id} — ${p.name}`);
+async function pickProvider(explicitProfile?: string): Promise<string> {
+  const rows = LOGIN_PROVIDERS.map((p, i) => {
+    const n = loadStore(explicitProfile).filter((c) => c.provider === p.id).length;
+    return `  ${i + 1}. ${p.id} — ${p.name}${n > 0 ? ` (${n} account${n === 1 ? "" : "s"})` : ""}`;
   });
+  // Arrow-key picker when attached to a TTY; numbered fallback otherwise.
+  if (process.stdin.isTTY && process.stdout.isTTY) {
+    const pick = await arrowPick(
+      "Select provider:",
+      LOGIN_PROVIDERS.map((p) => `${p.id} — ${p.name}`),
+    );
+    if (pick === undefined) {
+      process.stderr.write(`Login failed: no selection.\n`);
+      process.exitCode = 1;
+      throw new LoginFailedError("no selection");
+    }
+    return LOGIN_PROVIDERS[pick]?.id ?? "";
+  }
+  console.log(rows.join("\n"));
   const answer = (await promptLine(`Select provider (1-${LOGIN_PROVIDERS.length}): `)).trim();
   const n = Number.parseInt(answer, 10);
   const picked = Number.isInteger(n) ? LOGIN_PROVIDERS[n - 1] : undefined;
@@ -34,6 +49,62 @@ async function pickProvider(): Promise<string> {
     throw new LoginFailedError("invalid selection");
   }
   return picked.id;
+}
+
+// Minimal arrow-key list: ↑/↓ moves, Enter accepts, Esc/Ctrl+C aborts.
+// Raw-mode stdin with a hidden cursor; restores both on exit.
+function arrowPick(title: string, items: string[]): Promise<number | undefined> {
+  return new Promise((resolve) => {
+    let idx = 0;
+    const stdin = process.stdin;
+    const stdout = process.stdout;
+    const wasRaw: boolean = stdin.isTTY === true && (stdin as unknown as { isRaw?: boolean }).isRaw === true;
+    const cleanup = (): void => {
+      stdin.removeListener("data", onData);
+      if (stdin.isTTY) stdin.setRawMode(false);
+      (stdin as unknown as { isRaw?: boolean }).isRaw = wasRaw;
+      stdout.write("\x1b[?25h");
+    };
+    const render = (): void => {
+      stdout.write("\x1b[2K\r");
+      stdout.write(`${title}\n`);
+      items.forEach((label, i) => {
+        stdout.write(i === idx ? `${GREEN}› ${label}${RESET}\n` : `  ${label}\n`);
+      });
+      stdout.write(`${DIM}↑/↓ move · Enter accepts · Esc aborts${RESET}`);
+    };
+    const rerender = (): void => {
+      stdout.write(`\x1b[${items.length + 2}A`);
+      items.forEach((label, i) => {
+        stdout.write("\x1b[2K\r");
+        stdout.write(i === idx ? `${GREEN}› ${label}${RESET}\n` : `  ${label}\n`);
+      });
+      stdout.write("\x1b[2K\r");
+      stdout.write(`${DIM}↑/↓ move · Enter accepts · Esc aborts${RESET}`);
+    };
+    const onData = (buf: Buffer): void => {
+      const s = buf.toString("utf8");
+      if (s === "\x1b[A" || s === "k") {
+        idx = (idx - 1 + items.length) % items.length;
+        rerender();
+      } else if (s === "\x1b[B" || s === "j") {
+        idx = (idx + 1) % items.length;
+        rerender();
+      } else if (s === "\r" || s === "\n") {
+        cleanup();
+        stdout.write("\n");
+        resolve(idx);
+      } else if (s === "\x1b" || s === "\x03") {
+        cleanup();
+        stdout.write("\n");
+        resolve(undefined);
+      }
+    };
+    if (stdin.isTTY) stdin.setRawMode(true);
+    stdout.write("\x1b[?25l");
+    render();
+    stdin.on("data", onData);
+  });
 }
 
 function persist(provider: string, result: FreshSecret, explicitProfile?: string): void {
@@ -70,7 +141,7 @@ function expiryNote(cred: StoredCredential): string {
 // Local login flow: pick → engine by login kind → persist → re-list models.
 export async function runLogin(provider: string | undefined, opts: CliOpts): Promise<void> {
   try {
-    const id = provider ?? (await pickProvider());
+    const id = provider ?? (await pickProvider(opts.profile));
     const def = LOGIN_PROVIDERS.find((p) => p.id === id);
     if (!def) {
       const hint = setupHint(id);

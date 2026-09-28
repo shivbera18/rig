@@ -48,9 +48,10 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
 import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
+import type { ContextCompactionSummaryMessage } from './types.js';
 // ponytail: gpt-tokenizer (~2.7M with BPE ranks) lazy-loaded; UTF-8 byte upper bound
 // over-estimates safely (compaction triggers early, never late) until BPE lands.
-type CountTokensFn = (text: string, options?: { allowedSpecial?: string }) => number;
+type CountTokensFn = typeof import('gpt-tokenizer/model/gpt-4o').countTokens;
 let countO200kBase: CountTokensFn | undefined;
 void import('gpt-tokenizer/model/gpt-4o').then(
   (mod) => {
@@ -58,7 +59,6 @@ void import('gpt-tokenizer/model/gpt-4o').then(
   },
   () => undefined,
 );
-import type { ContextCompactionSummaryMessage } from './types.js';
 
 export interface ContextTokenEstimate {
   /** Estimated total tokens consumed by `messages`. */

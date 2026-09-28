@@ -36,7 +36,7 @@ describe.skipIf(process.platform !== "win32")("Windows source contract", () => {
     const fixtureRoot = path.join(root, "package");
     mkdirSync(fixtureRoot);
     writeFileSync(path.join(fixtureRoot, "package.json"), JSON.stringify({
-      name: "@rig-ai/code",
+      name: "@shivcdhry/rig",
       version: "1.2.4",
       bin: { rig: "cli.cjs" },
     }));

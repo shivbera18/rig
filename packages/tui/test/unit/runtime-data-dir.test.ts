@@ -25,9 +25,9 @@ describe('TUI data directory', () => {
 
   it.each([
     [{}, '/default'],
-    [{ RIG_DATA_DIR: '  ', RIG_DATA_DIR: ' ' }, '/default'],
-    [{ RIG_DATA_DIR: ' /public ', RIG_DATA_DIR: '/legacy' }, '/public'],
-    [{ RIG_DATA_DIR: ' ', RIG_DATA_DIR: ' /legacy ' }, '/legacy'],
+    [{ RIG_DATA_DIR: '  ' }, '/default'],
+    [{ RIG_DATA_DIR: ' /public ' }, '/public'],
+    [{ RIG_DATA_DIR: ' /legacy ' }, '/legacy'],
   ])('preserves override precedence for %j', (environment, expected) => {
     expect(getTuiDataDirPath(environment, () => '/default')).toBe(expected);
   });

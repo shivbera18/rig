@@ -48,7 +48,16 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
 import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
-import { countTokens as countO200kBase } from 'gpt-tokenizer/model/gpt-4o';
+// ponytail: gpt-tokenizer (~2.7M with BPE ranks) lazy-loaded; UTF-8 byte upper bound
+// over-estimates safely (compaction triggers early, never late) until BPE lands.
+type CountTokensFn = (text: string, options?: { allowedSpecial?: string }) => number;
+let countO200kBase: CountTokensFn | undefined;
+void import('gpt-tokenizer/model/gpt-4o').then(
+  (mod) => {
+    countO200kBase = mod.countTokens;
+  },
+  () => undefined,
+);
 import type { ContextCompactionSummaryMessage } from './types.js';
 
 export interface ContextTokenEstimate {
@@ -224,7 +233,9 @@ export class BpeTokenEstimator implements TokenEstimator {
   constructor(encoder?: EncodeFn) {
     this.countExactTokens = encoder
       ? (text) => encoder(text).length
-      : (text) => countO200kBase(text, { allowedSpecial: 'all' });
+      : (text) =>
+          // Pre-load: UTF-8 byte upper bound (safe direction — triggers compaction early).
+          countO200kBase?.(text, { allowedSpecial: 'all' }) ?? estimateTextTokensUpperBound(text);
   }
 
   estimateTextTokens(text: string): number {

@@ -50,7 +50,7 @@ describe('model catalog helpers', () => {
   it('reads configured models and enabled custom providers', () => {
     const runtimeConfig = config({
       provider: { builtin: { models: { base: { name: 'Base' } } } },
-      custom_provider?: {
+      custom_provider: {
         work: { models: { custom: { name: 'Custom' } } },
         disabled: { enabled: false, models: { hidden: {} } },
       },
@@ -338,7 +338,7 @@ describe('model catalog entry helpers', () => {
       },
     };
     const runtimeConfig = config({
-      custom_provider?: { empty: providerWithoutModels, work },
+      custom_provider: { empty: providerWithoutModels, work },
     });
 
     expect(listByokRuntimeModels(runtimeConfig)).toEqual([
@@ -404,7 +404,7 @@ describe('TUI BYOK think toggle across persisted model shapes', () => {
   function byokRoster() {
     return listByokRuntimeModels(
       config({
-        custom_provider?: {
+        custom_provider: {
           'provider-e5321b': {
             name: 'Z.AI Coding Plan',
             api: 'openai-completions',

@@ -893,7 +893,7 @@ describe("TuiFeatureFlow", () => {
       "DeepSeek Reasoner",
     );
     expect(harness.append).toHaveBeenCalledWith(
-      "Provider added: DeepSeek · 'custom_provider:deepseek/deepseek-chat.",
+      "Provider added: DeepSeek · custom_provider:deepseek/deepseek-chat.",
     );
     expect(harness.append).toHaveBeenCalledWith(
       expect.stringContaining(

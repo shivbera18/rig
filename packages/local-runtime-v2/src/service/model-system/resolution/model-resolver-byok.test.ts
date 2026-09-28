@@ -101,13 +101,13 @@ describe('custom BYOK planning', () => {
     expect(
       planCustomProviderResolution({
         ...base,
-        byok: { custom_provider?: { work: { enabled: false } } },
+        byok: { custom_provider: { work: { enabled: false } } },
       }),
     ).toBeUndefined();
     expect(
       planCustomProviderResolution({
         ...base,
-        byok: { custom_provider?: { work: { models: {} } } },
+        byok: { custom_provider: { work: { models: {} } } },
       }),
     ).toBeUndefined();
   });
@@ -121,14 +121,14 @@ describe('custom BYOK planning', () => {
     expect(() =>
       planCustomProviderResolution({
         ...base,
-        byok: { custom_provider?: { work: { models: { model: {} } } } },
+        byok: { custom_provider: { work: { models: { model: {} } } } },
       }),
     ).toThrow('api_key not configured');
     expect(() =>
       planCustomProviderResolution({
         ...base,
         byok: {
-          custom_provider?: {
+          custom_provider: {
             work: {
               options: { apiKey: 'key' },
               models: { model: {} },
@@ -153,7 +153,7 @@ describe('custom BYOK planning', () => {
     const plan = planCustomProviderResolution({
       ...base,
       byok: {
-        custom_provider?: {
+        custom_provider: {
           work: {
             api: 'openai-completions',
             options: {
@@ -187,7 +187,7 @@ describe('custom BYOK planning', () => {
       planCustomProviderResolution({
         ...base,
         byok: {
-          custom_provider?: {
+          custom_provider: {
             work: {
               api: 'other',
               options: { apiKey: 'key', baseURL: 'https://custom.example' },
@@ -239,7 +239,7 @@ describe('custom BYOK compat overrides', () => {
       providerKey: 'gateway',
       modelId: 'kimi-k2-thinking',
       byok: {
-        custom_provider?: {
+        custom_provider: {
           gateway: {
             api: 'openai-completions',
             options: { apiKey: 'gateway-key', baseURL: 'https://gateway.example/v1' },

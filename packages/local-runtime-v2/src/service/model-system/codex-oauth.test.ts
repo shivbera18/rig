@@ -26,7 +26,7 @@ function createUpdater(target: LocalRuntimeConfig) {
       ) => void | Promise<void>,
     ) => {
       const draft: LocalByokConfigDraft = {
-        custom_provider?: target.custom_provider
+        custom_provider: target.custom_provider
           ? structuredClone(target.custom_provider)
           : undefined,
         defaultModel: target.defaultModel,

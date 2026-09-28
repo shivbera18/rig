@@ -25,6 +25,7 @@ const CHILD_ENVIRONMENT_KEYS_TO_CLEAR = [
   'MCODE_EXTRA_HEADERS',
   'MCODE_REGION',
   'MCODE_CONFIG_DIR',
+  '__MAVIS_PARENT_ACCESS_TOKEN',
 ] as const;
 
 export interface TuiMcodeToolsHostEnvironmentActivation {

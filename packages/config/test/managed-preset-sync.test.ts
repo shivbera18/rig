@@ -18,7 +18,7 @@ const presetBaseURL =
 const original = yaml.dump({
   logLevel: "debug",
   provider: { rig: { options: { baseURL: oldBaseURL, apiKey: secret } } },
-  custom_provider?: { example: { options: { apiKey: secret }, models: {} } },
+  custom_provider: { example: { options: { apiKey: secret }, models: {} } },
 });
 let root: string;
 let file: string;
@@ -59,7 +59,7 @@ describe.each([
     });
     const persisted = yaml.load(fs.readFileSync(file, "utf8"));
     expect(persisted).toMatchObject({
-      custom_provider?: { example: { options: { apiKey: secret } } },
+      custom_provider: { example: { options: { apiKey: secret } } },
       provider: {
         rig: { options: { baseURL: presetBaseURL, apiKey: secret } },
       },

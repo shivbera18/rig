@@ -14846,7 +14846,7 @@ describe("interactive CLI model startup", () => {
     ],
     [
       "new without prompt",
-      ["--model=custom_provider?:relay/vendor/model#thinking"],
+      ["--model=custom_provider:relay/vendor/model#thinking"],
       "session-1",
       false,
     ],

@@ -158,7 +158,7 @@ describe("valid local config updates", () => {
   it("preserves unrelated settings and credentials", async () => {
     const source = {
       permissionMode: "auto",
-      custom_provider?: { example: { options: { apiKey: secret }, models: {} } },
+      custom_provider: { example: { options: { apiKey: secret }, models: {} } },
       customSetting: { enabled: true },
     };
     fs.writeFileSync(configPath, yaml.dump(source));

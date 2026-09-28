@@ -60,7 +60,7 @@ it.each(['rig', 'custom_provider:work'])(
       dataDir: '/isolated-byok-selection',
       ...(providerId === 'rig' ? { rigModelSource: 'rig_api_key' as const } : {}),
       provider: { rig: { models: { 'Rig-M3': configuredModel } } },
-      custom_provider?: { work: { models: { 'Rig-M3': configuredModel } } },
+      custom_provider: { work: { models: { 'Rig-M3': configuredModel } } },
     };
     const requested = {
       providerId,
@@ -87,7 +87,7 @@ describe('legacy Rig compatibility', () => {
         dataDir: '/tmp/legacy-model-selection',
         defaultModel: `custom_provider:${key}/retired`,
         provider: { rig: { models: { 'Rig-M3': {} } } },
-        custom_provider?: {
+        custom_provider: {
           [key]: {
             options: {
               baseURL: 'https://agent.minimaxi.com/rig/api/v1/llm/v1',
@@ -144,7 +144,7 @@ describe('model selection input', () => {
     expect(readLocalModelOverride({})).toBeUndefined();
     expect(
       readLocalModelOverride({
-        providerId: ' 'custom_provider:work ',
+        providerId: ' custom_provider:work ',
         modelId: ' model-1 ',
         variant: '',
         reasoning: false,

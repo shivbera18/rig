@@ -58,7 +58,7 @@ describe('installer-owned npm runtime binding', () => {
 
   function bind(executable: string) {
     return bindMcodeNpmCommandToRuntime(
-      { executable, args: ['view', '@rig-ai/code@latest', '--json'], display: 'owned npm' },
+      { executable, args: ['view', '@shivcdhry/rig@latest', '--json'], display: 'owned npm' },
       process.execPath,
     );
   }
@@ -78,14 +78,14 @@ describe('installer-owned npm runtime binding', () => {
       );
       expect(bind(npm)).toEqual({
         executable: process.execPath,
-        args: [cli, 'view', '@rig-ai/code@latest', '--json'],
+        args: [cli, 'view', '@shivcdhry/rig@latest', '--json'],
         display: 'owned npm',
       });
       await expect(
         resolveLatestMcodeRegistryVersion('latest', {
           npmExecutable: npm,
           runtimeExecutable: process.execPath,
-          distribution: resolveMcodeNpmDistribution('@rig-ai/code'),
+          distribution: resolveMcodeNpmDistribution('@shivcdhry/rig'),
         }),
       ).resolves.toBe('1.2.4');
       expect(existsSync(marker)).toBe(false);
@@ -238,12 +238,12 @@ describe('McodeUpdateApplication', () => {
         args: [
           'add',
           '--global',
-          '@rig-ai/code@1.2.4',
+          '@shivcdhry/rig@1.2.4',
           '--registry',
           'https://registry.npmjs.org/',
         ],
         display:
-          'pnpm add --global @rig-ai/code@1.2.4 --registry https://registry.npmjs.org/',
+          'pnpm add --global @shivcdhry/rig@1.2.4 --registry https://registry.npmjs.org/',
       },
     });
     const onOutput = vi.fn();
@@ -322,16 +322,16 @@ describe('McodeUpdateApplication', () => {
         args: [
           'install',
           '--global',
-          '@rig-ai/code@0.0.1-beta.1786162945.e3fdada2',
+          '@shivcdhry/rig@0.0.1-beta.1786162945.e3fdada2',
           '--ignore-scripts=false',
           '--include=optional',
-          '--allow-scripts=@rig-ai/code,better-sqlite3',
+          '--allow-scripts=@shivcdhry/rig,better-sqlite3',
           '--registry',
           'https://registry.npmjs.org/',
         ],
         display:
-          'npm install --global @rig-ai/code@0.0.1-beta.1786162945.e3fdada2 ' +
-          '--ignore-scripts=false --include=optional --allow-scripts=@rig-ai/code,better-sqlite3 ' +
+          'npm install --global @shivcdhry/rig@0.0.1-beta.1786162945.e3fdada2 ' +
+          '--ignore-scripts=false --include=optional --allow-scripts=@shivcdhry/rig,better-sqlite3 ' +
           '--registry https://registry.npmjs.org/',
       },
     });
@@ -375,8 +375,8 @@ describe('McodeUpdateApplication', () => {
       kind: 'manual',
       source: 'unsupported',
       command:
-        'npm install --global @rig-ai/code@latest ' +
-        '--ignore-scripts=false --include=optional --allow-scripts=@rig-ai/code,better-sqlite3 ' +
+        'npm install --global @shivcdhry/rig@latest ' +
+        '--ignore-scripts=false --include=optional --allow-scripts=@shivcdhry/rig,better-sqlite3 ' +
         '--registry https://registry.npmjs.org/',
     });
     await expect(application.apply(plan)).rejects.toThrow(/cannot be applied automatically/i);
@@ -386,10 +386,10 @@ describe('McodeUpdateApplication', () => {
   });
 
   it.each([
-    '/Users/demo/project/pnpm/global/5/source/@rig-ai/code',
-    '/Users/demo/project/.config/yarn/global/source/@rig-ai/code',
-    '/Users/demo/project/.yarn/global/source/@rig-ai/code',
-    '/Users/demo/project/.bun/install/global/source/@rig-ai/code',
+    '/Users/demo/project/pnpm/global/5/source/@shivcdhry/rig',
+    '/Users/demo/project/.config/yarn/global/source/@shivcdhry/rig',
+    '/Users/demo/project/.yarn/global/source/@shivcdhry/rig',
+    '/Users/demo/project/.bun/install/global/source/@shivcdhry/rig',
   ])(
     'treats a local checkout containing a global-install marker as unsupported: %s',
     async (packageRoot) => {
@@ -420,14 +420,14 @@ describe('McodeUpdateApplication', () => {
   it('keeps a future public package on the official npm registry', async () => {
     const application = createApplication(
       { detectInstallSource: async () => 'unsupported' },
-      { packageName: '@rig-ai/code' },
+      { packageName: '@shivcdhry/rig' },
     );
 
     await expect(application.inspect()).resolves.toMatchObject({
       kind: 'manual',
       command:
-        'npm install --global @rig-ai/code@latest ' +
-        '--ignore-scripts=false --include=optional --allow-scripts=@rig-ai/code,better-sqlite3 ' +
+        'npm install --global @shivcdhry/rig@latest ' +
+        '--ignore-scripts=false --include=optional --allow-scripts=@shivcdhry/rig,better-sqlite3 ' +
         '--registry https://registry.npmjs.org/',
     });
   });
@@ -440,10 +440,10 @@ describe('McodeUpdateApplication', () => {
         resolveLatestPackageVersion,
       },
       {
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         prefixInstall: {
           executable: '/opt/rig/runtime/node/bin/npm',
-          packageName: '@rig-ai/code',
+          packageName: '@shivcdhry/rig',
           prefix: '/opt/rig',
           registry: 'https://registry.npmmirror.com/',
         },
@@ -459,10 +459,10 @@ describe('McodeUpdateApplication', () => {
           '--global',
           '--prefix',
           '/opt/rig',
-          '@rig-ai/code@1.2.4',
+          '@shivcdhry/rig@1.2.4',
           '--ignore-scripts=false',
           '--include=optional',
-          '--allow-scripts=@rig-ai/code,better-sqlite3',
+          '--allow-scripts=@shivcdhry/rig,better-sqlite3',
           '--registry',
           'https://registry.npmmirror.com/',
         ],
@@ -484,12 +484,12 @@ describe('McodeUpdateApplication', () => {
       mkdirSync(packageRoot, { recursive: true });
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code' }),
+        JSON.stringify({ name: '@shivcdhry/rig' }),
       );
       const entryFile = path.join(packageRoot, 'cli.js');
       writeFileSync(entryFile, '');
 
-      expect(resolveMcodePackageName(entryFile)).toBe('@rig-ai/code');
+      expect(resolveMcodePackageName(entryFile)).toBe('@shivcdhry/rig');
       expect(resolveInstalledMcodePackageVersion(entryFile)).toBeUndefined();
     } finally {
       rmSync(temporaryRoot, { recursive: true, force: true });
@@ -497,8 +497,8 @@ describe('McodeUpdateApplication', () => {
   });
 
   it('recognizes only the internal package identity as environment-selectable', () => {
-    expect(isInternalMcodePackageName('@shivcdhry/rig')).toBe(true);
-    expect(isInternalMcodePackageName('@rig-ai/code')).toBe(false);
+    expect(isInternalMcodePackageName('@rig/rig')).toBe(true);
+    expect(isInternalMcodePackageName('@shivcdhry/rig')).toBe(false);
     expect(isInternalMcodePackageName(undefined)).toBe(false);
   });
 
@@ -520,12 +520,12 @@ describe('McodeUpdateApplication', () => {
 
 describe('Rig update install-source commands', () => {
   it.each([
-    ['/opt/homebrew/lib/node_modules/@rig-ai/code', 'npm-global'],
-    ['C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@rig\\code', 'npm-global'],
-    ['/usr/local/lib/node_modules/@rig-ai/code', 'npm-global'],
-    ['/Users/demo/.local/share/pnpm/global/5/node_modules/@rig-ai/code', 'pnpm-global'],
+    ['/opt/homebrew/lib/node_modules/@shivcdhry/rig', 'npm-global'],
+    ['C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@shivcdhry\\rig', 'npm-global'],
+    ['/usr/local/lib/node_modules/@shivcdhry/rig', 'npm-global'],
+    ['/Users/demo/.local/share/pnpm/global/5/node_modules/@shivcdhry/rig', 'pnpm-global'],
     [
-      '/Users/demo/Library/pnpm/global/v11/10c0afe5/node_modules/@rig-ai/code',
+      '/Users/demo/Library/pnpm/global/v11/10c0afe5/node_modules/@shivcdhry/rig',
       'pnpm-global',
     ],
     [
@@ -536,12 +536,12 @@ describe('Rig update install-source commands', () => {
       'C:\\Users\\demo\\AppData\\Local\\pnpm\\global\\v11\\10c0afe5\\node_modules\\@rig-ai\\code',
       'pnpm-global',
     ],
-    ['/Users/demo/.config/yarn/global/node_modules/@rig-ai/code', 'yarn-global'],
+    ['/Users/demo/.config/yarn/global/node_modules/@shivcdhry/rig', 'yarn-global'],
     [
       'C:\\Users\\demo\\.config\\yarn\\global\\node_modules\\@rig\\code',
       'yarn-global',
     ],
-    ['/Users/demo/.bun/install/global/node_modules/@rig-ai/code', 'bun-global'],
+    ['/Users/demo/.bun/install/global/node_modules/@shivcdhry/rig', 'bun-global'],
     [
       'C:\\Users\\demo\\.bun\\install\\global\\node_modules\\@rig\\code',
       'bun-global',
@@ -556,33 +556,33 @@ describe('Rig update install-source commands', () => {
       args: [
         'install',
         '--global',
-        '@rig-ai/code@1.2.4',
+        '@shivcdhry/rig@1.2.4',
         '--ignore-scripts=false',
         '--include=optional',
-        '--allow-scripts=@rig-ai/code,better-sqlite3',
+        '--allow-scripts=@shivcdhry/rig,better-sqlite3',
         '--registry',
         'https://registry.npmjs.org/',
       ],
       display:
-        'npm install --global @rig-ai/code@1.2.4 --ignore-scripts=false --include=optional ' +
-        '--allow-scripts=@rig-ai/code,better-sqlite3 --registry https://registry.npmjs.org/',
+        'npm install --global @shivcdhry/rig@1.2.4 --ignore-scripts=false --include=optional ' +
+        '--allow-scripts=@shivcdhry/rig,better-sqlite3 --registry https://registry.npmjs.org/',
     });
     expect(buildMcodePackageManagerCommand('bun-global', '1.2.4', 'win32')).toEqual({
       executable: 'bun.exe',
       args: [
         'add',
         '--global',
-        '@rig-ai/code@1.2.4',
+        '@shivcdhry/rig@1.2.4',
         '--registry',
         'https://registry.npmjs.org/',
       ],
       display:
-        'bun add --global @rig-ai/code@1.2.4 --registry https://registry.npmjs.org/',
+        'bun add --global @shivcdhry/rig@1.2.4 --registry https://registry.npmjs.org/',
     });
   });
 
   it('uses the installer-owned npm executable, prefix, package, and registry', () => {
-    const distribution = resolveMcodeNpmDistribution('@rig-ai/code');
+    const distribution = resolveMcodeNpmDistribution('@shivcdhry/rig');
     const command = buildMcodePackageManagerCommand(
       'npm-prefix',
       '1.2.4',
@@ -590,7 +590,7 @@ describe('Rig update install-source commands', () => {
       distribution,
       {
         executable: '/opt/rig/runtime/node/bin/npm',
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         prefix: '/opt/rig',
         registry: 'https://registry.npmjs.org/',
       },
@@ -603,22 +603,22 @@ describe('Rig update install-source commands', () => {
         '--global',
         '--prefix',
         '/opt/rig',
-        '@rig-ai/code@1.2.4',
+        '@shivcdhry/rig@1.2.4',
         '--ignore-scripts=false',
         '--include=optional',
-        '--allow-scripts=@rig-ai/code,better-sqlite3',
+        '--allow-scripts=@shivcdhry/rig,better-sqlite3',
         '--registry',
         'https://registry.npmjs.org/',
       ],
       display:
         '/opt/rig/runtime/node/bin/npm install --global --prefix /opt/rig ' +
-        '@rig-ai/code@1.2.4 --ignore-scripts=false --include=optional --allow-scripts=@rig-ai/code,better-sqlite3 --registry https://registry.npmjs.org/',
+        '@shivcdhry/rig@1.2.4 --ignore-scripts=false --include=optional --allow-scripts=@shivcdhry/rig,better-sqlite3 --registry https://registry.npmjs.org/',
     });
   });
 
   it('keeps the explicit public mirror for installer-owned updates', () => {
     const distribution = resolveMcodeNpmDistribution(
-      '@rig-ai/code',
+      '@shivcdhry/rig',
       'https://registry.npmmirror.com',
     );
     const command = buildMcodePackageManagerCommand(
@@ -628,7 +628,7 @@ describe('Rig update install-source commands', () => {
       distribution,
       {
         executable: '/opt/rig/runtime/node/bin/npm',
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         prefix: '/opt/rig',
         registry: 'https://registry.npmmirror.com/',
       },
@@ -639,15 +639,15 @@ describe('Rig update install-source commands', () => {
       '--global',
       '--prefix',
       '/opt/rig',
-      '@rig-ai/code@1.2.4',
+      '@shivcdhry/rig@1.2.4',
       '--ignore-scripts=false',
       '--include=optional',
-      '--allow-scripts=@rig-ai/code,better-sqlite3',
+      '--allow-scripts=@shivcdhry/rig,better-sqlite3',
       '--registry',
       'https://registry.npmmirror.com/',
     ]);
     expect(() =>
-      resolveMcodeNpmDistribution('@rig-ai/code', 'https://registry.example.com/'),
+      resolveMcodeNpmDistribution('@shivcdhry/rig', 'https://registry.example.com/'),
     ).toThrow('Unsupported Rig npm registry');
   });
 
@@ -674,10 +674,10 @@ describe('Rig update install-source commands', () => {
       },
       {
         entryFile: '/opt/rig/bin/rig',
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         prefixInstall: {
           executable: '/opt/rig/runtime/node/bin/npm',
-          packageName: '@rig-ai/code',
+          packageName: '@shivcdhry/rig',
           prefix: '/opt/rig',
           registry: 'https://registry.npmjs.org/',
         },
@@ -694,7 +694,7 @@ describe('Rig update install-source commands', () => {
     expect(activateVersionedPrefix).toHaveBeenCalledWith({
       stagingPrefix: '/opt/rig/releases/.staging-1.2.4',
       activePrefix: '/opt/rig',
-      packageName: '@rig-ai/code',
+      packageName: '@shivcdhry/rig',
       expectedVersion: '1.2.4',
       runtimeExecutable: process.execPath,
       npmExecutable: '/opt/rig/runtime/node/bin/npm',
@@ -705,7 +705,7 @@ describe('Rig update install-source commands', () => {
 
   it('reports malformed pending metadata instead of treating it as a staged update', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'rig-update-malformed-pending-'));
-    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@rig-ai/code');
+    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@shivcdhry/rig');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     const pendingFile = path.join(prefix, '.rig-update-pending.json');
     try {
@@ -713,7 +713,7 @@ describe('Rig update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code', version: '1.2.3' }),
+        JSON.stringify({ name: '@shivcdhry/rig', version: '1.2.3' }),
       );
       writeFileSync(
         path.join(prefix, 'install.json'),
@@ -729,7 +729,7 @@ describe('Rig update install-source commands', () => {
           installRoot: prefix,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@rig-ai/code',
+            packageName: '@shivcdhry/rig',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -751,7 +751,7 @@ describe('Rig update install-source commands', () => {
   it('rejects a pending journal owned by a different active prefix', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'rig-update-foreign-pending-'));
     const foreignPrefix = mkdtempSync(path.join(os.tmpdir(), 'rig-update-foreign-owner-'));
-    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@rig-ai/code');
+    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@shivcdhry/rig');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     const pendingFile = path.join(prefix, '.rig-update-pending.json');
     const foreignStaging = path.join(path.dirname(foreignPrefix), '.foreign-staging');
@@ -760,7 +760,7 @@ describe('Rig update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code', version: '1.2.3' }),
+        JSON.stringify({ name: '@shivcdhry/rig', version: '1.2.3' }),
       );
       writeFileSync(
         path.join(prefix, 'install.json'),
@@ -775,7 +775,7 @@ describe('Rig update install-source commands', () => {
           activeModulesRoot: resolveMcodePrefixModulesRoot(foreignPrefix, process.platform),
           stagedModulesRoot: resolveMcodePrefixModulesRoot(foreignStaging, process.platform),
           backupModulesRoot: `${resolveMcodePrefixModulesRoot(foreignPrefix, process.platform)}.rig-update-backup`,
-          packageName: '@rig-ai/code',
+          packageName: '@shivcdhry/rig',
           expectedVersion: '1.2.4',
           launchers: resolveMcodePrefixLauncherPairs(foreignPrefix, foreignStaging, process.platform),
         }),
@@ -789,7 +789,7 @@ describe('Rig update install-source commands', () => {
           installRoot: prefix,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@rig-ai/code',
+            packageName: '@shivcdhry/rig',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -813,8 +813,8 @@ describe('Rig update install-source commands', () => {
   it('resumes a valid staged update without checking for a newer registry version', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'rig-update-valid-pending-'));
     const stagingPrefix = path.join(path.dirname(prefix), `.${path.basename(prefix)}.staging`);
-    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@rig-ai/code');
-    const stagedPackageRoot = path.join(resolveMcodePrefixModulesRoot(stagingPrefix), '@rig-ai/code');
+    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@shivcdhry/rig');
+    const stagedPackageRoot = path.join(resolveMcodePrefixModulesRoot(stagingPrefix), '@shivcdhry/rig');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     try {
       mkdirSync(path.dirname(entryFile), { recursive: true });
@@ -824,11 +824,11 @@ describe('Rig update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code', version: '1.2.3', bin: { rig: 'dist/index.js' } }),
+        JSON.stringify({ name: '@shivcdhry/rig', version: '1.2.3', bin: { rig: 'dist/index.js' } }),
       );
       writeFileSync(
         path.join(stagedPackageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code', version: '1.2.4', bin: { rig: 'dist/index.js' } }),
+        JSON.stringify({ name: '@shivcdhry/rig', version: '1.2.4', bin: { rig: 'dist/index.js' } }),
       );
       writeFileSync(path.join(prefix, process.platform === 'win32' ? 'rig' : 'bin/rig'), '1.2.3');
       writeFileSync(path.join(stagingPrefix, process.platform === 'win32' ? 'rig' : 'bin/rig'), '1.2.4');
@@ -849,7 +849,7 @@ describe('Rig update install-source commands', () => {
         activeModulesRoot,
         stagedModulesRoot: resolveMcodePrefixModulesRoot(stagingPrefix, process.platform),
         backupModulesRoot: `${activeModulesRoot}.rig-update-backup`,
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         expectedVersion: '1.2.4',
         launchers: resolveMcodePrefixLauncherPairs(prefix, stagingPrefix, process.platform),
       });
@@ -864,7 +864,7 @@ describe('Rig update install-source commands', () => {
           platform: process.platform,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@rig-ai/code',
+            packageName: '@shivcdhry/rig',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -892,7 +892,7 @@ describe('Rig update install-source commands', () => {
   it('rejects a pending update whose staged package and launchers are missing', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'rig-update-missing-staging-'));
     const stagingPrefix = path.join(path.dirname(prefix), `.${path.basename(prefix)}.missing`);
-    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@rig-ai/code');
+    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@shivcdhry/rig');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     try {
       mkdirSync(path.dirname(entryFile), { recursive: true });
@@ -900,7 +900,7 @@ describe('Rig update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code', version: '1.2.3', bin: { rig: 'dist/index.js' } }),
+        JSON.stringify({ name: '@shivcdhry/rig', version: '1.2.3', bin: { rig: 'dist/index.js' } }),
       );
       writeFileSync(path.join(prefix, process.platform === 'win32' ? 'rig' : 'bin/rig'), '1.2.3');
       writeFileSync(
@@ -914,7 +914,7 @@ describe('Rig update install-source commands', () => {
         activeModulesRoot,
         stagedModulesRoot: resolveMcodePrefixModulesRoot(stagingPrefix, process.platform),
         backupModulesRoot: `${activeModulesRoot}.rig-update-backup`,
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         expectedVersion: '1.2.4',
         launchers: resolveMcodePrefixLauncherPairs(prefix, stagingPrefix, process.platform),
       });
@@ -928,7 +928,7 @@ describe('Rig update install-source commands', () => {
           platform: process.platform,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@rig-ai/code',
+            packageName: '@shivcdhry/rig',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -951,7 +951,7 @@ describe('Rig update install-source commands', () => {
   it('finishes cleanup when the staged version is already active', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'rig-update-pending-cleanup-'));
     const stagingPrefix = path.join(path.dirname(prefix), `.${path.basename(prefix)}.activated`);
-    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@rig-ai/code');
+    const packageRoot = path.join(resolveMcodePrefixModulesRoot(prefix), '@shivcdhry/rig');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     try {
       mkdirSync(path.dirname(entryFile), { recursive: true });
@@ -959,7 +959,7 @@ describe('Rig update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code', version: '1.2.4', bin: { rig: 'dist/index.js' } }),
+        JSON.stringify({ name: '@shivcdhry/rig', version: '1.2.4', bin: { rig: 'dist/index.js' } }),
       );
       writeFileSync(path.join(prefix, process.platform === 'win32' ? 'rig' : 'bin/rig'), '1.2.4');
       for (const pair of resolveMcodePrefixLauncherPairs(prefix, stagingPrefix)) {
@@ -977,7 +977,7 @@ describe('Rig update install-source commands', () => {
         activeModulesRoot,
         stagedModulesRoot: resolveMcodePrefixModulesRoot(stagingPrefix, process.platform),
         backupModulesRoot: `${activeModulesRoot}.rig-update-backup`,
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         expectedVersion: '1.2.4',
         launchers: resolveMcodePrefixLauncherPairs(prefix, stagingPrefix, process.platform),
       });
@@ -992,7 +992,7 @@ describe('Rig update install-source commands', () => {
           platform: process.platform,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@rig-ai/code',
+            packageName: '@shivcdhry/rig',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -1043,7 +1043,7 @@ describe('Rig update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code', version: '1.2.3' }),
+        JSON.stringify({ name: '@shivcdhry/rig', version: '1.2.3' }),
       );
       writeFileSync(
         path.join(temporaryRoot, 'install.json'),
@@ -1052,7 +1052,7 @@ describe('Rig update install-source commands', () => {
           product: 'rig',
           updateOwner: 'npm-prefix',
           packageManager: 'npm',
-          packageName: '@rig-ai/code',
+          packageName: '@shivcdhry/rig',
           registry,
           distTag: 'latest',
           prefix: temporaryRoot,
@@ -1063,7 +1063,7 @@ describe('Rig update install-source commands', () => {
       const prefixInstall = resolveMcodeNpmPrefixInstall(entryFile, process.platform);
       expect(prefixInstall).toEqual({
         executable: npmExecutable,
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         prefix: realpathSync(temporaryRoot),
         registry,
       });
@@ -1089,7 +1089,7 @@ describe('Rig update install-source commands', () => {
       prefix,
       'releases/1.2.3',
       ...(process.platform === 'win32' ? [] : ['lib']),
-      'node_modules/@rig-ai/code',
+      'node_modules/@shivcdhry/rig',
     );
     const npmExecutable = path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm');
     const entryFile = path.join(packageRoot, 'dist/index.js');
@@ -1100,7 +1100,7 @@ describe('Rig update install-source commands', () => {
       writeFileSync(npmExecutable, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code', version: '1.2.3' }),
+        JSON.stringify({ name: '@shivcdhry/rig', version: '1.2.3' }),
       );
       writeFileSync(
         path.join(prefix, 'install.json'),
@@ -1109,7 +1109,7 @@ describe('Rig update install-source commands', () => {
           product: 'rig',
           updateOwner: 'npm-prefix',
           packageManager: 'npm',
-          packageName: '@rig-ai/code',
+          packageName: '@shivcdhry/rig',
           registry: 'https://registry.npmjs.org/',
           distTag: 'latest',
           prefix,
@@ -1122,7 +1122,7 @@ describe('Rig update install-source commands', () => {
 
       expect(resolveMcodeNpmPrefixInstall(entryFile, process.platform)).toEqual({
         executable: npmExecutable,
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         prefix: realpathSync(prefix),
         registry: 'https://registry.npmjs.org/',
       });
@@ -1146,12 +1146,12 @@ describe('Rig update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@rig-ai/code', version: '1.2.3' }),
+        JSON.stringify({ name: '@shivcdhry/rig', version: '1.2.3' }),
       );
 
       expect(resolveMcodeNpmPrefixInstall(entryFile, process.platform, nodeExecutable)).toEqual({
         executable: npmExecutable,
-        packageName: '@rig-ai/code',
+        packageName: '@shivcdhry/rig',
         prefix: realpathSync(prefix),
         registry: 'https://registry.npmjs.org/',
       });
@@ -1169,7 +1169,7 @@ describe('Rig update install-source commands', () => {
     const command = buildMcodePackageManagerCommand(source, '1.2.4', 'linux');
     const scriptOptions =
       source === 'npm-global'
-        ? ' --ignore-scripts=false --include=optional --allow-scripts=@rig-ai/code,better-sqlite3'
+        ? ' --ignore-scripts=false --include=optional --allow-scripts=@shivcdhry/rig,better-sqlite3'
         : '';
 
     expect(command.args.slice(-2)).toEqual([
@@ -1177,7 +1177,7 @@ describe('Rig update install-source commands', () => {
       'https://registry.npmjs.org/',
     ]);
     expect(command.display).toBe(
-      `${prefix} @rig-ai/code@1.2.4${scriptOptions} --registry https://registry.npmjs.org/`,
+      `${prefix} @shivcdhry/rig@1.2.4${scriptOptions} --registry https://registry.npmjs.org/`,
     );
   });
 
@@ -1189,7 +1189,7 @@ describe('Rig update install-source commands', () => {
     ).resolves.toBe('1.2.4');
     expect(run).toHaveBeenCalledWith('npm', [
       'view',
-      '@rig-ai/code@test',
+      '@shivcdhry/rig@test',
       'version',
       '--json',
       '--registry',
@@ -1200,7 +1200,7 @@ describe('Rig update install-source commands', () => {
   });
 
   it('uses installer-owned npm for a prefix installation registry lookup', async () => {
-    const distribution = resolveMcodeNpmDistribution('@rig-ai/code');
+    const distribution = resolveMcodeNpmDistribution('@shivcdhry/rig');
     const run = vi.fn(async () => '"1.2.4"');
 
     await expect(
@@ -1213,7 +1213,7 @@ describe('Rig update install-source commands', () => {
     ).resolves.toBe('1.2.4');
     expect(run).toHaveBeenCalledWith('/opt/rig/runtime/node/bin/npm', [
       'view',
-      '@rig-ai/code@latest',
+      '@shivcdhry/rig@latest',
       'version',
       '--json',
       '--registry',
@@ -1224,7 +1224,7 @@ describe('Rig update install-source commands', () => {
   });
 
   it('accepts npm registry metadata returned as a single-item JSON array', async () => {
-    const distribution = resolveMcodeNpmDistribution('@rig-ai/code');
+    const distribution = resolveMcodeNpmDistribution('@shivcdhry/rig');
 
     await expect(
       resolveLatestMcodeRegistryVersion('latest', {
@@ -1236,11 +1236,11 @@ describe('Rig update install-source commands', () => {
   });
 
   it('keeps public package lookup and installation on the official npm registry', async () => {
-    const distribution = resolveMcodeNpmDistribution('@rig-ai/code');
+    const distribution = resolveMcodeNpmDistribution('@shivcdhry/rig');
     const run = vi.fn(async () => '"1.2.4"');
 
     expect(distribution).toEqual({
-      packageName: '@rig-ai/code',
+      packageName: '@shivcdhry/rig',
       registry: 'https://registry.npmjs.org/',
     });
     await expect(
@@ -1252,7 +1252,7 @@ describe('Rig update install-source commands', () => {
     ).resolves.toBe('1.2.4');
     expect(run).toHaveBeenCalledWith('npm', [
       'view',
-      '@rig-ai/code@latest',
+      '@shivcdhry/rig@latest',
       'version',
       '--json',
       '--registry',
@@ -1266,10 +1266,10 @@ describe('Rig update install-source commands', () => {
       args: [
         'install',
         '--global',
-        '@rig-ai/code@1.2.4',
+        '@shivcdhry/rig@1.2.4',
         '--ignore-scripts=false',
         '--include=optional',
-        '--allow-scripts=@rig-ai/code,better-sqlite3',
+        '--allow-scripts=@shivcdhry/rig,better-sqlite3',
         '--registry',
         'https://registry.npmjs.org/',
       ],
@@ -1277,7 +1277,7 @@ describe('Rig update install-source commands', () => {
   });
 
   it('does not fall back to the internal registry when the public package is absent', async () => {
-    const distribution = resolveMcodeNpmDistribution('@rig-ai/code');
+    const distribution = resolveMcodeNpmDistribution('@shivcdhry/rig');
     const run = vi.fn(async () => {
       throw new Error('E404 Not Found');
     });
@@ -1296,7 +1296,7 @@ describe('Rig update install-source commands', () => {
     ['[]', /invalid latest version/u],
     ['"1.2.4-beta.1"', /stable semantic version/u],
   ])('rejects invalid public latest metadata: %s', async (metadata, error) => {
-    const distribution = resolveMcodeNpmDistribution('@rig-ai/code');
+    const distribution = resolveMcodeNpmDistribution('@shivcdhry/rig');
 
     await expect(
       resolveLatestMcodeRegistryVersion('latest', {
@@ -1321,9 +1321,9 @@ describe('Rig update install-source commands', () => {
   });
 
   it.each([
-    ['/usr/local/lib/node_modules/@rig-ai/code', '/usr/local', 'linux'],
+    ['/usr/local/lib/node_modules/@shivcdhry/rig', '/usr/local', 'linux'],
     [
-      'C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@rig\\code',
+      'C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@shivcdhry\\rig',
       'C:\\Users\\demo\\AppData\\Roaming\\npm',
       'win32',
     ],
@@ -1337,10 +1337,10 @@ function createApplication(
   options: {
     currentVersion?: string;
     packageTag?: 'latest' | 'test' | 'preview';
-    packageName?: '@rig-ai/code' | '@rig-ai/code';
+    packageName?: '@shivcdhry/rig' | '@shivcdhry/rig';
     prefixInstall?: {
       executable: string;
-      packageName: '@rig-ai/code' | '@rig-ai/code';
+      packageName: '@shivcdhry/rig' | '@shivcdhry/rig';
       prefix: string;
       registry: string;
     };

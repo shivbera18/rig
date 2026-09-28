@@ -496,7 +496,7 @@ const mocked = vi.hoisted(() => {
     modelConfig: {
       provider: {},
       dataDir: "/data",
-      custom_provider?: { "openai-work": {} },
+      custom_provider: { "openai-work": {} },
     },
   };
 });
@@ -3116,7 +3116,7 @@ describe("runtime Browser services lifecycle", () => {
       config: () => ({
         provider: {},
         dataDir: "/data",
-        custom_provider?: { "openai-work": {} },
+        custom_provider: { "openai-work": {} },
         beta: { filePanelBrowser: true, browserUseTooling: true },
       }),
     });
@@ -3148,7 +3148,7 @@ describe("runtime Browser services lifecycle", () => {
       config: () => ({
         provider: {},
         dataDir: "/data",
-        custom_provider?: { "openai-work": {} },
+        custom_provider: { "openai-work": {} },
         beta: { filePanelBrowser: true, browserUseTooling: true },
       }),
     });
@@ -3840,7 +3840,7 @@ function defaultCompatibility(
           config: () => ({
             provider: {},
             dataDir: "/data",
-            custom_provider?: { "openai-work": {} },
+            custom_provider: { "openai-work": {} },
           }),
           skills: {
             listRuntimeSkills: vi.fn(async () => ({

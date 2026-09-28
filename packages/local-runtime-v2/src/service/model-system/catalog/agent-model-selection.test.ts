@@ -215,7 +215,7 @@ function registerM3TierSelectionTests(): void {
       const runtimeConfig: LocalConversationRuntimeConfig = {
         ...config,
         provider: { other: { models: { 'Rig-M3': { limit: { context: 512_000 } } } } },
-        custom_provider?: { other: { models: { 'Rig-M3': { limit: { context: 512_000 } } } } },
+        custom_provider: { other: { models: { 'Rig-M3': { limit: { context: 512_000 } } } } },
       };
       expect(
         resolveAgentModelSelection({
@@ -497,7 +497,7 @@ function registerCustomProviderPrefixFallbackTests(): void {
   it('recovers only Agent-profile bare keys from an exact custom-provider model', () => {
     const byokConfig: LocalConversationRuntimeConfig = {
       ...config,
-      custom_provider?: {
+      custom_provider: {
         mafia: {
           models: {
             model: { limit: { context: 48_000, output: 6_000 } },
@@ -527,7 +527,7 @@ function registerCustomProviderPrefixFallbackTests(): void {
     expect(() => selectFromAgentProfile('Mafia/model')).toThrow('Model Mafia/model');
     expect(() => selectFromAgentProfile('mafia/MODEL')).toThrow('Model mafia/MODEL');
     expect(() => selectFromAgentProfile('custom_provider:mafia/MISSING')).toThrow(
-      'Model 'custom_provider:mafia/MISSING',
+      'Model custom_provider:mafia/MISSING',
     );
 
     expect(() =>
@@ -539,7 +539,7 @@ function registerCustomProviderPrefixFallbackTests(): void {
     expect(() =>
       selectFromAgentProfile('rig/model', {
         ...byokConfig,
-        custom_provider?: {
+        custom_provider: {
           ...byokConfig.custom_provider,
           rig: { models: { model: {} } },
         },
@@ -666,7 +666,7 @@ function registerMiniMaxM3SelectionTests(): void {
   it('uses Custom BYOK M3 effort options instead of its model name or reasoning flag', () => {
     const customM3 = (model: Record<string, unknown>): LocalConversationRuntimeConfig => ({
       ...config,
-      custom_provider?: { mafia: { models: { 'Rig-M3': model } } },
+      custom_provider: { mafia: { models: { 'Rig-M3': model } } },
     });
     const select = (runtimeConfig: LocalConversationRuntimeConfig, effort: string) =>
       resolveAgentModelSelection({

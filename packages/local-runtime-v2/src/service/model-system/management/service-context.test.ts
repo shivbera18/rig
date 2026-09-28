@@ -60,7 +60,7 @@ function createHarness(
         rig_api: config.rig_api
           ? (structuredClone(config.rig_api) as Record<string, unknown>)
           : undefined,
-        custom_provider?: config.custom_provider
+        custom_provider: config.custom_provider
           ? structuredClone(config.custom_provider)
           : undefined,
         rigModelSource: config.rigModelSource,

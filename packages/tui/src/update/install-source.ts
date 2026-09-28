@@ -139,20 +139,24 @@ export function resolveMcodeNpmDistribution(
   packageName: McodeNpmPackageName = resolveMcodePackageName() ?? MCODE_EMBEDDED_PACKAGE_NAME,
   registry?: string,
 ): McodeNpmDistribution {
-  if (packageName === mcodePackageName(MCODE_INTERNAL_SCOPE)) {
+  // Legacy upstream identities resolve to the published package: the
+  // tarball/install paths still reference @rig-ai/code in tests and caches.
+  const normalizedName =
+    packageName === ('@rig-ai/code' as McodeNpmPackageName) ? MCODE_EMBEDDED_PACKAGE_NAME : packageName;
+  if (normalizedName === mcodePackageName(MCODE_INTERNAL_SCOPE)) {
     const resolvedRegistry = registry ? new URL(registry).href : MCODE_INTERNAL_NPM_REGISTRY;
     if (resolvedRegistry === MCODE_INTERNAL_NPM_REGISTRY) {
-      return { packageName, registry: resolvedRegistry };
+      return { packageName: normalizedName, registry: resolvedRegistry };
     }
     throw new Error(`Unsupported Rig npm registry: ${resolvedRegistry}`);
   }
-  if (packageName === mcodePackageName(MCODE_PUBLIC_SCOPE)) {
+  if (normalizedName === mcodePackageName(MCODE_PUBLIC_SCOPE)) {
     const resolvedRegistry = registry ? new URL(registry).href : MCODE_PUBLIC_NPM_REGISTRY;
     if (
       resolvedRegistry === MCODE_PUBLIC_NPM_REGISTRY ||
       resolvedRegistry === MCODE_PUBLIC_NPM_MIRROR_REGISTRY
     ) {
-      return { packageName, registry: resolvedRegistry };
+      return { packageName: normalizedName, registry: resolvedRegistry };
     }
     throw new Error(`Unsupported Rig npm registry: ${resolvedRegistry}`);
   }

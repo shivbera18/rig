@@ -80,7 +80,7 @@ function makeHarness(
       const update = configUpdateTail.then(async () => {
         const draft: LocalByokConfigDraft = {
           rig_api: config.rig_api ? { ...config.rig_api } : undefined,
-          custom_provider?: nextRawCustomProviders
+          custom_provider: nextRawCustomProviders
             ? (JSON.parse(JSON.stringify(nextRawCustomProviders)) as Record<string, unknown>)
             : config.custom_provider
               ? (JSON.parse(JSON.stringify(config.custom_provider)) as Record<string, unknown>)
@@ -304,7 +304,7 @@ describe('Rig api key', () => {
 
   it('allows selecting a configured custom model without a prior connectivity test', () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           api: 'openai-completions',
@@ -323,7 +323,7 @@ describe('Rig api key', () => {
 
   it('allows selecting a login-backed custom model without an API key', () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         login: {
           kind: 'oauth',
           enabled: true,
@@ -340,7 +340,7 @@ describe('Rig api key', () => {
 
   it('allows selecting a configured custom model with a failed cached connectivity status', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           api: 'openai-completions',
@@ -370,7 +370,7 @@ describe('Rig api key', () => {
 
   it('still rejects selecting a custom model with incomplete or unavailable configuration', () => {
     const missingKey = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           api: 'openai-completions',
@@ -387,7 +387,7 @@ describe('Rig api key', () => {
     ).toThrowError(expect.objectContaining({ code: 'NO_API_KEY' }));
 
     const missingBaseUrl = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           api: 'openai-completions',
@@ -404,7 +404,7 @@ describe('Rig api key', () => {
     ).toThrowError(expect.objectContaining({ code: 'NO_BASE_URL' }));
 
     const missingModel = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           api: 'openai-completions',
@@ -700,7 +700,7 @@ describe('Rig api key response', () => {
       effort: 'max',
       outputLimit: 16_384,
     });
-    expect(h.testCalls[0]?.key).toMatch(/^custom_provider?:responses\/gpt-5\.2@sha256:/u);
+    expect(h.testCalls[0]?.key).toMatch(/^custom_provider:responses\/gpt-5\.2@sha256:/u);
     expect(
       h.cache.load().model_status['custom_provider:responses/gpt-5.2']?.config_fingerprint,
     ).toMatch(/^sha256:/u);
@@ -710,7 +710,7 @@ describe('Rig api key response', () => {
 describe('custom provider API key reveal', () => {
   function makeRevealHarness() {
     return makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           api: 'openai-responses',
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://example.invalid/v1' },
@@ -795,7 +795,7 @@ describe('custom providers', () => {
 
   it('tests and discovers an edit candidate without mutating config or cache', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           name: 'Work',
           api: 'openai-completions',
@@ -971,7 +971,7 @@ describe('custom providers', () => {
 
   it('tests every saved Think Effort option from the model refresh action', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           api: 'anthropic-messages',
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -999,7 +999,7 @@ describe('custom provider candidate persistence implicit thinking default', () =
   it('defaults only newly added models through the public candidate save path', async () => {
     const h = makeHarness(
       {
-        custom_provider?: {
+        custom_provider: {
           work: {
             name: 'Work',
             api: 'openai-responses',
@@ -1167,7 +1167,7 @@ describe('custom provider candidate persistence', () => {
     const h = makeHarness({
       defaultModel: 'custom_provider:work/removed-model',
       defaultModelVariant: 'max',
-      custom_provider?: {
+      custom_provider: {
         work: {
           name: 'Work',
           api: 'openai-responses',
@@ -1201,7 +1201,7 @@ describe('custom provider candidate persistence', () => {
 
   it('atomically saves a tested edit candidate and preserves retained model fields', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           name: 'Work',
           kind: 'custom',
@@ -1298,7 +1298,7 @@ describe('custom provider candidate persistence', () => {
 describe('custom provider legacy candidates', () => {
   it('saves an edit candidate when raw YAML has a normalized legacy Think Effort', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           name: 'Work',
           api: 'openai-responses',
@@ -1354,7 +1354,7 @@ describe('custom provider legacy candidates', () => {
 
   it('leaves provider, default model, and cache unchanged when candidate persistence fails', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           name: 'Work',
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://saved.example' },
@@ -1387,7 +1387,7 @@ describe('custom provider legacy candidates', () => {
 
   it('rejects an edit candidate when its opaque revision is stale', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://saved.example' },
           models: { 'm-1': {} },
@@ -1411,7 +1411,7 @@ describe('custom provider legacy candidates', () => {
 
   it('tests a parameter patch before saving it and preserves the full model config', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           name: 'Work',
           kind: 'custom',
@@ -1492,7 +1492,7 @@ describe('custom provider legacy candidates', () => {
 describe('custom provider model parameters', () => {
   it('updates model limits without changing configured effort options', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -1523,7 +1523,7 @@ describe('custom provider model parameters', () => {
 
   it('keeps the active model config unchanged when the candidate test fails', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -1566,7 +1566,7 @@ describe('custom provider model parameters', () => {
 
   it('rejects stale model parameters before testing the candidate', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -1599,7 +1599,7 @@ describe('custom provider model parameters', () => {
 
   it('allows the first parameter update when a historical model has no limits or effort', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -1626,7 +1626,7 @@ describe('custom provider model parameters', () => {
 
   it('commits only one of two concurrent patches based on the same model snapshot', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -1674,7 +1674,7 @@ describe('custom provider model parameters', () => {
 describe('custom provider candidate rollback', () => {
   it('keeps the active model config unchanged when cache persistence fails', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -1709,7 +1709,7 @@ describe('custom provider candidate rollback', () => {
 
   it('restores the previous model status when the config write fails', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -1746,7 +1746,7 @@ describe('custom provider candidate rollback', () => {
 
   it('removes the candidate model status after a first config write fails', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -1772,7 +1772,7 @@ describe('custom provider candidate rollback', () => {
 
   it('rejects a tested patch when the provider changes during the request', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           enabled: true,
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
@@ -1807,7 +1807,7 @@ describe('custom provider candidate rollback', () => {
 
   it('validates model parameter patches before running connectivity tests', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com' },
           models: { 'm-1': {} },
@@ -2210,7 +2210,7 @@ describe('custom provider default model recovery', () => {
     const h = makeHarness({
       defaultModel: 'custom_provider:work/removed',
       defaultModelVariant: 'max',
-      custom_provider?: {
+      custom_provider: {
         work: {
           name: 'Work',
           options: { apiKey: CUSTOM_KEY, baseURL: 'https://api.example.com/v1' },
@@ -2244,7 +2244,7 @@ describe('custom provider updates', () => {
 
   it('persists model reorder requests and preserves retained model fields', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           name: 'Work',
           api: 'openai-responses',
@@ -2286,7 +2286,7 @@ describe('custom provider updates', () => {
 
   it('removes legacy npm metadata when a custom provider is edited', async () => {
     const h = makeHarness({
-      custom_provider?: {
+      custom_provider: {
         work: {
           name: 'Work',
           npm: '@ai-sdk/anthropic',

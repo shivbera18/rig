@@ -36,7 +36,7 @@ const config: LocalRuntimeConfig = {
   dataDir: "/synthetic",
   defaultModel: "rig/Rig-M3",
   provider: { rig: { options: { authMode: "managed-login" } } },
-  custom_provider?: { byok: { options: { baseURL: "https://example.com/v1" } } },
+  custom_provider: { byok: { options: { baseURL: "https://example.com/v1" } } },
 };
 function fixture(
   options: {

@@ -55,7 +55,7 @@ describe('listLocalRuntimeModels', () => {
             models: { base: {} },
           },
         },
-        custom_provider?: {
+        custom_provider: {
           work: {
             api: 'openai-completions',
             models: {

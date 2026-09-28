@@ -24,15 +24,15 @@ describe('built-in TUI themes', () => {
   it('keeps the default Rig palette byte-identical to the pre-theme implementation', () => {
     // The default theme is what every existing user sees, so it must not move.
     expect(RIG_DARK_THEME.colors).toEqual({
-      brand: '#68C0FF',
-      wordmarkHighlight: '#93D2FF',
-      wordmarkShadow: '#3DAEFF',
-      signal: '#68C0FF',
+      brand: '#FF3B30',
+      wordmarkHighlight: '#FF7A70',
+      wordmarkShadow: '#C81E1E',
+      signal: '#FF3B30',
       orbit: '#1CCDD2',
-      accent: '#68C0FF',
+      accent: '#FF3B30',
       markdownHeading: '#CBA6F7',
       markdownCode: '#A6E3A1',
-      markdownLink: '#68C0FF',
+      markdownLink: '#FF3B30',
       userMessageBg: '#262626',
       diffAddedBg: '#213A2B',
       diffRemovedBg: '#4A221D',

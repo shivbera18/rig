@@ -519,7 +519,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
   it('resolves configured custom providers without truncating slashed model ids', async () => {
     const resolver = new LocalModelResolver({
       byokConfigGetter: () => ({
-        custom_provider?: {
+        custom_provider: {
           work: {
             api: 'openai-completions',
             options: {
@@ -571,7 +571,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
   it('attributes OpenRouter inference requests to Rig', async () => {
     const resolver = new LocalModelResolver({
       byokConfigGetter: () => ({
-        custom_provider?: {
+        custom_provider: {
           openrouter: {
             api: 'openai-completions',
             options: {
@@ -630,7 +630,7 @@ describe('LocalModelResolver custom-provider endpoint normalization', () => {
     async ({ api, baseUrl, expectedBaseUrl }) => {
       const resolver = new LocalModelResolver({
         byokConfigGetter: () => ({
-          custom_provider?: {
+          custom_provider: {
             work: {
               api,
               options: { apiKey: 'custom-user-key', baseURL: baseUrl },
@@ -675,7 +675,7 @@ describe('LocalModelResolver BYOK fallback', () => {
         },
       },
       byokConfigGetter: () => ({
-        custom_provider?: {
+        custom_provider: {
           work: {
             enabled: true,
             options: {
@@ -736,7 +736,7 @@ describe('LocalModelResolver BYOK fallback', () => {
         },
       },
       byokConfigGetter: () => ({
-        custom_provider?: {
+        custom_provider: {
           work: {
             enabled: true,
             options: {
@@ -772,7 +772,7 @@ describe('LocalModelResolver BYOK fallback', () => {
   it('fails closed when neither a BYOK reference nor a builtin fallback exists', async () => {
     const resolver = new LocalModelResolver({
       byokConfigGetter: () => ({
-        custom_provider?: {},
+        custom_provider: {},
       }),
     });
 
@@ -818,7 +818,7 @@ describe('LocalModelResolver custom-provider session thinking', () => {
       };
       const resolver = new LocalModelResolver({
         byokConfigGetter: () => ({
-          custom_provider?: {
+          custom_provider: {
             work: {
               api: 'openai-completions',
               options: {
@@ -858,7 +858,7 @@ describe('LocalModelResolver custom-provider top thinking efforts', () => {
     const resolver = new LocalModelResolver({
       implicitCustomProviderThinking: true,
       byokConfigGetter: () => ({
-        custom_provider?: {
+        custom_provider: {
           work: {
             api: 'anthropic-messages',
             options: { apiKey: 'custom-user-key', baseURL: 'https://custom.example/v1' },
@@ -896,7 +896,7 @@ describe('LocalModelResolver custom-provider top thinking efforts', () => {
       const resolver = new LocalModelResolver({
         implicitCustomProviderThinking: true,
         byokConfigGetter: () => ({
-          custom_provider?: {
+          custom_provider: {
             work: {
               api: 'anthropic-messages',
               options: {
@@ -946,7 +946,7 @@ describe('LocalModelResolver BYOK thinking', () => {
     async (api, expectedCompat) => {
       const resolver = new LocalModelResolver({
         byokConfigGetter: () => ({
-          custom_provider?: {
+          custom_provider: {
             work: {
               api,
               options: { apiKey: 'custom-user-key', baseURL: 'https://custom.example/v1' },
@@ -1215,7 +1215,7 @@ describe('Codex OAuth discovered models', () => {
       const resolver = new LocalModelResolver({
         providerAuthGetter,
         byokConfigGetter: () => ({
-          custom_provider?: {
+          custom_provider: {
             'openai-codex': {
               api: 'openai-codex-responses',
               kind: 'oauth',
@@ -1256,7 +1256,7 @@ describe('OpenCode Go conversation identity', () => {
     async (api) => {
       const resolver = new LocalModelResolver({
         byokConfigGetter: () => ({
-          custom_provider?: {
+          custom_provider: {
             renamed: {
               api,
               options: {
@@ -1300,7 +1300,7 @@ describe('LocalModelResolver custom provider compat overrides', () => {
   ) => {
     const resolver = new LocalModelResolver({
       byokConfigGetter: () => ({
-        custom_provider?: {
+        custom_provider: {
           gateway: {
             api: 'openai-completions',
             options: { apiKey: 'gateway-key', baseURL: 'https://gateway.example/v1' },
@@ -1344,7 +1344,7 @@ describe('LocalModelResolver custom provider compat overrides', () => {
     };
     const resolver = new LocalModelResolver({
       byokConfigGetter: () => ({
-        custom_provider?: {
+        custom_provider: {
           gateway: {
             api: 'openai-completions',
             options: { apiKey: 'gateway-key', baseURL: 'https://gateway.example/v1' },
@@ -1396,7 +1396,7 @@ describe('LocalModelResolver custom provider compat overrides', () => {
   ) => {
     const resolver = new LocalModelResolver({
       byokConfigGetter: () => ({
-        custom_provider?: {
+        custom_provider: {
           gateway: {
             api: 'openai-completions',
             options: { apiKey: 'gateway-key', baseURL },
@@ -1554,7 +1554,7 @@ describe('LocalModelResolver custom provider session affinity', () => {
     const modelConfig: LocalModelConfig = compat ? { compat } : {};
     const resolver = new LocalModelResolver({
       byokConfigGetter: () => ({
-        custom_provider?: {
+        custom_provider: {
           relay: {
             api: 'anthropic-messages',
             options: { apiKey: 'relay-key', baseURL: 'https://relay.example' },

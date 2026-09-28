@@ -646,8 +646,8 @@ describe('TranscriptView', () => {
     const rendered = stripVTControlCharacters(view.render(28).join('\n'));
 
     expect(rendered).toMatch(/│ Source\s+│/u);
-    expect(rendered).toContain('│   /home/dev/.rig');
-    expect(rendered).toContain('│   /config.yaml');
+    expect(rendered).toContain('│   /home/dev/.rig/con');
+    expect(rendered).toContain('│   fig.yaml');
     expect(rendered).not.toMatch(/│ Source\s+│?\s*\/home/u);
     expect(rendered).toContain('╰─');
     expect(rendered.split('\n').every((line) => visibleWidth(line) === 28)).toBe(true);

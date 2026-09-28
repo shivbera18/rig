@@ -1,0 +1,33 @@
+{
+  "name": "@rig/agent-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Built-in adapters that connect Rig agent modules to the host-neutral @rig/agent-runtime SPI.",
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@rig/session-report": "workspace:^",
+    "@rig/agent-runtime": "workspace:^",
+    "@rig/context-manager": "workspace:^",
+    "@rig/permission": "workspace:^",
+    "@rig/runaway-guard": "workspace:^",
+    "@rig/skills": "workspace:^",
+    "@rig/system-reminder": "workspace:^",
+    "@sinclair/typebox": "^0.34.0"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-agent-core": "workspace:*",
+    "@earendil-works/pi-ai": "workspace:*",
+    "@rig/protocol": "workspace:^",
+    "@types/node": "^20",
+    "typescript": "^5",
+    "vitest": "^2"
+  },
+  "license": "MIT"
+}

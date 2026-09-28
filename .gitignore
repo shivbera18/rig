@@ -1,5 +1,10 @@
 node_modules/
 dist/
-.rig-*
-*.tmp
+.turbo/
+.cache/
+.pnpm-store/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
 .DS_Store

@@ -1,46 +1,44 @@
 {
-  "author": "shivbera18",
-  "bin": {
-    "rig": "dist/cli.cjs"
-  },
-  "dependencies": {
-    "commander": "^12.1.0",
-    "yaml": "^2.7.0"
-  },
-  "description": "rig — headless coding-agent CLI with multi-account auth pool, isolated subagents, model-role agents, and web search",
-  "devDependencies": {
-    "@types/node": "^22.0.0",
-    "esbuild": "^0.24.0",
-    "typescript": "^5.7.0"
-  },
+  "name": "@shivcdhry/rig",
+  "version": "0.8.0",
+  "type": "module",
+  "description": "Rig — terminal coding agent with managed accounts, BYOK models, cloud tools, plugins and ACP.",
+  "packageManager": "pnpm@9.12.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.19 <23 || >=24.2 <27"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "verify": "node scripts/verify.mjs",
+    "test:smoke": "node --test test/smoke.test.mjs",
+    "prepublishOnly": "node scripts/build.mjs"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild",
+      "node-pty"
+    ],
+    "overrides": {
+      "react": "18.3.1",
+      "react-dom": "18.3.1",
+      "@modelcontextprotocol/sdk>@hono/node-server": "2.0.12",
+      "minimatch@>=10.2.5>brace-expansion": "5.0.9",
+      "ajv>fast-uri": "3.1.6",
+      "express-rate-limit>ip-address": "10.4.0",
+      "vitest": "4.1.11",
+      "@vitest/coverage-v8": "4.1.11",
+      "vite": "7.3.6",
+      "hono": "4.13.5"
+    }
+  },
+  "license": "MIT",
+  "bin": {
+    "rig": "dist/cli.js"
   },
   "files": [
     "dist",
     "README.md",
     "LICENSE"
-  ],
-  "keywords": [
-    "coding-agent",
-    "cli",
-    "ai",
-    "agents"
-  ],
-  "license": "MIT",
-  "name": "@shivcdhry/rig",
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/shivbera18/rig.git"
-  },
-  "scripts": {
-    "build": "node scripts/build.mjs",
-    "prepublishOnly": "node scripts/build.mjs",
-    "test": "node --test test/*.test.mjs"
-  },
-  "type": "module",
-  "version": "0.7.0"
+  ]
 }

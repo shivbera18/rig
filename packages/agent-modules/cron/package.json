@@ -1,0 +1,24 @@
+{
+  "name": "@rig/cron",
+  "version": "0.2.1",
+  "description": "Cron task scheduling/execution capability for Rig agent runtimes. Depends only on @rig/agent-core primitives; never imports runtime packages.",
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@rig/agent-core": "workspace:^",
+    "@rig/shared": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5",
+    "vitest": "^2"
+  },
+  "private": true,
+  "license": "MIT"
+}

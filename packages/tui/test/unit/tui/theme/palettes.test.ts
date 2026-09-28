@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   BUILT_IN_THEMES,
   DEFAULT_THEME_ID,
-  MINIMAX_CODE_DARK_THEME,
-  MINIMAX_CODE_LIGHT_THEME,
+  RIG_DARK_THEME,
+  RIG_LIGHT_THEME,
 } from '../../../../src/tui/theme/palettes.js';
 import {
   TUI_SYNTAX_TONE_NAMES,
@@ -23,7 +23,7 @@ const ALL_PALETTES = BUILT_IN_THEMES.flatMap((theme) => [
 describe('built-in TUI themes', () => {
   it('keeps the default Rig palette byte-identical to the pre-theme implementation', () => {
     // The default theme is what every existing user sees, so it must not move.
-    expect(MINIMAX_CODE_DARK_THEME.colors).toEqual({
+    expect(RIG_DARK_THEME.colors).toEqual({
       brand: '#68C0FF',
       wordmarkHighlight: '#93D2FF',
       wordmarkShadow: '#3DAEFF',
@@ -45,7 +45,7 @@ describe('built-in TUI themes', () => {
       warning: '#FFC340',
       error: '#FF5E6C',
     });
-    expect(MINIMAX_CODE_LIGHT_THEME.colors.text).toBe('#303030');
+    expect(RIG_LIGHT_THEME.colors.text).toBe('#303030');
     expect(DEFAULT_THEME_ID).toBe('rig');
   });
 

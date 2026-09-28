@@ -1,4 +1,4 @@
-import type { McodeProviderApplication } from '../../../provider/application.js';
+import type { RigProviderApplication } from '../../../provider/application.js';
 import type {
   McodeCodexOAuthLoginMethod,
   McodeCodexOAuthStatus,
@@ -13,7 +13,7 @@ import { tuiChalk as chalk, tuiColors as colors, tuiSelectListTheme } from '../.
 
 interface CodexLoginOptions {
   application: Pick<
-    McodeProviderApplication,
+    RigProviderApplication,
     'connectCodexOAuth' | 'getCodexOAuthStatus' | 'cancelCodexOAuthLogin'
   >;
   openExternalTarget(url: string): Promise<void>;

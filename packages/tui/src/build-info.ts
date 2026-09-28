@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 export const RIG_MIN_NODE_VERSION = '22.19.0';
 export const RIG_SUPPORTED_NODE_VERSIONS = '22.19+, 24, 25, or 26';
 export const TUI_BUILD_PROFILE = 'tui';
-export const RIG_PACKAGE_NAME = '@rig-ai/code';
+export const RIG_PACKAGE_NAME = '@shivcdhry/rig';
 
 interface PackageManifest {
   name: string;

@@ -648,7 +648,7 @@ describe("TuiFeatureFlow", () => {
     const harness = createHarness({ openExternalTarget });
     harness.runtime.listModels.mockResolvedValue([
       {
-        providerId: "custom_provider?:mafia-openai",
+        providerId: "custom_provider:mafia-openai",
         providerName: "Mafia OpenAI Models",
         modelId: "codex-auto-review",
         displayName: "Codex Auto Review",
@@ -716,7 +716,7 @@ describe("TuiFeatureFlow", () => {
     const harness = createHarness();
     const customModels: TuiModel[] = [
       {
-        providerId: "custom_provider?:openai",
+        providerId: "custom_provider:openai",
         providerName: "OpenAI",
         providerSource: "custom-provider",
         providerKind: "custom",
@@ -724,7 +724,7 @@ describe("TuiFeatureFlow", () => {
         displayName: "GPT-4o",
       },
       {
-        providerId: "custom_provider?:openai",
+        providerId: "custom_provider:openai",
         providerName: "OpenAI",
         providerSource: "custom-provider",
         providerKind: "custom",
@@ -750,7 +750,7 @@ describe("TuiFeatureFlow", () => {
 
     await vi.waitFor(() =>
       expect(harness.runtime.deleteUserModelProvider).toHaveBeenCalledWith(
-        "custom_provider?:openai",
+        "custom_provider:openai",
       ),
     );
     await vi.waitFor(() => expect(harness.shown).toHaveLength(2));
@@ -766,7 +766,7 @@ describe("TuiFeatureFlow", () => {
     const harness = createHarness();
     harness.runtime.listModels.mockResolvedValue([
       {
-        providerId: "custom_provider?:openai",
+        providerId: "custom_provider:openai",
         providerName: "OpenAI",
         providerSource: "custom-provider",
         providerKind: "custom",
@@ -829,13 +829,13 @@ describe("TuiFeatureFlow", () => {
       .mockResolvedValue([
         { ...model("existing"), selected: true },
         {
-          providerId: "custom_provider?:deepseek",
+          providerId: "custom_provider:deepseek",
           providerName: "DeepSeek",
           modelId: "deepseek-chat",
           displayName: "DeepSeek Chat",
         },
         {
-          providerId: "custom_provider?:deepseek",
+          providerId: "custom_provider:deepseek",
           providerName: "DeepSeek",
           modelId: "deepseek-reasoner",
           displayName: "DeepSeek Reasoner",
@@ -843,7 +843,7 @@ describe("TuiFeatureFlow", () => {
       ]);
     harness.runtime.saveUserModelProviderCandidate.mockResolvedValue({
       success: true,
-      provider: { providerId: "custom_provider?:deepseek" },
+      provider: { providerId: "custom_provider:deepseek" },
     });
     harness.runtime.selectModel.mockResolvedValue(true);
 
@@ -879,7 +879,7 @@ describe("TuiFeatureFlow", () => {
     );
     expect(harness.runtime.selectModel).toHaveBeenCalledWith(
       expect.objectContaining({
-        providerId: "custom_provider?:deepseek",
+        providerId: "custom_provider:deepseek",
         modelId: "deepseek-chat",
       }),
       "session-a",
@@ -893,7 +893,7 @@ describe("TuiFeatureFlow", () => {
       "DeepSeek Reasoner",
     );
     expect(harness.append).toHaveBeenCalledWith(
-      "Provider added: DeepSeek · custom_provider?:deepseek/deepseek-chat.",
+      "Provider added: DeepSeek · 'custom_provider:deepseek/deepseek-chat.",
     );
     expect(harness.append).toHaveBeenCalledWith(
       expect.stringContaining(

@@ -51,7 +51,7 @@ import {
   writeRejectedCliAccountIdentity,
   writeVerifiedCliAccountIdentity,
 } from '../auth/identity-storage.js';
-import { resolveMcodeDataEnvironment } from '../auth/environment.js';
+import { resolveRigDataEnvironment } from '../auth/environment.js';
 import { uploadTuiFeedbackDiagnostics } from './feedback/diagnostic-upload.js';
 import { TuiFeedbackService } from './feedback/service.js';
 import {
@@ -114,7 +114,7 @@ export interface CreateTuiRuntimeDependencies {
     signal?: AbortSignal,
   ) => Promise<LocalRuntimeAuthContext | undefined>;
   syncRuntimeAuthProjection?: typeof syncCliRuntimeAuthProjection;
-  getDataEnvironment?: typeof resolveMcodeDataEnvironment;
+  getDataEnvironment?: typeof resolveRigDataEnvironment;
   fetchImpl?: typeof fetch;
   sharedAuthCore?: Pick<
     MCodeOAuthCore,
@@ -455,7 +455,7 @@ export async function createTuiRuntime(
     },
     ...(options.surface === 'headless' ||
     options.surface === 'acp' ||
-    (dependencies.getDataEnvironment ?? resolveMcodeDataEnvironment)() === 'test'
+    (dependencies.getDataEnvironment ?? resolveRigDataEnvironment)() === 'test'
       ? { startupExecutionPolicy: 'quarantined' }
       : {}),
   };

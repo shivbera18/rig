@@ -16,7 +16,7 @@ import { MANAGED_RIG_PROVIDER_ID, RIG_API_PROVIDER_ID } from './model-availabili
 
 const LOCAL_CONFIG_FILE_MODE = 0o600;
 const DANGEROUS_CONFIG_PATH_SEGMENTS = new Set(['__proto__', 'prototype', 'constructor']);
-const LOCAL_BYOK_CONFIG_ROOTS = ['rig_api', 'custom-provider'] as const;
+const LOCAL_BYOK_CONFIG_ROOTS = ['rig_api', 'custom_provider'] as const;
 
 export interface LocalByokConfigDraft {
   rig_api?: Record<string, unknown>;

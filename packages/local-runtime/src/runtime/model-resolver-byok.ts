@@ -1,5 +1,5 @@
 // BYOK source resolution planning for the model resolver: turns a
-// source-qualified provider reference (`rig_api`, `custom_provider?:<key>`)
+// source-qualified provider reference (`rig_api`, `custom_provider:<key>`)
 // into concrete credentials + limits, without touching the legacy provider
 // tree path. Custom providers never consult the Pi catalog by name; missing
 // limits use the dedicated BYOK fallbacks (not the legacy 2048 default).

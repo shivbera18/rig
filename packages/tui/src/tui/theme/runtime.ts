@@ -12,7 +12,7 @@ import type {
 } from './contracts.js';
 import { resolveTuiAnsi16Foreground, shouldSuppressTuiAnsi16Background } from './ansi16.js';
 import { resolveEnvironmentAppearance } from './detection.js';
-import { MINIMAX_CODE_DARK_THEME, MINIMAX_CODE_LIGHT_THEME } from './palettes.js';
+import { RIG_DARK_THEME, RIG_LIGHT_THEME } from './palettes.js';
 import { createSyntaxHighlightTheme } from './syntax.js';
 
 export interface TuiRenderThemeSnapshot {
@@ -31,13 +31,13 @@ let renderThemeSnapshot: TuiRenderThemeSnapshot = {
   signature: '',
 };
 let activeColors: TuiThemeColors =
-  initialAppearance === 'light' ? MINIMAX_CODE_LIGHT_THEME.colors : MINIMAX_CODE_DARK_THEME.colors;
+  initialAppearance === 'light' ? RIG_LIGHT_THEME.colors : RIG_DARK_THEME.colors;
 let activeSyntax: TuiThemeSyntaxTones =
-  initialAppearance === 'light' ? MINIMAX_CODE_LIGHT_THEME.syntax : MINIMAX_CODE_DARK_THEME.syntax;
+  initialAppearance === 'light' ? RIG_LIGHT_THEME.syntax : RIG_DARK_THEME.syntax;
 renderThemeSnapshot = {
   ...renderThemeSnapshot,
   signature: paletteSignature(
-    initialAppearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME,
+    initialAppearance === 'light' ? RIG_LIGHT_THEME : RIG_DARK_THEME,
   ),
 };
 

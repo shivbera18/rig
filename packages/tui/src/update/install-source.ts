@@ -8,11 +8,11 @@ export const MCODE_INTERNAL_NPM_REGISTRY = 'https://npmmirror.example.invalid/';
 export const MCODE_PUBLIC_NPM_REGISTRY = 'https://registry.npmjs.org/';
 export const MCODE_PUBLIC_NPM_MIRROR_REGISTRY = 'https://registry.npmmirror.com/';
 const REGISTRY_FETCH_TIMEOUT_MS = 30_000;
-const MCODE_PACKAGE_BASENAME = 'code';
+const MCODE_PACKAGE_BASENAME = 'rig';
 const MCODE_INTERNAL_SCOPE = '@rig';
-const MCODE_PUBLIC_SCOPE = '@rig-ai';
+const MCODE_PUBLIC_SCOPE = '@shivcdhry';
 // Public packaging rewrites this marker together with the bundled package identity.
-const MCODE_EMBEDDED_PACKAGE_NAME = '@rig-ai/code' as McodeNpmPackageName;
+const MCODE_EMBEDDED_PACKAGE_NAME = '@shivcdhry/rig' as McodeNpmPackageName;
 
 export type McodeNpmDistTag = 'latest' | 'test' | 'preview';
 export type McodeNpmPackageName = '@shivcdhry/rig' | '@rig-ai/code';
@@ -115,22 +115,20 @@ export function classifyMcodeInstallPath(
   packageRoot: string,
 ): McodePackageManagerInstallSource | undefined {
   const normalized = packageRoot.replaceAll('\\', '/').toLocaleLowerCase();
-  if (
-    /\/pnpm\/global\/(?:v11\/[^/]+|[^/]+)\/node_modules\/@rig(?:-ai)?\/code$/u.test(normalized)
-  ) {
+  // Match the published layout (@shivcdhry/rig) plus legacy upstream layouts.
+  const pkg = String.raw`(?:@shivcdhry\/rig|@rig(?:-ai)?\/code)`;
+  if (new RegExp(String.raw`\/pnpm\/global\/(?:v11\/[^/]+|[^/]+)\/node_modules\/` + pkg + String.raw`$`, 'u').test(normalized)) {
     return 'pnpm-global';
   }
-  if (
-    /\/(?:\.config\/yarn|\.yarn)\/global\/node_modules\/@rig(?:-ai)?\/code$/u.test(normalized)
-  ) {
+  if (new RegExp(String.raw`\/(?:\.config\/yarn|\.yarn)\/global\/node_modules\/` + pkg + String.raw`$`, 'u').test(normalized)) {
     return 'yarn-global';
   }
-  if (/\/\.bun\/install\/global\/node_modules\/@rig(?:-ai)?\/code$/u.test(normalized)) {
+  if (new RegExp(String.raw`\/\.bun\/install\/global\/node_modules\/` + pkg + String.raw`$`, 'u').test(normalized)) {
     return 'bun-global';
   }
   if (
-    /\/lib\/node_modules\/@rig(?:-ai)?\/code$/u.test(normalized) ||
-    /\/npm\/node_modules\/@rig(?:-ai)?\/code$/u.test(normalized)
+    new RegExp(String.raw`\/lib\/node_modules\/` + pkg + String.raw`$`, 'u').test(normalized) ||
+    new RegExp(String.raw`\/npm\/node_modules\/` + pkg + String.raw`$`, 'u').test(normalized)
   ) {
     return 'npm-global';
   }

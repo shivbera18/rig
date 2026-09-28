@@ -2371,7 +2371,7 @@ describe("production Session title policy wiring", () => {
       sessionId: "rename", agentName: "test", workspaceDir: "/data",
       runtime: "pi-agent", sessionType: "branch", sessionKind: "conversation",
       archived: false, status: "idle", createdAtMs: 1, updatedAtMs: 1,
-      effectiveModel: "custom_provider?:openai-work/test-model",
+      effectiveModel: "custom_provider:openai-work/test-model",
     };
     review.mockClear();
     await expect(policy.blocks("Local rename", session)).resolves.toBe(false);

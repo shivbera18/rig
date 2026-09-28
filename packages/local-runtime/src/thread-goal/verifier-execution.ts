@@ -240,7 +240,7 @@ function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/** Provider half of a source-qualified model key (`custom_provider?:acme/model`). */
+/** Provider half of a source-qualified model key (`custom_provider:acme/model`). */
 function modelRouteProvider(modelKey: string): string | undefined {
   const normalized = modelKey.trim();
   const separator = normalized.indexOf('/');

@@ -27,7 +27,7 @@ const snapshot: McodeProviderSnapshot = {
       models: [],
     },
     {
-      providerId: "custom_provider?:openai",
+      providerId: "custom_provider:openai",
       name: "OpenAI",
       configRevision: "rev-1",
       kind: "custom",
@@ -340,7 +340,7 @@ describe("TuiProviderManager", () => {
     const withSelectedCustomModel: McodeProviderSnapshot = {
       ...withSource("rig_api_key"),
       providers: withSource("rig_api_key").providers.map((provider) =>
-        provider.providerId === "custom_provider?:openai"
+        provider.providerId === "custom_provider:openai"
           ? { ...provider, active: true }
           : provider,
       ),
@@ -374,7 +374,7 @@ describe("TuiProviderManager", () => {
     const credentialed: McodeProviderSnapshot = {
       ...snapshot,
       providers: snapshot.providers.map((provider) =>
-        provider.providerId === "custom_provider?:openai"
+        provider.providerId === "custom_provider:openai"
           ? {
               ...provider,
               baseUrl:
@@ -423,7 +423,7 @@ describe("TuiProviderManager", () => {
     manager.handleInput("t");
 
     await vi.waitFor(() =>
-      expect(onTest).toHaveBeenCalledWith("custom_provider?:openai"),
+      expect(onTest).toHaveBeenCalledWith("custom_provider:openai"),
     );
   });
 
@@ -433,7 +433,7 @@ describe("TuiProviderManager", () => {
     const disabled: McodeProviderSnapshot = {
       ...snapshot,
       providers: snapshot.providers.map((provider) =>
-        provider.providerId === "custom_provider?:openai"
+        provider.providerId === "custom_provider:openai"
           ? { ...provider, enabled: false, active: false }
           : provider,
       ),
@@ -495,7 +495,7 @@ it("opens the custom editor and keeps the provider ID and revision when replacin
   await vi.waitFor(() => expect(onSaveCustom).toHaveBeenCalledOnce());
   expect(onSaveCustom).toHaveBeenCalledWith(
     expect.objectContaining({
-      providerId: "custom_provider?:openai",
+      providerId: "custom_provider:openai",
       expectedRevision: "rev-1",
       apiKey: "replacement-secret",
       saveAndUse: false,

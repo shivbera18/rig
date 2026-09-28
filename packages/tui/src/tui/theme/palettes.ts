@@ -24,19 +24,19 @@ function palette(
  * Default Rig palette. The values are frozen in place so a theme switch can
  * never mutate a palette another theme still references.
  */
-export const MINIMAX_CODE_DARK_THEME = palette(
+export const RIG_DARK_THEME = palette(
   'rig',
   'dark',
   {
-    brand: '#68C0FF',
-    wordmarkHighlight: '#93D2FF',
-    wordmarkShadow: '#3DAEFF',
-    signal: '#68C0FF',
-    orbit: '#1CCDD2',
-    accent: '#68C0FF',
+    brand: '#FF3B30',
+    wordmarkHighlight: '#FF7A70',
+    wordmarkShadow: '#C81E1E',
+    signal: '#FF3B30',
+    orbit: '#FF7A59',
+    accent: '#FF3B30',
     markdownHeading: '#CBA6F7',
     markdownCode: '#A6E3A1',
-    markdownLink: '#68C0FF',
+    markdownLink: '#FF6B60',
     userMessageBg: '#262626',
     diffAddedBg: '#213A2B',
     diffRemovedBg: '#4A221D',
@@ -52,7 +52,7 @@ export const MINIMAX_CODE_DARK_THEME = palette(
   CATPPUCCIN_SYNTAX_TONES.dark,
 );
 
-export const MINIMAX_CODE_LIGHT_THEME = palette(
+export const RIG_LIGHT_THEME = palette(
   'rig',
   'light',
   {
@@ -82,7 +82,7 @@ export const MINIMAX_CODE_LIGHT_THEME = palette(
 
 /** Default palette for the active appearance. */
 export function defaultPalette(appearance: TuiResolvedAppearance) {
-  return appearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME;
+  return appearance === 'light' ? RIG_LIGHT_THEME : RIG_DARK_THEME;
 }
 
 // ---------------------------------------------------------------------------
@@ -369,12 +369,12 @@ export const DEFAULT_THEME_ID = 'rig';
  * never have to assert a built-in exists.
  */
 export const DEFAULT_THEME: TuiThemeDefinition = Object.freeze({
-  id: MINIMAX_CODE_DARK_THEME.id,
+  id: RIG_DARK_THEME.id,
   label: 'Rig',
-  description: 'The default Rig blue palette',
+  description: 'The default Rig red palette',
   source: 'builtin',
-  dark: MINIMAX_CODE_DARK_THEME,
-  light: MINIMAX_CODE_LIGHT_THEME,
+  dark: RIG_DARK_THEME,
+  light: RIG_LIGHT_THEME,
 });
 
 export const BUILT_IN_THEMES: readonly TuiThemeDefinition[] = Object.freeze([

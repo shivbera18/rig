@@ -4,7 +4,7 @@ import { TuiProviderEditor } from "../../src/tui/features/provider/editor.js";
 import { stripAnsi } from "../../src/tui/rendering/text.js";
 
 const provider: McodeProviderView = {
-  providerId: "custom_provider?:work",
+  providerId: "custom_provider:work",
   name: "Work",
   kind: "custom",
   active: true,

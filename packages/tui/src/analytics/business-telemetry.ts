@@ -32,7 +32,7 @@ export interface McodeBusinessEventMap {
     readonly source: McodeLoginSource;
     readonly result_type: '1' | '2';
     readonly fail_reason: McodeLoginFailReason;
-    readonly login_type: 'google' | 'mobile' | 'wechat' | 'apple' | 'minimax_sso' | 'minimax_oauth';
+    readonly login_type: 'google' | 'mobile' | 'wechat' | 'apple' | 'minimax_sso' | 'rig_oauth';
   };
   readonly btw_session_lifecycle: {
     readonly phase: 'opened' | 'closed';

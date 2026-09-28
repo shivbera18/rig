@@ -2188,8 +2188,8 @@ describe("createTuiApp", () => {
       const runtime = createRuntime();
       vi.mocked(runtime.getAccountStatus).mockResolvedValue({
         status: "ready",
-        defaultModel: "custom_provider?:innerTest/Rig-M3",
-        providerId: "custom_provider?:innerTest",
+        defaultModel: "custom_provider:innerTest/Rig-M3",
+        providerId: "custom_provider:innerTest",
         modelId: "Rig-M3",
         authMode: "byok",
         managedTokenPresent,
@@ -2198,7 +2198,7 @@ describe("createTuiApp", () => {
       });
       vi.mocked(runtime.listModels).mockResolvedValue([
         {
-          providerId: "custom_provider?:innerTest",
+          providerId: "custom_provider:innerTest",
           modelId: "Rig-M3",
           displayName: "m3.05",
           selected: true,
@@ -11599,7 +11599,7 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.listModels).mockResolvedValue([
       {
-        providerId: "custom_provider?:byok",
+        providerId: "custom_provider:byok",
         modelId: "byok-large-5",
         displayName: "BYOK Large 5",
         selected: true,
@@ -11673,7 +11673,7 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.listModels).mockResolvedValue([
       {
-        providerId: "custom_provider?:byok",
+        providerId: "custom_provider:byok",
         modelId: "byok-large-5",
         displayName: "BYOK Large 5",
         selected: true,
@@ -12940,7 +12940,7 @@ describe("createTuiApp", () => {
     expect(terminal.stopped).toBe(true);
   });
 
-  it.each(["rig", "custom_provider?:work"])(
+  it.each(["rig", "custom_provider:work"])(
     "hydrates the Runtime-selected startup model for %s",
     async (providerId) => {
       const runtime = createRuntime();
@@ -14840,7 +14840,7 @@ describe("interactive CLI model startup", () => {
   it.each([
     [
       "new with prompt",
-      ["-m", "custom_provider?:relay/vendor/model#thinking", "hello"],
+      ["-m", "custom_provider:relay/vendor/model#thinking", "hello"],
       "session-1",
       true,
     ],
@@ -14852,30 +14852,30 @@ describe("interactive CLI model startup", () => {
     ],
     [
       "explicit session",
-      ["--session", "existing", "--model", "custom_provider?:relay/vendor/model#thinking", "hello"],
+      ["--session", "existing", "--model", "custom_provider:relay/vendor/model#thinking", "hello"],
       "existing",
       true,
     ],
     [
       "continue",
-      ["--continue", "--model", "custom_provider?:relay/vendor/model#thinking", "hello"],
+      ["--continue", "--model", "custom_provider:relay/vendor/model#thinking", "hello"],
       "existing",
       true,
     ],
     [
       "missing session",
-      ["--session", "missing", "-m", "custom_provider?:relay/vendor/model#thinking", "hello"],
+      ["--session", "missing", "-m", "custom_provider:relay/vendor/model#thinking", "hello"],
       "missing",
       false,
     ],
     [
       "empty continue",
-      ["--continue", "-m", "custom_provider?:relay/vendor/model#thinking", "hello"],
+      ["--continue", "-m", "custom_provider:relay/vendor/model#thinking", "hello"],
       "existing",
       false,
     ],
     ["invalid provider", ["--model", "missing/model", "hello"], "session-1", false],
-    ["invalid model", ["--model", "custom_provider?:relay/missing", "hello"], "session-1", false],
+    ["invalid model", ["--model", "custom_provider:relay/missing", "hello"], "session-1", false],
   ] as const)(
     "routes %s through launch, hydration and submission",
     async (_name, args, sessionId, hasPrompt) => {
@@ -14885,7 +14885,7 @@ describe("interactive CLI model startup", () => {
       runtime.listBackgroundTasks = vi.fn(async () => []);
       const models = new Map<string, { providerId: string; modelId: string; variant?: string }>();
       const requested = {
-        providerId: "custom_provider?:relay",
+        providerId: "custom_provider:relay",
         modelId: "vendor/model",
         variant: "thinking",
       };

@@ -48,7 +48,7 @@ it('uses historical model values only for missing columns and preserves explicit
   });
 });
 
-it.each(['rig', custom_provider?:work'])(
+it.each(['rig', 'custom_provider:work'])(
   'preserves explicit BYOK parameters through ordinary create for %s',
   (providerId) => {
     const configuredModel = {
@@ -144,14 +144,14 @@ describe('model selection input', () => {
     expect(readLocalModelOverride({})).toBeUndefined();
     expect(
       readLocalModelOverride({
-        providerId: ' custom_provider?:work ',
+        providerId: ' 'custom_provider:work ',
         modelId: ' model-1 ',
         variant: '',
         reasoning: false,
         thinking: {},
       }),
     ).toEqual({
-      provider_id: custom_provider?:work',
+      provider_id: 'custom_provider:work',
       model_id: 'model-1',
       variant: '',
       reasoning: false,

@@ -43,7 +43,7 @@ export interface AgentModelSelectionSource {
   /** Agent/Builtin capture rejects absent, disabled catalog entries before persistence. */
   readonly requireCatalog?: boolean;
   /**
-   * Canonical Agent profiles may retain the pre-`custom_provider?:` BYOK
+   * Canonical Agent profiles may retain the pre-`custom_provider:` BYOK
    * spelling. Other model sources stay source-qualified exactly as supplied.
    */
   readonly allowCustomProviderPrefixFallback?: boolean;

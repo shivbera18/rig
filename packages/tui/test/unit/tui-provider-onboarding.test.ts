@@ -98,7 +98,7 @@ describe("TuiProviderOnboarding", () => {
   it("browses model details and only saves on the second Enter with a configured key", async () => {
     const onSave = vi.fn(async () => ({
       success: true,
-      provider: { providerId: "custom_provider?:deepseek" },
+      provider: { providerId: "custom_provider:deepseek" },
     }));
     const onComplete = vi.fn(async () => undefined);
     const onboarding = new TuiProviderOnboarding({
@@ -148,7 +148,7 @@ describe("TuiProviderOnboarding", () => {
       saveAndUse: true,
     });
     expect(onComplete).toHaveBeenCalledWith({
-      providerId: "custom_provider?:deepseek",
+      providerId: "custom_provider:deepseek",
       providerName: "DeepSeek",
       modelId: "deepseek-chat",
     });
@@ -290,7 +290,7 @@ describe("TuiProviderOnboarding", () => {
   it("collects the minimum custom provider fields without the remote catalog", async () => {
     const onSave = vi.fn(async () => ({
       success: true,
-      provider: { providerId: "custom_provider?:team-gateway" },
+      provider: { providerId: "custom_provider:team-gateway" },
     }));
     const onComplete = vi.fn(async () => undefined);
     const onboarding = new TuiProviderOnboarding({
@@ -371,7 +371,7 @@ describe("TuiProviderOnboarding", () => {
 });
 
 const savedConnection: McodeProviderView = {
-  providerId: "custom_provider?:work",
+  providerId: "custom_provider:work",
   name: "DeepSeek Work",
   kind: "custom",
   active: true,

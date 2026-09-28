@@ -16,7 +16,7 @@ import type {
 } from './contract.js';
 import { isModelProviderApiFormat } from './contract.js';
 
-export class McodeProviderApplication {
+export class RigProviderApplication {
   constructor(private readonly port: McodeProviderRuntimePort) {}
 
   async snapshot(
@@ -36,7 +36,7 @@ export class McodeProviderApplication {
           ? []
           : [normalizeCodexOAuthProvider(codexOAuthStatus)]),
         {
-          providerId: 'minimax_oauth',
+          providerId: 'rig_oauth',
           name: 'Rig OAuth',
           kind: 'rig-oauth',
           active: rigModelSource === 'token_plan',

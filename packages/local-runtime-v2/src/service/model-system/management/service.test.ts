@@ -362,7 +362,7 @@ describe('Rig api key', () => {
       status: { state: 'failed' },
     });
 
-    expect(h.cache.load().model_status[custom_provider?:work/m-1']).toMatchObject({
+    expect(h.cache.load().model_status['custom_provider:work/m-1']).toMatchObject({
       state: 'failed',
     });
     expect(() => h.service.assertModelSelectable('custom_provider:work', 'm-1')).not.toThrow();
@@ -702,7 +702,7 @@ describe('Rig api key response', () => {
     });
     expect(h.testCalls[0]?.key).toMatch(/^custom_provider?:responses\/gpt-5\.2@sha256:/u);
     expect(
-      h.cache.load().model_status[custom_provider?:responses/gpt-5.2']?.config_fingerprint,
+      h.cache.load().model_status['custom_provider:responses/gpt-5.2']?.config_fingerprint,
     ).toMatch(/^sha256:/u);
   });
 });
@@ -989,7 +989,7 @@ describe('custom providers', () => {
     ).resolves.toMatchObject({ ok: true, status: { state: 'available' } });
 
     expect(h.testCalls.map((call) => call.target.effort)).toEqual(['low', 'high', 'max']);
-    expect(h.cache.load().model_status[custom_provider?:work/thinking-model']).toMatchObject({
+    expect(h.cache.load().model_status['custom_provider:work/thinking-model']).toMatchObject({
       state: 'available',
     });
   });
@@ -1165,7 +1165,7 @@ describe('custom provider candidate persistence', () => {
 
   it('saves an edited provider with no models when the connection test is skipped', async () => {
     const h = makeHarness({
-      defaultModel: custom_provider?:work/removed-model',
+      defaultModel: 'custom_provider:work/removed-model',
       defaultModelVariant: 'max',
       custom_provider?: {
         work: {
@@ -1474,7 +1474,7 @@ describe('custom provider legacy candidates', () => {
       limit: { context: 64_000, output: 4_000 },
     });
     expect(h.config.custom_provider?.work).not.toHaveProperty('npm');
-    expect(h.cache.load().model_status[custom_provider?:work/m-1']).toMatchObject({
+    expect(h.cache.load().model_status['custom_provider:work/m-1']).toMatchObject({
       state: 'available',
       config_fingerprint: expect.stringMatching(/^sha256:/u),
     });
@@ -1561,7 +1561,7 @@ describe('custom provider model parameters', () => {
       limit: { context: 100_000, output: 8_000 },
       thinking: { effortOptions: ['high'] },
     });
-    expect(h.cache.load().model_status[custom_provider?:work/m-1']).toBeUndefined();
+    expect(h.cache.load().model_status['custom_provider:work/m-1']).toBeUndefined();
   });
 
   it('rejects stale model parameters before testing the candidate', async () => {
@@ -1704,7 +1704,7 @@ describe('custom provider candidate rollback', () => {
       limit: { context: 100_000, output: 8_000 },
       thinking: { effortOptions: ['high'] },
     });
-    expect(h.cache.load().model_status[custom_provider?:work/m-1']).toBeUndefined();
+    expect(h.cache.load().model_status['custom_provider:work/m-1']).toBeUndefined();
   });
 
   it('restores the previous model status when the config write fails', async () => {
@@ -1723,7 +1723,7 @@ describe('custom provider candidate rollback', () => {
       },
     });
     await h.service.testModel('custom_provider:work', 'm-1');
-    const previousStatus = h.cache.load().model_status[custom_provider?:work/m-1'];
+    const previousStatus = h.cache.load().model_status['custom_provider:work/m-1'];
     h.failNextConfigWrite(new Error('config disk full'));
 
     await expect(
@@ -1740,7 +1740,7 @@ describe('custom provider candidate rollback', () => {
       limit: { context: 100_000, output: 8_000 },
       thinking: { effortOptions: ['high'] },
     });
-    expect(h.cache.load().model_status[custom_provider?:work/m-1']).toEqual(previousStatus);
+    expect(h.cache.load().model_status['custom_provider:work/m-1']).toEqual(previousStatus);
     expect(() => h.service.assertModelSelectable('custom_provider:work', 'm-1')).not.toThrow();
   });
 
@@ -1767,7 +1767,7 @@ describe('custom provider candidate rollback', () => {
       }),
     ).rejects.toThrow('config disk full');
     expect(h.config.custom_provider?.work?.models?.['m-1']).toEqual({});
-    expect(h.cache.load().model_status[custom_provider?:work/m-1']).toBeUndefined();
+    expect(h.cache.load().model_status['custom_provider:work/m-1']).toBeUndefined();
   });
 
   it('rejects a tested patch when the provider changes during the request', async () => {
@@ -1802,7 +1802,7 @@ describe('custom provider candidate rollback', () => {
       context: 100_000,
       output: 8_000,
     });
-    expect(h.cache.load().model_status[custom_provider?:work/m-1']).toBeUndefined();
+    expect(h.cache.load().model_status['custom_provider:work/m-1']).toBeUndefined();
   });
 
   it('validates model parameter patches before running connectivity tests', async () => {
@@ -1924,7 +1924,7 @@ describe('custom provider creation and duplication', () => {
     expect(duplicateConfig?.options).not.toBe(originalConfig?.options);
     expect(duplicateConfig?.models).not.toBe(originalConfig?.models);
     expect(duplicateConfig?.options?.apiKey).toBe(CUSTOM_KEY);
-    expect(h.cache.load().model_status[custom_provider?:openai-work-copy/gpt-5.6']).toBeUndefined();
+    expect(h.cache.load().model_status['custom_provider:openai-work-copy/gpt-5.6']).toBeUndefined();
 
     const secondDuplicate = await h.service.duplicateUserProvider({
       providerId: source.providerId,
@@ -2208,7 +2208,7 @@ describe('custom provider thinking configuration', () => {
 describe('custom provider default model recovery', () => {
   it('resets the global default when an update removes its model', async () => {
     const h = makeHarness({
-      defaultModel: custom_provider?:work/removed',
+      defaultModel: 'custom_provider:work/removed',
       defaultModelVariant: 'max',
       custom_provider?: {
         work: {
@@ -2388,14 +2388,14 @@ describe('custom provider deletion', () => {
       apiKey: CUSTOM_KEY,
       models: [{ modelId: 'm-1' }],
     });
-    h.config.defaultModel = custom_provider?:work/m-1';
+    h.config.defaultModel = 'custom_provider:work/m-1';
     h.config.defaultModelVariant = 'max';
     expect(h.config.defaultModel).toBe('custom_provider:work/m-1');
     await h.cache.setProviderStatus('custom_provider:work', { state: 'available' });
 
     await h.service.deleteUserProvider({ providerId: 'custom_provider:work' });
     expect(h.config.custom_provider?.work).toBeUndefined();
-    expect(h.cache.load().provider_status[custom_provider?:work']).toBeUndefined();
+    expect(h.cache.load().provider_status['custom_provider:work']).toBeUndefined();
     expect(h.config.defaultModel).toBe('rig/Rig-M3');
     expect(h.config.defaultModelVariant).toBeUndefined();
   });
@@ -2471,10 +2471,10 @@ describe('provider listings', () => {
     // user list still shows disabled providers with their config retained
     const user = h.service.listUserProviders();
     expect(user.map((p) => p.providerId).sort()).toEqual([
-      custom_provider?:off',
-      custom_provider?:on',
+      'custom_provider:off',
+      'custom_provider:on',
     ]);
-    expect(user.find((p) => p.providerId === custom_provider?:off')?.enabled).toBe(false);
+    expect(user.find((p) => p.providerId === 'custom_provider:off')?.enabled).toBe(false);
   });
 
   it('hides rig_api when no key is saved', () => {
@@ -2501,7 +2501,7 @@ describe('provider listings', () => {
         expect(provider).not.toHaveProperty('rawApiKey');
       }
     }
-    const customProvider = user.find((p) => p.providerId === custom_provider?:work');
+    const customProvider = user.find((p) => p.providerId === 'custom_provider:work');
     expect(customProvider?.maskedApiKey).not.toBe(CUSTOM_KEY);
     expect(customProvider).not.toHaveProperty('rawApiKey');
     expect(status).not.toHaveProperty('rawApiKey');
@@ -2525,7 +2525,7 @@ describe('provider listings', () => {
 
     const provider = h.service
       .listUserProviders()
-      .find((p) => p.providerId === custom_provider?:work');
+      .find((p) => p.providerId === 'custom_provider:work');
     expect(provider?.status).toMatchObject({ state: 'failed', lastErrorCode: 'unauthorized' });
   });
 
@@ -2539,7 +2539,7 @@ describe('provider listings', () => {
     });
     await h.service.testProvider('custom_provider:work');
     expect(
-      h.service.listUserProviders().find((p) => p.providerId === custom_provider?:work')?.status,
+      h.service.listUserProviders().find((p) => p.providerId === 'custom_provider:work')?.status,
     ).toMatchObject({ state: 'available' });
 
     await h.service.updateUserProvider({
@@ -2550,7 +2550,7 @@ describe('provider listings', () => {
     // The cached verdict belongs to the previous base_url; keeping it would
     // report the new endpoint as verified without ever contacting it.
     expect(
-      h.service.listUserProviders().find((p) => p.providerId === custom_provider?:work')?.status,
+      h.service.listUserProviders().find((p) => p.providerId === 'custom_provider:work')?.status,
     ).toBeUndefined();
   });
 });
@@ -2575,7 +2575,7 @@ describe('connection tests', () => {
       apiKey: CUSTOM_KEY,
       modelId: 'm-1',
     });
-    expect(h.cache.load().provider_status[custom_provider?:work']).toMatchObject({
+    expect(h.cache.load().provider_status['custom_provider:work']).toMatchObject({
       state: 'available',
       last_tested_at: 1_750_000_000_000,
     });
@@ -2598,7 +2598,7 @@ describe('connection tests', () => {
     const result = await h.service.testModel('custom_provider:work', 'm-1');
     expect(result.ok).toBe(false);
     expect(result.status).toMatchObject({ state: 'failed', lastErrorCode: 'unauthorized' });
-    expect(h.cache.load().model_status[custom_provider?:work/m-1']).toMatchObject({
+    expect(h.cache.load().model_status['custom_provider:work/m-1']).toMatchObject({
       state: 'failed',
       last_error_code: 'unauthorized',
     });

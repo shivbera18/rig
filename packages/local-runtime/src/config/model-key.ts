@@ -5,7 +5,7 @@
 //
 //   'rig/Rig-M3'                    -> config.provider (builtin tree)
 //   'rig_api/Rig-M3'               -> config.rig_api (user Rig API key)
-//   custom_provider?:openai-work/gpt-4.1' -> config.custom_provider['openai-work']
+//   'custom_provider:openai-work/gpt-4.1' -> config.custom_provider['openai-work']
 //
 // 'rig_api' is a reserved provider id: it always resolves to the BYOK
 // source and never falls back to the legacy provider map (config-side
@@ -18,7 +18,7 @@ export type ModelProviderSource = 'provider' | 'rig_api' | 'custom-provider';
 
 export interface ParsedProviderId {
   source: ModelProviderSource;
-  /** Full provider id as used in model keys (e.g. custom_provider?:openai-work'). */
+  /** Full provider id as used in model keys (e.g. 'custom_provider:openai-work'). */
   providerId: string;
   /** Key into the source config tree (e.g. 'openai-work', 'rig', 'rig_api'). */
   providerKey: string;

@@ -419,7 +419,7 @@ describe("CodexOAuthManager reconciliation and credentials", () => {
     expect(
       config.custom_provider?.["openai-codex"]?.options,
     ).not.toHaveProperty("apiKey");
-    expect(config.defaultModel).toBe("custom_provider?:openai-codex/existing");
+    expect(config.defaultModel).toBe("custom_provider:openai-codex/existing");
   });
 
   it("removes only supported credentials", () => {
@@ -508,7 +508,7 @@ describe("Codex OAuth catalog refresh", () => {
         },
       },
     };
-    config.defaultModel = "custom_provider?:openai-codex/gpt-test";
+    config.defaultModel = "custom_provider:openai-codex/gpt-test";
     const catalog = codexCatalog();
     catalog.models["gpt-6-astra"] = {
       limit: { context: 272_000 },
@@ -538,7 +538,7 @@ describe("Codex OAuth catalog refresh", () => {
     expect(provider.models?.["gpt-6-astra"]).toEqual(
       catalog.models["gpt-6-astra"],
     );
-    expect(config.defaultModel).toBe("custom_provider?:openai-codex/gpt-test");
+    expect(config.defaultModel).toBe("custom_provider:openai-codex/gpt-test");
   });
 
   it("fills missing nested fields using the latest config when the network request finishes", async () => {

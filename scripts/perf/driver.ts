@@ -56,7 +56,7 @@ try { code = await runPerf(cfg, {
     ...(input.profile ? ['--cpu-prof', `--cpu-prof-dir=${input.directory}`] : []),
     '--import', pathToFileURL(join(input.control, 'test/network-deny.mjs')).href,
     join(input.build, 'dist/cli.js'), 'exec', '--permission', 'off', '--cwd', workspace,
-    '--model', custom_provider?:llm-mock/llm-mock', cfg.prompt],
+    '--model', 'custom_provider:llm-mock/llm-mock', cfg.prompt],
   harnessEnv: () => ({ RIG_DATA_DIR: data, PI_TELEMETRY: '0',
     MCODE_TEST_ALLOWED_ORIGIN: `http://127.0.0.1:${proxy.port}`,
     MCODE_TEST_NETWORK_AUDIT: join(input.directory, 'network.log'), MCODE_TEST_MANAGED_OFFLINE: '1',

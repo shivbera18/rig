@@ -13,7 +13,7 @@ export function isModelProviderApiFormat(value: unknown): value is McodeProvider
   return typeof value === 'string' && MCODE_PROVIDER_API_FORMAT_SET.has(value);
 }
 export type McodeMiniMaxModelSource = 'token_plan' | 'rig_api_key';
-export type McodeProviderKind = 'codex-oauth' | 'rig-oauth' | 'rig-api-key' | 'custom';
+export type RigProviderKind = 'codex-oauth' | 'rig-oauth' | 'rig-api-key' | 'custom';
 
 export interface McodeProviderStatus {
   readonly state: string;
@@ -49,7 +49,7 @@ export interface McodeRuntimeProviderView {
 export interface McodeProviderView {
   readonly providerId: string;
   readonly name: string;
-  readonly kind: McodeProviderKind;
+  readonly kind: RigProviderKind;
   readonly active: boolean;
   readonly enabled: boolean;
   readonly readOnly: boolean;

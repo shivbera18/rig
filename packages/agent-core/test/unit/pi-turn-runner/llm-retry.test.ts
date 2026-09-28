@@ -756,7 +756,7 @@ describe("withLLMRetry", () => {
     );
 
     const result = await wrapped(
-      fakeModel("custom_provider?:work"),
+      fakeModel("custom_provider:work"),
       CONTEXT,
       {},
     );
@@ -788,7 +788,7 @@ describe("withLLMRetry", () => {
     );
 
     const result = await wrapped(
-      fakeModel("custom_provider?:byok-gateway"),
+      fakeModel("custom_provider:byok-gateway"),
       CONTEXT,
       {},
     );
@@ -871,7 +871,7 @@ describe("withLLMRetry", () => {
       retryOptions({ sleep: vi.fn(async () => {}) }),
     );
     const committed = wrapped(
-      fakeModel("custom_provider?:work"),
+      fakeModel("custom_provider:work"),
       CONTEXT,
       {},
     ).then((result) => {

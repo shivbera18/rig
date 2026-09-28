@@ -544,7 +544,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
       agentConfig: {
         ...AGENT_CONFIG,
         model: {
-          provider: custom_provider?:work',
+          provider: 'custom_provider:work',
           model_id: 'org/model-v1',
         },
       },
@@ -554,7 +554,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
       apiKey: 'custom-user-key',
       maxTokens: 12_000,
       model: {
-        provider: custom_provider?:work',
+        provider: 'custom_provider:work',
         id: 'org/model-v1',
         api: 'openai-completions',
         baseUrl: 'https://custom.example/v1',
@@ -593,7 +593,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
       turnId: 'turn-openrouter',
       agentConfig: {
         ...AGENT_CONFIG,
-        model: { provider: custom_provider?:openrouter', model_id: 'openai/gpt-5.2' },
+        model: { provider: 'custom_provider:openrouter', model_id: 'openai/gpt-5.2' },
       },
     });
 
@@ -645,7 +645,7 @@ describe('LocalModelResolver custom-provider endpoint normalization', () => {
         turnId: 'turn-endpoint-base-url',
         agentConfig: {
           ...AGENT_CONFIG,
-          model: { provider: custom_provider?:work', model_id: 'model' },
+          model: { provider: 'custom_provider:work', model_id: 'model' },
         },
       });
 
@@ -698,7 +698,7 @@ describe('LocalModelResolver BYOK fallback', () => {
       agentConfig: {
         ...AGENT_CONFIG,
         model: {
-          provider: custom_provider?:work',
+          provider: 'custom_provider:work',
           model_id: 'deleted-model',
           capabilities: staleCapabilities,
         },
@@ -755,7 +755,7 @@ describe('LocalModelResolver BYOK fallback', () => {
       agentConfig: {
         ...AGENT_CONFIG,
         model: {
-          provider: custom_provider?:work',
+          provider: 'custom_provider:work',
           model_id: 'deleted-model',
         },
       },
@@ -783,7 +783,7 @@ describe('LocalModelResolver BYOK fallback', () => {
         agentConfig: {
           ...AGENT_CONFIG,
           model: {
-            provider: custom_provider?:missing',
+            provider: 'custom_provider:missing',
             model_id: 'missing',
           },
         },
@@ -874,7 +874,7 @@ describe('LocalModelResolver custom-provider top thinking efforts', () => {
       agentConfig: {
         ...AGENT_CONFIG,
         model: {
-          provider: custom_provider?:work',
+          provider: 'custom_provider:work',
           model_id: 'model',
           thinking_level: ThinkingLevel.MEDIUM,
         },
@@ -967,7 +967,7 @@ describe('LocalModelResolver BYOK thinking', () => {
         agentConfig: {
           ...AGENT_CONFIG,
           model: modelRefForModel(
-            custom_provider?:work',
+            'custom_provider:work',
             'model',
             { reasoning: true, thinking: { effortOptions: ['low', 'light', 'max'] } },
             { thinking: { effort: 'light' } },
@@ -1281,7 +1281,7 @@ describe('OpenCode Go conversation identity', () => {
             system_prompt: 'system',
             tools: [],
             skills: [],
-            model: { provider: custom_provider?:renamed', model_id: 'test-model' },
+            model: { provider: 'custom_provider:renamed', model_id: 'test-model' },
           },
         });
         const headers = new Headers(resolved.headers);
@@ -1314,7 +1314,7 @@ describe('LocalModelResolver custom provider compat overrides', () => {
       turnId: 'turn-compat',
       agentConfig: {
         ...AGENT_CONFIG,
-        model: { provider: custom_provider?:gateway', model_id: 'kimi-k2-thinking' },
+        model: { provider: 'custom_provider:gateway', model_id: 'kimi-k2-thinking' },
       },
     });
   };
@@ -1411,7 +1411,7 @@ describe('LocalModelResolver custom provider compat overrides', () => {
       agentConfig: {
         ...AGENT_CONFIG,
         model: modelRefForModel(
-          custom_provider?:gateway',
+          'custom_provider:gateway',
           'kimi-k2-thinking',
           reasoningModelConfig,
           { thinking: { effort: 'light' } },

@@ -330,7 +330,7 @@ describe("createV1AgentHostProductCapabilities lifecycle", () => {
         routingFingerprint: "goal:continuation",
       },
       executionModel: {
-        provider: "custom_provider?:work",
+        provider: "custom_provider:work",
         model_id: "worker-large",
       },
     };
@@ -386,7 +386,7 @@ describe("createV1AgentHostProductCapabilities lifecycle", () => {
       tokens: 10,
       retracted: true,
       finalAssistantText: "durable final answer",
-      workerModelKey: "custom_provider?:work/worker-large",
+      workerModelKey: "custom_provider:work/worker-large",
       // Observed history with no tool call is a trustworthy zero for the Goal
       // no-tool breaker; it is only reported because a commit was seen.
       workSignals: { toolCalls: 0 },

@@ -79,7 +79,7 @@ describe("TuiRuntimeAdapter product access", () => {
 
   it("keeps manual model selection available if no official legacy replacement exists", async () => {
     const work = {
-      providerId: "custom_provider?:work",
+      providerId: "custom_provider:work",
       modelId: "work-model",
       selected: false,
     };
@@ -92,8 +92,8 @@ describe("TuiRuntimeAdapter product access", () => {
     expect(selectModel).not.toHaveBeenCalled();
   });
   it.each([
-    "custom_provider?:rig-legacy",
-    "custom_provider?:rig-legacy-2",
+    "custom_provider:rig-legacy",
+    "custom_provider:rig-legacy-2",
   ])(
     "uses the Runtime projection while preserving the stored Session alias: %s",
     async (providerId) => {
@@ -103,7 +103,7 @@ describe("TuiRuntimeAdapter product access", () => {
         listModels: vi.fn(async () => [
           { ...official, selected: true },
           {
-            providerId: "custom_provider?:work",
+            providerId: "custom_provider:work",
             modelId: "work-model",
             selected: false,
           },
@@ -121,7 +121,7 @@ describe("TuiRuntimeAdapter product access", () => {
       });
       expect(models.map((model) => model.providerId)).toEqual([
         "rig",
-        "custom_provider?:work",
+        "custom_provider:work",
       ]);
       await expect(
         adapter.getContextSnapshot("session-1"),
@@ -133,7 +133,7 @@ describe("TuiRuntimeAdapter product access", () => {
   it("forwards tested provider candidates through the process-local Runtime", async () => {
     const saveUserModelProviderCandidate = vi.fn(async () => ({
       success: true,
-      provider: { providerId: "custom_provider?:deepseek" },
+      provider: { providerId: "custom_provider:deepseek" },
     }));
     const adapter = new TuiRuntimeAdapter({
       saveUserModelProviderCandidate,
@@ -166,7 +166,7 @@ describe("TuiRuntimeAdapter product access", () => {
   it("projects the process-local model catalog with the same thinking shape as Desktop", async () => {
     const listModels = vi.fn(async () => [
       {
-        providerId: "custom_provider?:openai",
+        providerId: "custom_provider:openai",
         modelId: "gpt-5.6",
         thinkingConfig: { mode: "switchable", default_value: "true" },
         effortOptions: ["low", "high", "max"],
@@ -177,7 +177,7 @@ describe("TuiRuntimeAdapter product access", () => {
 
     await expect(adapter.listModels("session-1")).resolves.toEqual([
       {
-        providerId: "custom_provider?:openai",
+        providerId: "custom_provider:openai",
         modelId: "gpt-5.6",
         thinkingConfig: { mode: "switchable", defaultValue: "true" },
         effortOptions: ["low", "high", "max"],
@@ -377,7 +377,7 @@ describe("TuiRuntimeAdapter product access", () => {
     const cliService = cliServiceFixture();
     vi.mocked(cliService.getAccountStatus).mockResolvedValue({
       selection: { defaultModel: "custom/model" },
-      provider: { id: "custom_provider?:example", authMode: "api-key" },
+      provider: { id: "custom_provider:example", authMode: "api-key" },
       auth: { tokenPresent: false },
       warnings: [],
     });
@@ -398,7 +398,7 @@ describe("TuiRuntimeAdapter product access", () => {
     const cliService = cliServiceFixture();
     vi.mocked(cliService.getAccountStatus).mockResolvedValue({
       selection: { defaultModel: "custom/model" },
-      provider: { id: "custom_provider?:example", authMode: "api-key" },
+      provider: { id: "custom_provider:example", authMode: "api-key" },
       auth: { tokenPresent: false },
       warnings: [],
     });
@@ -419,7 +419,7 @@ describe("TuiRuntimeAdapter product access", () => {
     const cliService = cliServiceFixture();
     vi.mocked(cliService.getAccountStatus).mockResolvedValueOnce({
       selection: { defaultModel: "custom/gpt-5.6" },
-      provider: { id: "custom_provider?:openai", authMode: "api-key" },
+      provider: { id: "custom_provider:openai", authMode: "api-key" },
       auth: { tokenPresent: false },
       warnings: [],
     });
@@ -695,7 +695,7 @@ it("forwards saved-credential discovery and revision-checked model-only updates"
     saveUserModelProviderCandidate,
   } as never);
   const candidate = {
-    providerId: "custom_provider?:work",
+    providerId: "custom_provider:work",
     expectedRevision: "rev-1",
     baseUrl: "https://models.example/v1",
   };

@@ -605,7 +605,7 @@ describe("visible presentation selector", () => {
   ] as const)(
     "renders the selected route's readiness: %s",
     (_name, authMode, tokenPresent, warnings, activity, loginRequired) => {
-      const providerId = authMode === "api-key" ? "custom_provider?:test" : "rig";
+      const providerId = authMode === "api-key" ? "custom_provider:test" : "rig";
       const account = normalizeAccountStatus({
         selection: {
           providerId,
@@ -646,7 +646,7 @@ describe("visible presentation selector", () => {
     ]) {
       const { shell } = resolve({
         snapshot: { ...idleChat, account },
-        selectedModel: { providerId: "custom_provider?:test", modelId: "test-model" },
+        selectedModel: { providerId: "custom_provider:test", modelId: "test-model" },
       });
       const rendered = stripAnsi(new TuiWelcome(shell).render(80).join("\n"));
       expect(rendered).toContain(account ? "Account unavailable" : "Checking account");
@@ -744,7 +744,7 @@ describe("visible presentation selector", () => {
 
   it("projects Session effort only while thinking is enabled", () => {
     const model = {
-      providerId: "custom_provider?:byok",
+      providerId: "custom_provider:byok",
       modelId: "byok-large-5",
       displayName: "byok-large-5",
       selected: true,

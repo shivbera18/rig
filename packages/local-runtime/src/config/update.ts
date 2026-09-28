@@ -208,7 +208,7 @@ export interface LocalByokConfigDraft {
   defaultModelVariant?: string;
 }
 
-const LOCAL_BYOK_CONFIG_ROOTS = ['rig_api', 'custom-provider'] as const;
+const LOCAL_BYOK_CONFIG_ROOTS = ['rig_api', 'custom_provider'] as const;
 
 /**
  * Drops null/non-object entries from a BYOK subtree. A retired provider can

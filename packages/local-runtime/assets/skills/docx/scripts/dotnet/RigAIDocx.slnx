@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RigAIDocx.Cli/RigAIDocx.Cli.csproj" />
+  <Project Path="RigAIDocx.Core/RigAIDocx.Core.csproj" />
+</Solution>

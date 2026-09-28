@@ -96,7 +96,7 @@ describe('Rig API BYOK planning', () => {
 
 describe('custom BYOK planning', () => {
   it('returns absent for missing, disabled, and unknown model configurations', () => {
-    const base = { provider: custom_provider?:work', providerKey: 'work', modelId: 'model' };
+    const base = { provider: 'custom_provider:work', providerKey: 'work', modelId: 'model' };
     expect(planCustomProviderResolution({ ...base, byok: undefined })).toBeUndefined();
     expect(
       planCustomProviderResolution({
@@ -114,7 +114,7 @@ describe('custom BYOK planning', () => {
 
   it('fails closed when custom provider credentials are incomplete', () => {
     const base = {
-      provider: custom_provider?:work',
+      provider: 'custom_provider:work',
       providerKey: 'work',
       modelId: 'model',
     };
@@ -146,7 +146,7 @@ describe('custom BYOK planning', () => {
     };
     Reflect.set(providerHeaders, 'Ignored', 1);
     const base = {
-      provider: custom_provider?:work',
+      provider: 'custom_provider:work',
       providerKey: 'work',
       modelId: 'model',
     };
@@ -235,7 +235,7 @@ describe('custom BYOK compat overrides', () => {
   // Provider config is restored from on-disk JSON, so compat reaches planning untyped.
   const planWithCompat = (rawConfig: string) =>
     planCustomProviderResolution({
-      provider: custom_provider?:gateway',
+      provider: 'custom_provider:gateway',
       providerKey: 'gateway',
       modelId: 'kimi-k2-thinking',
       byok: {

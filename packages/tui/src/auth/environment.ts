@@ -6,7 +6,7 @@ import {
 
 export type TuiBuildEnvironment = 'test' | 'staging' | 'prod';
 export type TuiBuildVariant = 'standard' | 'internal';
-export type McodeDataEnvironment = TuiBuildEnvironment | 'dev';
+export type RigDataEnvironment = TuiBuildEnvironment | 'dev';
 
 declare const __TUI_BUILD_ENV__: TuiBuildEnvironment | undefined;
 declare const __TUI_BUILD_VARIANT__: TuiBuildVariant | undefined;
@@ -56,9 +56,9 @@ export function resolveMcodeAuthEnvironment(
   };
 }
 
-export function resolveMcodeDataEnvironment(
+export function resolveRigDataEnvironment(
   embeddedBuildEnvironment: TuiBuildEnvironment | undefined = readEmbeddedBuildEnvironment(),
-): McodeDataEnvironment {
+): RigDataEnvironment {
   return startupBuildEnvironment ?? embeddedBuildEnvironment ?? 'dev';
 }
 

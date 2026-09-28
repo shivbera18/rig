@@ -510,7 +510,7 @@ describe("Thread Goal verifier host contract", () => {
       async (harness) => {
         await proposeCompletion(harness);
         await harness.settle({
-          workerModelKey: "custom_provider?:work/worker-model",
+          workerModelKey: "custom_provider:work/worker-model",
         });
         expect(verifier.dispatch).toHaveBeenCalledWith(
           expect.objectContaining({ backend: "evaluator" }),
@@ -532,7 +532,7 @@ describe("Thread Goal verifier host contract", () => {
       "subagent",
     ],
     ["Rig API key", "rig_api/Rig-M3", {}, "subagent"],
-    ["custom provider", "custom_provider?:work/worker-model", {}, "none"],
+    ["custom provider", "custom_provider:work/worker-model", {}, "none"],
     ["configured provider", "openai/worker-model", {}, "none"],
   ] as const)(
     "derives %s as %s without a config override",

@@ -189,7 +189,7 @@ describe('LocalModelProviderService context', () => {
       modelId: 'gpt-5',
       headers: { Authorization: 'Api-Key custom', 'X-Tenant': 'tenant-a' },
     });
-    expect(harness.cache.load().model_status[custom_provider?:work/gpt-5']).toMatchObject({
+    expect(harness.cache.load().model_status['custom_provider:work/gpt-5']).toMatchObject({
       state: 'available',
       last_tested_at: 1_750_000_000_000,
     });

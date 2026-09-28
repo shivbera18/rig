@@ -21,7 +21,7 @@ import {
 } from "../../local-runtime/src/config/update.js";
 
 const secret = "synthetic-config-permissions-key";
-const document = `custom_provider?:\n  example:\n    options:\n      apiKey: ${secret}\n    models: {}\n`;
+const document = `custom_provider:\n  example:\n    options:\n      apiKey: ${secret}\n    models: {}\n`;
 let root: string;
 let dataDir: string;
 let configPath: string;

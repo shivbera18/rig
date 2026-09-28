@@ -432,7 +432,7 @@ describe('resolveHeadlessModelSelection with Kimi K3 effort levels', () => {
         session: session(),
         runtime: k3Runtime(),
       }),
-      '--effort medium is not available for custom_provider?:moonshotai/kimi-k3. Available levels: low, high, max.',
+      '--effort medium is not available for custom_provider:moonshotai/kimi-k3. Available levels: low, high, max.',
     );
   });
 });

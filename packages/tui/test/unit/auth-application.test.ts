@@ -237,7 +237,7 @@ describe('McodeAuthApplication', () => {
         source: 'mcode_tui',
         result_type: '2',
         fail_reason: '5',
-        login_type: 'minimax_oauth',
+        login_type: 'rig_oauth',
       },
     });
   });

@@ -57,10 +57,10 @@ describe('model catalog helpers', () => {
     });
 
     expect(modelConfigForRef(runtimeConfig, 'builtin', 'base')).toEqual({ name: 'Base' });
-    expect(modelConfigForRef(runtimeConfig, custom_provider?:work', 'custom')).toEqual({
+    expect(modelConfigForRef(runtimeConfig, 'custom_provider:work', 'custom')).toEqual({
       name: 'Custom',
     });
-    expect(modelConfigForRef(runtimeConfig, custom_provider?:missing', 'custom')).toBeUndefined();
+    expect(modelConfigForRef(runtimeConfig, 'custom_provider:missing', 'custom')).toBeUndefined();
     expect(enabledCustomProviders(config())).toEqual([]);
     expect(enabledCustomProviders(runtimeConfig).map(([key]) => key)).toEqual(['work']);
   });

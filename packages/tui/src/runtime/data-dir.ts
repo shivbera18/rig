@@ -1,23 +1,22 @@
 import { getPrimaryDataDirPath, getProfile } from '@rig/config';
-import { resolveMcodeDataEnvironment, type McodeDataEnvironment } from '../auth/environment.js';
+import { resolveRigDataEnvironment, type RigDataEnvironment } from '../auth/environment.js';
 import { configureTuiRuntimeEnvironment } from '../cli/environment.js';
 
 export type TuiDefaultDataDirResolver = () => string;
 
 export interface TuiDataDirEnvironment {
   RIG_DATA_DIR?: string;
-  RIG_DATA_DIR?: string;
 }
 
 export interface PrepareTuiDataDirOptions {
   environment?: TuiDataDirEnvironment;
-  getBuildEnv?: () => McodeDataEnvironment;
+  getBuildEnv?: () => RigDataEnvironment;
   getDefaultDataDir?: TuiDefaultDataDirResolver;
   configureRuntimeEnvironment?: typeof configureTuiRuntimeEnvironment;
 }
 
 export function resolveDefaultTuiDataDir(
-  _buildEnv: McodeDataEnvironment,
+  _buildEnv: RigDataEnvironment,
   getPrimaryDataDir: typeof getPrimaryDataDirPath = getPrimaryDataDirPath,
   getCurrentProfile: typeof getProfile = getProfile,
 ): string {
@@ -25,7 +24,7 @@ export function resolveDefaultTuiDataDir(
 }
 
 function getDefaultTuiDataDir(): string {
-  return resolveDefaultTuiDataDir(resolveMcodeDataEnvironment());
+  return resolveDefaultTuiDataDir(resolveRigDataEnvironment());
 }
 
 function readDataDirOverride(environment: TuiDataDirEnvironment): string | undefined {
@@ -51,7 +50,7 @@ export function resolveTuiDataDir(
 }
 
 export function prepareTuiDataDir(options: PrepareTuiDataDirOptions = {}): Promise<string> {
-  const buildEnv = (options.getBuildEnv ?? resolveMcodeDataEnvironment)();
+  const buildEnv = (options.getBuildEnv ?? resolveRigDataEnvironment)();
   const dataDir = resolveTuiDataDir(
     options.getDefaultDataDir ?? (() => resolveDefaultTuiDataDir(buildEnv)),
     options.environment ?? process.env,

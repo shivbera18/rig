@@ -132,7 +132,7 @@ describe('resolveAgentModelSelection', () => {
   it('captures an official model from a dangling legacy default without changing config', () => {
     const legacyConfig = {
       ...config,
-      defaultModel: custom_provider?:rig-legacy/retired',
+      defaultModel: 'custom_provider:rig-legacy/retired',
       provider: {
         ...config.provider,
         rig: { models: { 'Rig-M3': { limit: { context: 512_000, output: 128_000 } } } },
@@ -209,7 +209,7 @@ function registerM3TierSelectionTests(): void {
     },
   );
 
-  it.each(['other', custom_provider?:other'])(
+  it.each(['other', 'custom_provider:other'])(
     'retains the declared context ceiling for same-name M3 on %s',
     (provider) => {
       const runtimeConfig: LocalConversationRuntimeConfig = {
@@ -527,7 +527,7 @@ function registerCustomProviderPrefixFallbackTests(): void {
     expect(() => selectFromAgentProfile('Mafia/model')).toThrow('Model Mafia/model');
     expect(() => selectFromAgentProfile('mafia/MODEL')).toThrow('Model mafia/MODEL');
     expect(() => selectFromAgentProfile('custom_provider:mafia/MISSING')).toThrow(
-      'Model custom_provider?:mafia/MISSING',
+      'Model 'custom_provider:mafia/MISSING',
     );
 
     expect(() =>

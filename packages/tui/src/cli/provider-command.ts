@@ -1,4 +1,4 @@
-import { McodeProviderApplication } from '../provider/application.js';
+import { RigProviderApplication } from '../provider/application.js';
 import type { McodeProviderApiFormat, McodeProviderSnapshot } from '../provider/contract.js';
 import { prepareTuiDataDir } from '../runtime/data-dir.js';
 import { createTuiRuntime, shutdownTuiRuntime } from '../runtime/lifecycle.js';
@@ -29,7 +29,7 @@ export type McodeProviderCliRequest =
   | { readonly action: 'use'; readonly source: 'token_plan' | 'rig_api_key' };
 
 interface McodeProviderCommandContext {
-  readonly application: McodeProviderApplication;
+  readonly application: RigProviderApplication;
   shutdown(): Promise<void>;
 }
 
@@ -112,7 +112,7 @@ export async function runMcodeProviderCommand(
       return `Provider removed: ${request.providerId}`;
     }
     if (request.action === 'test') {
-      if (request.providerId === 'minimax_oauth') {
+      if (request.providerId === 'rig_oauth') {
         const message = 'Rig OAuth sign-in and connectivity are managed by /login.';
         if (request.json) {
           return JSON.stringify(
@@ -167,7 +167,7 @@ async function createProviderCommandContext(
     ...(lane ? { lane } : {}),
   });
   return {
-    application: new McodeProviderApplication(runtime.adapter),
+    application: new RigProviderApplication(runtime.adapter),
     shutdown: async () => {
       await shutdownTuiRuntime(runtime);
     },

@@ -6,7 +6,7 @@ describe("TuiModelPicker", () => {
   it("selects each declared Kimi K3 effort without inventing a medium level", () => {
     const onSelect = vi.fn();
     const model = {
-      providerId: "custom_provider?:moonshotai",
+      providerId: "custom_provider:moonshotai",
       modelId: "kimi-k3",
       selected: true,
       effortOptions: ["low", "high", "max"],
@@ -209,7 +209,7 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "custom_provider?:openai",
+          providerId: "custom_provider:openai",
           providerName: "OpenAI",
           providerSource: "custom-provider",
           providerKind: "custom",
@@ -217,7 +217,7 @@ describe("TuiModelPicker", () => {
           displayName: "GPT-4o",
         },
         {
-          providerId: "custom_provider?:openai",
+          providerId: "custom_provider:openai",
           providerName: "OpenAI",
           providerSource: "custom-provider",
           providerKind: "custom",
@@ -251,7 +251,7 @@ describe("TuiModelPicker", () => {
     picker.handleInput("\r");
 
     await vi.waitFor(() =>
-      expect(onDeleteProvider).toHaveBeenCalledWith("custom_provider?:openai"),
+      expect(onDeleteProvider).toHaveBeenCalledWith("custom_provider:openai"),
     );
     expect(onSelect).not.toHaveBeenCalled();
   });
@@ -289,7 +289,7 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "custom_provider?:openai",
+          providerId: "custom_provider:openai",
           providerName: "OpenAI",
           providerSource: "custom-provider",
           providerKind: "custom",
@@ -464,7 +464,7 @@ describe("TuiModelPicker", () => {
           selected: false,
         },
         {
-          providerId: "custom_provider?:innerTest",
+          providerId: "custom_provider:innerTest",
           modelId: "Rig-M3",
           displayName: "m3.05",
           selected: true,
@@ -478,7 +478,7 @@ describe("TuiModelPicker", () => {
 
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({
-        providerId: "custom_provider?:innerTest",
+        providerId: "custom_provider:innerTest",
         displayName: "m3.05",
       }),
     );
@@ -690,7 +690,7 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "custom_provider?:provider-with-a-long-name",
+          providerId: "custom_provider:provider-with-a-long-name",
           providerName: "Provider with a deliberately long display name",
           providerSource: "custom-provider",
           providerKind: "custom",
@@ -718,7 +718,7 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "custom_provider?:byok",
+          providerId: "custom_provider:byok",
           modelId: "byok-large-5",
           displayName: "byok-large-5",
           selected: true,
@@ -751,7 +751,7 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "custom_provider?:byok",
+          providerId: "custom_provider:byok",
           modelId: "byok-large-5",
           displayName: "byok-large-5",
           selected: true,
@@ -781,7 +781,7 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "custom_provider?:byok",
+          providerId: "custom_provider:byok",
           modelId: "byok-large-5",
           displayName: "byok-large-5",
           selected: true,
@@ -868,7 +868,7 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "custom_provider?:byok",
+          providerId: "custom_provider:byok",
           modelId: "byok-large-5",
           displayName: "byok-large-5",
           selected: true,

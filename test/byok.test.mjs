@@ -308,7 +308,7 @@ test(
       "--api-format", "openai-completions", "--model", "glm-5.3", "--use",
     ]);
     assert.equal(savedConfig().custom-provider.coding.options.baseURL, codingUrl);
-    assert.equal(savedConfig().defaultModel, "custom_provider?:coding/glm-5.3");
+    assert.equal(savedConfig().defaultModel, "custom_provider:coding/glm-5.3");
     assert.match(await run([
       "exec", "CODING_ENDPOINT_TEST", "--timeout", "20s", "--max-steps", "1",
     ]), /LOCAL_BYOK_OK/);
@@ -335,7 +335,7 @@ test(
     assert.ok(requests.length > beforeAdd, "Activation must test the candidate before saving");
     assert.equal(requests[beforeAdd].body.model, "fixture-model");
     const config = savedConfig();
-    assert.equal(config.defaultModel, "custom_provider?:limited/fixture-model");
+    assert.equal(config.defaultModel, "custom_provider:limited/fixture-model");
     for (const model of ["fixture-model", "second-model"]) {
       assert.deepEqual(config.custom-provider.limited.models[model].limit, { context: 32768, output: 4096 });
       assert.deepEqual(config.custom-provider.limited.models[model].capabilities, { support_image: true });
@@ -382,11 +382,11 @@ test(
     const imagePath = path.join(workspaceDir, "fixture.png");
     writeFileSync(imagePath, Buffer.from(imageBase64, "base64"));
     for (const [model, supportsImage] of [
-      ["custom_provider?:limited/fixture-model", true],
-      ["custom_provider?:context-only/fixture-model", true],
-      ["custom_provider?:fixture/vision-modalities", true],
-      ["custom_provider?:fixture/fixture-model", false],
-      ["custom_provider?:fixture/attachment-only", false],
+      ["custom_provider:limited/fixture-model", true],
+      ["custom_provider:context-only/fixture-model", true],
+      ["custom_provider:fixture/vision-modalities", true],
+      ["custom_provider:fixture/fixture-model", false],
+      ["custom_provider:fixture/attachment-only", false],
     ]) {
       const beforeImage = requests.length;
       await run(["exec", "IMAGE_INPUT_TEST", "--model", model, "--file", imagePath,
@@ -722,7 +722,7 @@ function cancellationTest(cancellation) {
         "exec",
         "Reply with the synthetic fixture response.",
         "--model",
-        "custom_provider?:fixture/fixture",
+        "custom_provider:fixture/fixture",
         "--permission",
         "off",
         "--cwd",

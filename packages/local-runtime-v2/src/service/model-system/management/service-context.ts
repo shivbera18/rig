@@ -449,7 +449,7 @@ export class ModelProviderServiceContext {
     };
   }
 
-  /** Accepts `custom_provider?:<key>` or a bare key; 404 when not configured. */
+  /** Accepts `custom_provider:<key>` or a bare key; 404 when not configured. */
   requireExistingProviderKey(providerId: string): string {
     const parsed = parseProviderId(providerId);
     const providerKey =

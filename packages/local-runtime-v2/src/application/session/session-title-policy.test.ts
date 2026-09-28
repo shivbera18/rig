@@ -30,7 +30,7 @@ const session: SessionRecord = {
   createdAtMs: 1,
   updatedAtMs: 1,
   title: "Original",
-  effectiveModel: "custom_provider?:byok/test-model",
+  effectiveModel: "custom_provider:byok/test-model",
 };
 const config: LocalRuntimeConfig = {
   dataDir: "/synthetic",
@@ -124,7 +124,7 @@ describe("CLI session title review", () => {
   it("reads the current default for an unselected Session without caching the route", async () => {
     const current = {
       ...config,
-      defaultModel: "custom_provider?:byok/test-model",
+      defaultModel: "custom_provider:byok/test-model",
     };
     const { policy, review } = fixture({ config: current });
     await expect(
@@ -198,8 +198,8 @@ describe("CLI session title review", () => {
 
   it.each([
     "missing/test",
-    "custom_provider?:missing/test",
-    "custom_provider?:rig-legacy/test",
+    "custom_provider:missing/test",
+    "custom_provider:rig-legacy/test",
     "malformed",
   ])(
     "retains review for unknown or legacy context %s",
@@ -231,7 +231,7 @@ describe("CLI session title review", () => {
     }
   });
 
-  it.each(["rig", "custom_provider?:byok"])(
+  it.each(["rig", "custom_provider:byok"])(
     "uses the frozen Task provider %s",
     async (providerId) => {
       const { policy, review } = fixture({

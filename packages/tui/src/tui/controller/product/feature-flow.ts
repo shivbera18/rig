@@ -68,7 +68,7 @@ import type { TuiChatController } from '../chat-controller.js';
 import { TuiModelState } from './model-state.js';
 import { isRuntimeErrorCode, isRuntimeMethodNotImplemented } from '../support.js';
 import { resolveTuiThinkingChoice } from '../../features/model/thinking.js';
-import { McodeProviderApplication } from '../../../provider/application.js';
+import { RigProviderApplication } from '../../../provider/application.js';
 import type { McodeCodexOAuthStatus, McodeProviderTemplate } from '../../../provider/contract.js';
 import { McodePluginApplication } from '../../../plugin/application.js';
 import type { McodePluginRuntimeAccess, McodePluginView } from '../../../plugin/contract.js';
@@ -148,7 +148,7 @@ export interface TuiSessionManagerOpenOptions {
 
 export class TuiFeatureFlow {
   private readonly modelState: TuiModelState;
-  private readonly providerApplication: McodeProviderApplication;
+  private readonly providerApplication: RigProviderApplication;
   private readonly pluginApplication: McodePluginApplication;
   private readonly sessionForkFlow: TuiSessionForkFlow;
   private skillCommandsValue: TuiCommand[] = [];
@@ -182,7 +182,7 @@ export class TuiFeatureFlow {
       onChanged: options.onChanged,
       isStopped: () => this.isStopped(),
     });
-    this.providerApplication = new McodeProviderApplication(options.runtime);
+    this.providerApplication = new RigProviderApplication(options.runtime);
     this.pluginApplication = new McodePluginApplication(options.runtime);
     this.sessionForkFlow = new TuiSessionForkFlow({
       runtime: options.runtime,

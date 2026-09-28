@@ -613,7 +613,7 @@ describe('resolveThinkingLevel', () => {
     expect(resolveThinkingLevel({ reasoning: true }, '', true)).toBe(ThinkingLevel.OFF);
     expect(
       modelRefForModel(
-        custom_provider?:test',
+        'custom_provider:test',
         'model',
         {},
         {

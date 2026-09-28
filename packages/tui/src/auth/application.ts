@@ -140,7 +140,7 @@ export class McodeAuthApplication implements McodeAuthPort {
       source: this.options.telemetrySource ?? 'mcode_cli',
       result_type: resultType,
       fail_reason: failReason,
-      login_type: 'minimax_oauth',
+      login_type: 'rig_oauth',
     });
   }
 

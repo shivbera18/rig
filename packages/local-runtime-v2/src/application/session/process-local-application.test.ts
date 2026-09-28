@@ -15,11 +15,11 @@ describe("createProcessLocalApplication account and usage", () => {
         account: {
           getStatus: async () => ({
             selection: {
-              providerId: "custom_provider?:rig-legacy-2",
+              providerId: "custom_provider:rig-legacy-2",
               modelId: "retired",
             },
             provider: {
-              id: "custom_provider?:rig-legacy-2",
+              id: "custom_provider:rig-legacy-2",
               authMode: "api-key",
             },
             auth: { tokenPresent: false },
@@ -161,7 +161,7 @@ describe("createProcessLocalApplication capabilities", () => {
       discoverUserModelsCandidate: vi.fn(async () => [{ modelId: "latest" }]),
       saveUserModelProviderCandidate: vi.fn(async () => ({
         ok: true,
-        provider: { providerId: "custom_provider?:openai" },
+        provider: { providerId: "custom_provider:openai" },
       })),
       updateUserProvider: vi.fn(),
       deleteUserProvider: vi.fn(),
@@ -285,7 +285,7 @@ describe("createProcessLocalApplication capabilities", () => {
       saveAndUse: true,
     });
     const savedCandidate = {
-      providerId: "custom_provider?:work",
+      providerId: "custom_provider:work",
       expectedRevision: "rev-1",
       baseUrl: "https://models.example/v1",
     };

@@ -528,11 +528,16 @@ function resolveMcodePackageIdentity(
         };
         const packageName = parseMcodePackageName(manifest.name);
         if (packageName) {
-          return {
-            packageName,
-            packageRoot: current,
-            ...(typeof manifest.version === 'string' ? { version: manifest.version } : {}),
-          };
+          // dist/ ships its own stamped package.json; it is not the install root.
+          // Keep walking so packageRoot is the .../node_modules/<pkg> dir the
+          // path classifiers match against.
+          if (path.basename(current).toLocaleLowerCase() !== 'dist') {
+            return {
+              packageName,
+              packageRoot: current,
+              ...(typeof manifest.version === 'string' ? { version: manifest.version } : {}),
+            };
+          }
         }
       } catch {
         return undefined;

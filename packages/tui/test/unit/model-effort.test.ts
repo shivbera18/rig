@@ -9,7 +9,7 @@ import {
 
 function model(effortOptions?: string[], variant?: string): TuiModel {
   return {
-    providerId: custom_provider?:byok',
+    providerId: 'custom_provider:byok',
     modelId: 'byok-large-5',
     ...(effortOptions ? { effortOptions } : {}),
     ...(variant !== undefined ? { variant } : {}),

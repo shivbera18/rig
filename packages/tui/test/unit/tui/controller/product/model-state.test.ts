@@ -129,7 +129,7 @@ describe('TuiModelState', () => {
 
     await state.select(
       {
-        providerId: custom_provider?:byok',
+        providerId: 'custom_provider:byok',
         modelId: 'byok-large-5',
         thinking: { effort: 'max' },
       },

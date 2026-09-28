@@ -145,7 +145,7 @@ describe('LocalModelProviderService context', () => {
       removeHeaders: ['x-trace'],
     });
 
-    expect(created.providerId).toBe(custom_provider?:openai-work');
+    expect(created.providerId).toBe('custom_provider:openai-work');
     expect(updated.headerNames).toEqual(['x-tenant']);
     expect(JSON.stringify(updated)).not.toContain(CUSTOM_KEY);
     expect(JSON.stringify(updated)).not.toContain('two');

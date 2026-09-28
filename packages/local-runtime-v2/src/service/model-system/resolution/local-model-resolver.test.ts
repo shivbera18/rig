@@ -838,7 +838,7 @@ describe('LocalModelResolver custom-provider session thinking', () => {
         turnId: 'turn-custom-thinking',
         agentConfig: {
           ...AGENT_CONFIG,
-          model: modelRefForModel(custom_provider?:work', 'model', modelConfig, {
+          model: modelRefForModel('custom_provider:work', 'model', modelConfig, {
             thinking: { effort: selectedEffort },
           }),
         },
@@ -914,7 +914,7 @@ describe('LocalModelResolver custom-provider top thinking efforts', () => {
       Reflect.set(capabilities, OPENPLATFORM_THINKING_VARIANTS_CAPABILITY, {
         thinking: { type: 'adaptive' },
       });
-      const model = modelRefForModel(custom_provider?:work', 'model', modelConfig, {
+      const model = modelRefForModel('custom_provider:work', 'model', modelConfig, {
         thinking: { effort: selectedEffort },
       });
       Object.assign(model.capabilities ?? {}, capabilities);
@@ -1230,7 +1230,7 @@ describe('Codex OAuth discovered models', () => {
         turnId: 'discovery-turn',
         agentConfig: {
           ...AGENT_CONFIG,
-          model: modelRefForModel(custom_provider?:openai-codex', 'gpt-6-astra', modelConfig, {
+          model: modelRefForModel('custom_provider:openai-codex', 'gpt-6-astra', modelConfig, {
             thinking: { effort },
           }),
         },
@@ -1287,7 +1287,7 @@ describe('OpenCode Go conversation identity', () => {
         const headers = new Headers(resolved.headers);
         expect(headers.get('x-opencode-session')).toBe(sessionId);
         expect(headers.get('user-agent')).toBe('MiniMaxCode');
-        expect(resolved.model.provider).toBe(custom_provider?:renamed');
+        expect(resolved.model.provider).toBe('custom_provider:renamed');
       }
     },
   );
@@ -1364,7 +1364,7 @@ describe('LocalModelResolver custom provider compat overrides', () => {
       turnId: 'turn-compat-thinking',
       agentConfig: {
         ...AGENT_CONFIG,
-        model: modelRefForModel(custom_provider?:gateway', 'kimi-k2-thinking', modelConfig, {
+        model: modelRefForModel('custom_provider:gateway', 'kimi-k2-thinking', modelConfig, {
           thinking: { effort: 'light' },
         }),
       },
@@ -1568,7 +1568,7 @@ describe('LocalModelResolver custom provider session affinity', () => {
       turnId: 'turn-affinity-wire',
       agentConfig: {
         ...AGENT_CONFIG,
-        model: modelRefForModel(custom_provider?:relay', 'Rig-M2', modelConfig),
+        model: modelRefForModel('custom_provider:relay', 'Rig-M2', modelConfig),
       },
     });
 

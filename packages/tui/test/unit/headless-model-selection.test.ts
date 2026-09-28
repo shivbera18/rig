@@ -43,8 +43,8 @@ describe('parseHeadlessModelOverride', () => {
   );
 
   it('keeps the provider, model, and legacy variant separate', () => {
-    expect(parseHeadlessModelOverride(custom_provider?:work/deep-reasoner#thinking')).toEqual({
-      providerId: custom_provider?:work',
+    expect(parseHeadlessModelOverride('custom_provider:work/deep-reasoner#thinking')).toEqual({
+      providerId: 'custom_provider:work',
       modelId: 'deep-reasoner',
       variant: 'thinking',
     });
@@ -402,7 +402,7 @@ describe('resolveHeadlessModelSelection with Kimi K3 effort levels', () => {
   const k3Runtime = () =>
     runtimeWith(
       catalog({
-        providerId: custom_provider?:moonshotai',
+        providerId: 'custom_provider:moonshotai',
         modelId: 'kimi-k3',
         selected: true,
         effortOptions: ['low', 'high', 'max'],
@@ -412,13 +412,13 @@ describe('resolveHeadlessModelSelection with Kimi K3 effort levels', () => {
   it.each(['low', 'high', 'max'] as const)('accepts --effort %s', async (effort) => {
     await expect(
       resolveHeadlessModelSelection({
-        model: custom_provider?:moonshotai/kimi-k3',
+        model: 'custom_provider:moonshotai/kimi-k3',
         effort,
         session: session(),
         runtime: k3Runtime(),
       }),
     ).resolves.toEqual({
-      providerId: custom_provider?:moonshotai',
+      providerId: 'custom_provider:moonshotai',
       modelId: 'kimi-k3',
       thinking: { effort },
     });
@@ -427,7 +427,7 @@ describe('resolveHeadlessModelSelection with Kimi K3 effort levels', () => {
   it('rejects an effort level Kimi K3 does not declare', async () => {
     await expectInvocationError(
       resolveHeadlessModelSelection({
-        model: custom_provider?:moonshotai/kimi-k3',
+        model: 'custom_provider:moonshotai/kimi-k3',
         effort: 'medium',
         session: session(),
         runtime: k3Runtime(),

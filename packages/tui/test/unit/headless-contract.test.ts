@@ -21,7 +21,7 @@ describe('rig exec result contract', () => {
           required: ['findings'],
         },
         model: {
-          providerId: custom_provider?:review',
+          providerId: 'custom_provider:review',
           modelId: 'gpt',
           protocol: 'openai-responses',
           structuredOutputMode: 'native_strict',
@@ -39,7 +39,7 @@ describe('rig exec result contract', () => {
       status: 'succeeded',
       output: { findings: [] },
       model: {
-        providerId: custom_provider?:review',
+        providerId: 'custom_provider:review',
         modelId: 'gpt',
         protocol: 'openai-responses',
         structuredOutputMode: 'native_strict',

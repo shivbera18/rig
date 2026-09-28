@@ -145,7 +145,7 @@ describe('resolveAgentModelSelection', () => {
       modelId: 'Rig-M3',
       contextWindow: 512_000,
     });
-    expect(legacyConfig.defaultModel).toBe(custom_provider?:rig-legacy/retired');
+    expect(legacyConfig.defaultModel).toBe('custom_provider:rig-legacy/retired');
     expect(
       resolveAgentModelSelection({
         config: { ...legacyConfig, provider: config.provider },
@@ -519,14 +519,14 @@ function registerCustomProviderPrefixFallbackTests(): void {
       });
 
     expect(selectFromAgentProfile('mafia/model')).toMatchObject({
-      providerId: custom_provider?:mafia',
+      providerId: 'custom_provider:mafia',
       modelId: 'model',
       contextWindow: 48_000,
       maxOutputTokens: 6_000,
     });
     expect(() => selectFromAgentProfile('Mafia/model')).toThrow('Model Mafia/model');
     expect(() => selectFromAgentProfile('mafia/MODEL')).toThrow('Model mafia/MODEL');
-    expect(() => selectFromAgentProfile(custom_provider?:mafia/MISSING')).toThrow(
+    expect(() => selectFromAgentProfile('custom_provider:mafia/MISSING')).toThrow(
       'Model custom_provider?:mafia/MISSING',
     );
 
@@ -674,7 +674,7 @@ function registerMiniMaxM3SelectionTests(): void {
         sources: [
           {
             source: 'agent-config',
-            selection: { model: custom_provider?:mafia/Rig-M3', effort },
+            selection: { model: 'custom_provider:mafia/Rig-M3', effort },
             requireCatalog: true,
           },
         ],

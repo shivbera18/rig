@@ -18,7 +18,7 @@ function createPort() {
     })),
     listUserModelProviders: vi.fn(async () => [
       {
-        providerId: custom_provider?:openai',
+        providerId: 'custom_provider:openai',
         name: 'OpenAI',
         kind: 'custom' as const,
         enabled: true,
@@ -42,7 +42,7 @@ function createPort() {
     createUserModelProvider: vi.fn(async () => undefined),
     saveUserModelProviderCandidate: vi.fn(async () => ({
       success: true,
-      provider: { providerId: custom_provider?:openai' },
+      provider: { providerId: 'custom_provider:openai' },
     })),
     updateUserModelProvider: vi.fn(async () => undefined),
     deleteUserModelProvider: vi.fn(async () => undefined),
@@ -199,7 +199,7 @@ describe('McodeProviderApplication', () => {
     const port = createPort();
     port.listUserModelProviders.mockResolvedValueOnce([
       {
-        providerId: custom_provider?:responses',
+        providerId: 'custom_provider:responses',
         name: 'OpenAI Responses',
         kind: 'custom',
         enabled: true,
@@ -222,18 +222,18 @@ describe('McodeProviderApplication', () => {
     const port = createPort();
     const application = new McodeProviderApplication(port);
 
-    await application.test(custom_provider?:openai');
-    await application.test(custom_provider?:openai', 'gpt-4.1');
+    await application.test('custom_provider:openai');
+    await application.test('custom_provider:openai', 'gpt-4.1');
 
-    expect(port.testUserModelProvider).toHaveBeenCalledWith(custom_provider?:openai');
-    expect(port.testUserModel).toHaveBeenCalledWith(custom_provider?:openai', 'gpt-4.1');
+    expect(port.testUserModelProvider).toHaveBeenCalledWith('custom_provider:openai');
+    expect(port.testUserModel).toHaveBeenCalledWith('custom_provider:openai', 'gpt-4.1');
   });
 
   it('keeps a disabled provider inactive even when a model is still selected', async () => {
     const port = createPort();
     port.listUserModelProviders.mockResolvedValueOnce([
       {
-        providerId: custom_provider?:byok',
+        providerId: 'custom_provider:byok',
         name: 'BYOK Vendor',
         kind: 'custom' as const,
         enabled: false,
@@ -252,7 +252,7 @@ describe('McodeProviderApplication', () => {
     // Runtime drops disabled providers from the roster, so rendering the row
     // as active would contradict the "Disabled" label on the same line.
     expect(snapshot.providers[2]).toMatchObject({
-      providerId: custom_provider?:byok',
+      providerId: 'custom_provider:byok',
       enabled: false,
       active: false,
     });
@@ -262,7 +262,7 @@ describe('McodeProviderApplication', () => {
     const port = createPort();
     port.listUserModelProviders.mockResolvedValueOnce([
       {
-        providerId: custom_provider?:byok',
+        providerId: 'custom_provider:byok',
         name: 'BYOK Vendor',
         kind: 'custom' as const,
         enabled: true,
@@ -283,7 +283,7 @@ describe('McodeProviderApplication', () => {
 
 describe('saved provider model refresh', () => {
   const provider: McodeProviderView = {
-    providerId: custom_provider?:work', name: 'Work', kind: 'custom',
+    providerId: 'custom_provider:work', name: 'Work', kind: 'custom',
     enabled: true, readOnly: false, active: true, hasApiKey: true,
     configRevision: 'rev-1', baseUrl: 'https://models.example/v1',
     models: [{ modelId: 'old-model', selected: true }],

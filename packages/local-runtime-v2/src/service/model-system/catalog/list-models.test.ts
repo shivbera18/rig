@@ -183,7 +183,7 @@ describe('model catalog entry helpers', () => {
 
   it('builds rich and implicit model entries', () => {
     const rich = buildModelEntry({
-      providerId: custom_provider?:work',
+      providerId: 'custom_provider:work',
       modelId: 'model-1',
       model: {
         name: 'Model 1',
@@ -221,7 +221,7 @@ describe('model catalog entry helpers', () => {
 
     expect(
       buildModelEntry({
-        providerId: custom_provider?:work',
+        providerId: 'custom_provider:work',
         modelId: 'historical',
         model: {},
         selected: true,
@@ -239,7 +239,7 @@ describe('model catalog entry helpers', () => {
 
     expect(
       buildModelEntry({
-        providerId: custom_provider?:work',
+        providerId: 'custom_provider:work',
         modelId: 'new',
         model: {
           reasoning: true,
@@ -258,7 +258,7 @@ describe('model catalog entry helpers', () => {
     });
 
     const effortOnly = buildModelEntry({
-      providerId: custom_provider?:work',
+      providerId: 'custom_provider:work',
       modelId: 'effort-only',
       model: { thinking: { effortOptions: ['none', 'high'] } },
       selected: false,
@@ -276,7 +276,7 @@ describe('model catalog entry helpers', () => {
 
   it('exposes Kimi K3 low/high/max effort options in the model roster', () => {
     const entry = buildModelEntry({
-      providerId: custom_provider?:moonshotai',
+      providerId: 'custom_provider:moonshotai',
       modelId: 'kimi-k3',
       model: {
         name: 'Kimi K3',
@@ -343,7 +343,7 @@ describe('model catalog entry helpers', () => {
 
     expect(listByokRuntimeModels(runtimeConfig)).toEqual([
       expect.objectContaining({
-        providerId: custom_provider?:work',
+        providerId: 'custom_provider:work',
         providerName: 'work',
         providerKind: 'oauth',
         modelId: 'enabled',
@@ -352,7 +352,7 @@ describe('model catalog entry helpers', () => {
     ]);
     expect(
       listByokRuntimeModels(runtimeConfig, {
-        providerId: custom_provider?:work',
+        providerId: 'custom_provider:work',
         modelId: 'enabled',
         variant: 'thinking',
         hasVariant: true,
@@ -366,7 +366,7 @@ describe('model catalog entry helpers', () => {
 describe('implicit custom provider reasoning policies', () => {
   function implicitEntry(reasoning: boolean) {
     return buildModelEntry({
-      providerId: custom_provider?:work',
+      providerId: 'custom_provider:work',
       modelId: `explicit-${reasoning}`,
       model: { reasoning },
       selected: true,

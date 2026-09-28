@@ -68,7 +68,7 @@ describe('listLocalRuntimeModels', () => {
           },
         },
       }),
-      { providerId: custom_provider?:work', modelId: 'added', variant: undefined },
+      { providerId: 'custom_provider:work', modelId: 'added', variant: undefined },
       {
         cache: {
           version: 3,
@@ -92,7 +92,7 @@ describe('listLocalRuntimeModels', () => {
         status: { state: 'available', lastTestedAt: 1_750_000_000_000 },
       }),
       expect.objectContaining({
-        providerId: custom_provider?:work',
+        providerId: 'custom_provider:work',
         providerName: 'work',
         modelId: 'historical',
         apiFormat: 'openai-completions',
@@ -101,7 +101,7 @@ describe('listLocalRuntimeModels', () => {
         variant: '',
       }),
       expect.objectContaining({
-        providerId: custom_provider?:work',
+        providerId: 'custom_provider:work',
         providerName: 'work',
         modelId: 'added',
         apiFormat: 'openai-completions',

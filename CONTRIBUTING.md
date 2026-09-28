@@ -1,8 +1,8 @@
 # Contributing
 
-This repository contains the standalone MiniMax Code TUI, headless CLI, and ACP source. Start with the [architecture](docs/architecture.md), [capability coverage](docs/tui-capabilities.md), and [installation guide](docs/installation.md).
+This repository contains the standalone Rig TUI, headless CLI, and ACP source. Start with the [architecture](docs/architecture.md), [capability coverage](docs/tui-capabilities.md), and [installation guide](docs/installation.md).
 
-Thanks for your interest in contributing. For now, we only accept code and documentation contributions from repository collaborators. If you are not a collaborator but have an idea or proposal, please [open an issue](https://github.com/MiniMax-AI/minimax-code/issues/new/choose) so we can discuss it.
+Thanks for your interest in contributing. Repository collaborators should submit pull requests from feature branches.
 
 Repository collaborators should submit pull requests from feature branches; do not push directly to the default branch. Describe user-visible changes, checks you ran, live-service or platform validation you did not run, and documentation impact. Preserve real author identities and existing copyright notices.
 
@@ -87,8 +87,7 @@ repository administrators must configure required checks separately. See
 and raw evidence.
 
 ## Capability boundaries
-
-Preserve MiniMax OAuth, Token Plan, BYOK, mcode-tools, search, plugins, connectors, updates, and feedback. Do not solve standalone-build problems by removing capabilities. Managed services use public clients; internal HTTP services, generated IDL, and cloud executor implementations are outside this repository.
+Preserve Rig OAuth, Token Plan, BYOK, rig-tools, search, plugins, connectors, updates, and feedback. Do not solve standalone-build problems by removing capabilities. Managed services use public clients; internal HTTP services, generated IDL, and cloud executor implementations are outside this repository.
 
 Do not commit account data, logs, sessions, API keys, or real user content. Use temporary data directories and synthetic inputs for tests. Do not attach unredacted diagnostic bundles to issues; follow the [security reporting process](SECURITY.md).
 

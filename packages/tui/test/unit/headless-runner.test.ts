@@ -490,7 +490,7 @@ describe('runTuiExec', () => {
         rows: [
           {
             turnId: 'turn-1',
-            model: custom_provider?:review/gpt',
+            model: 'custom_provider:review/gpt',
             inputTokens: 10,
             outputTokens: 4,
             reasoningTokens: 2,
@@ -500,7 +500,7 @@ describe('runTuiExec', () => {
       });
       runtime.listModels.mockResolvedValue([
         {
-          providerId: custom_provider?:review',
+          providerId: 'custom_provider:review',
           modelId: 'gpt',
           selected: true,
           providerSource: 'custom-provider',
@@ -532,7 +532,7 @@ describe('runTuiExec', () => {
       expect(await readFile(lastMessage, 'utf8')).toBe('fixed');
       expect(JSON.parse(stdout.mock.calls[0]?.[0] ?? '')).toMatchObject({
         model: {
-          providerId: custom_provider?:review',
+          providerId: 'custom_provider:review',
           modelId: 'gpt',
           providerSource: 'custom-provider',
           providerKind: 'custom',
@@ -698,7 +698,7 @@ describe('runTuiExec', () => {
     const runtime = runtimeWith();
     runtime.listModels.mockResolvedValue([
       {
-        providerId: custom_provider?:work',
+        providerId: 'custom_provider:work',
         modelId: 'deep-reasoner-1',
         selected: true,
         effortOptions: ['low', 'medium', 'high', 'xhigh'],
@@ -711,7 +711,7 @@ describe('runTuiExec', () => {
           prompt: 'Fix it',
           workspaceDir: '/tmp/workspace',
           version: '0.1.0',
-          model: custom_provider?:work/deep-reasoner-1',
+          model: 'custom_provider:work/deep-reasoner-1',
           effort: 'xhigh',
           format: 'json',
         },
@@ -731,7 +731,7 @@ describe('runTuiExec', () => {
         turnId: 'turn-1',
         content: 'Fix it',
         model: {
-          providerId: custom_provider?:work',
+          providerId: 'custom_provider:work',
           modelId: 'deep-reasoner-1',
           thinking: { effort: 'xhigh' },
         },

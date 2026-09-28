@@ -292,7 +292,7 @@ describe('modelRefForModel thinking compatibility', () => {
   });
 
   it('does not infer Custom BYOK M3 effort from reasoning alone', () => {
-    const ref = modelRefForModel(custom_provider?:mafia', 'Rig-M3', {
+    const ref = modelRefForModel('custom_provider:mafia', 'Rig-M3', {
       reasoning: true,
       thinking_config: { mode: 'switchable', default_value: 'true' },
     });
@@ -414,7 +414,7 @@ describe('BYOK Think Effort selection', () => {
         reasoning: true,
         thinking: { effortOptions: ['low', 'high', 'max'] },
       };
-      const ref = modelRefForModel(custom_provider?:moonshotai', 'kimi-k3', config, {
+      const ref = modelRefForModel('custom_provider:moonshotai', 'kimi-k3', config, {
         thinking: { effort },
       });
 
@@ -492,7 +492,7 @@ describe('modelRefForModel think-effort vs variant', () => {
     };
 
     // An explicit selection is honoured, which is what `--effort xhigh` sends.
-    const selected = modelRefForModel(custom_provider?:work', 'deep-reasoner-1', config, {
+    const selected = modelRefForModel('custom_provider:work', 'deep-reasoner-1', config, {
       thinking: { effort: 'xhigh' },
     });
     expect(readSelectedThinkingEffort(selected.capabilities)).toBe('xhigh');
@@ -500,7 +500,7 @@ describe('modelRefForModel think-effort vs variant', () => {
     // An effort level spelled as a variant is a model identity, so it suppresses
     // the catalog default and leaves no selected effort. That request still runs,
     // which is why `--effort` exists as the explicit way to pick a strength.
-    const spelledAsVariant = modelRefForModel(custom_provider?:work', 'deep-reasoner-1', config, {
+    const spelledAsVariant = modelRefForModel('custom_provider:work', 'deep-reasoner-1', config, {
       variant: 'xhigh',
     });
     expect(readSelectedThinkingEffort(spelledAsVariant.capabilities)).toBeUndefined();

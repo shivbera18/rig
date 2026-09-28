@@ -19,7 +19,7 @@ import { releaseManifest } from '../scripts/package-cli-release.mjs';
 import { validateReleaseReports } from '../scripts/publish-cli-release.mjs';
 import { compareVersions, releaseCli } from '../scripts/release-cli.mjs';
 import { compareRuns, exitCodeForStatus, renderReport, spread, validateRun, validateRequest, validateToolOutput, median, selectScenarios } from '../scripts/perf/report.mjs';
-import { copyMcodeToolsArtifact, downloadMcodeToolsArtifact, RIG_TOOLS_ARTIFACT } from '../scripts/lib/rig-tools-artifact.mjs';
+import { copyRigToolsArtifact, downloadRigToolsArtifact, RIG_TOOLS_ARTIFACT } from '../scripts/lib/rig-tools-artifact.mjs';
 import { checkWindowsSourceLocation, runWindowsSourceLocationCheck } from '../scripts/check-windows-source-location.mjs';
 
 test('Windows source preflight accepts localized fsutil labels', () => {
@@ -87,7 +87,7 @@ test('artifact download recovers from TLS reset and interrupted response bodies'
   const reset = new TypeError('fetch failed', { cause: Object.assign(new Error('connection reset'), { code: 'ECONNRESET' }) });
   const interrupted = new TypeError('terminated', { cause: Object.assign(new Error('socket closed'), { code: 'UND_ERR_SOCKET' }) });
   const signals = [], delays = [], warnings = [];
-  const result = await downloadMcodeToolsArtifact(async (url, { signal }) => {
+  const result = await downloadRigToolsArtifact(async (url, { signal }) => {
     assert.equal(url, RIG_TOOLS_ARTIFACT.url);
     assert.ok(signal instanceof AbortSignal);
     signals.push(signal);
@@ -110,7 +110,7 @@ test('artifact download retries temporary HTTP failures and releases rejected bo
   for (const status of [408, 429, 500, 502, 503, 504]) {
     let calls = 0, cancelled = false;
     const delays = [];
-    const result = await downloadMcodeToolsArtifact(async () => {
+    const result = await downloadRigToolsArtifact(async () => {
       if (++calls > 1) return new Response('ok');
       return new Response(new ReadableStream({ cancel() { cancelled = true; } }), { status });
     }, { wait: async ms => delays.push(ms), warn() {} });
@@ -125,7 +125,7 @@ test('artifact download bounds Retry-After delays and rejects permanent failures
   for (const [header, expectedDelay] of [['5', 5000], ['999999', 30000], ['invalid', 1000], ['0', 1000]]) {
     let calls = 0;
     const delays = [];
-    await downloadMcodeToolsArtifact(async () => ++calls === 1
+    await downloadRigToolsArtifact(async () => ++calls === 1
       ? new Response(null, { status: 429, headers: { 'Retry-After': header } }) : new Response('ok'),
     { wait: async ms => delays.push(ms), warn() {} });
     assert.deepEqual(delays, [expectedDelay]);
@@ -133,7 +133,7 @@ test('artifact download bounds Retry-After delays and rejects permanent failures
   const certificateError = new TypeError('fetch failed', { cause: Object.assign(new Error('certificate expired'), { code: 'CERT_HAS_EXPIRED' }) });
   for (const failure of [new Response(null, { status: 403 }), new Response(null, { status: 404 }), certificateError]) {
     let calls = 0;
-    await assert.rejects(downloadMcodeToolsArtifact(async () => {
+    await assert.rejects(downloadRigToolsArtifact(async () => {
       calls++;
       if (failure instanceof Error) throw failure;
       return failure;
@@ -146,7 +146,7 @@ test('artifact download stops after three timeouts and preserves the final cause
   const timeout = new DOMException('The operation timed out', 'TimeoutError');
   let calls = 0;
   const delays = [];
-  await assert.rejects(downloadMcodeToolsArtifact(async () => { calls++; throw timeout; },
+  await assert.rejects(downloadRigToolsArtifact(async () => { calls++; throw timeout; },
     { wait: async ms => delays.push(ms), warn() {} }), error => {
     assert.match(error.message, /after 3 attempts/);
     assert.equal(error.cause, timeout);
@@ -160,7 +160,7 @@ test('artifact download never retries or caches an archive that fails integrity'
   const root = mkdtempSync(path.join(tmpdir(), 'rig-artifact-download-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   let calls = 0;
-  await assert.rejects(copyMcodeToolsArtifact(root, path.join(root, 'dist'), async () => {
+  await assert.rejects(copyRigToolsArtifact(root, path.join(root, 'dist'), async () => {
     calls++;
     return new Response('corrupt archive');
   }), /integrity mismatch/);
@@ -512,7 +512,7 @@ test('CLI release publishes only tag pushes after full verification and archive 
   assert.equal(workflow.jobs.publish.permissions.contents, 'write');
   assert.equal(workflow.jobs.install.strategy.matrix, '${{ fromJSON(needs.build.outputs.matrix) }}');
   const install = workflow.jobs.install.steps.find(step => step.run === 'pnpm verify --profile package');
-  assert.ok(install.env.MCODE_RELEASE_ARCHIVE.endsWith('.tar.gz'));
+  assert.ok(install.env.RIG_RELEASE_ARCHIVE.endsWith('.tar.gz'));
   for (const job of Object.values(workflow.jobs)) {
     for (const step of job.steps) {
       if (step.uses && !step.uses.startsWith('./')) assert.match(step.uses, /@[a-f0-9]{40}$/);
@@ -1007,7 +1007,7 @@ test('issue product labels follow current form answers without replacing unrelat
   assert.deepEqual(workflow.permissions, { issues: 'write' });
   assert.equal(workflow.concurrency['cancel-in-progress'], false);
   const job = workflow.jobs['label-product'];
-  assert.equal(job.if, "${{ github.repository == 'Rig-AI/rig' && github.event.repository.private == false && !github.event.issue.pull_request }}");
+  assert.equal(job.if, "${{ github.repository == 'shivbera18/rig' && github.event.repository.private == false && !github.event.issue.pull_request }}");
   assert.equal(job.steps.length, 1); // No checkout or execution of issue-supplied code.
   const run = job.steps[0].run;
   assert.doesNotMatch(run, /\$\{\{/);
@@ -1015,13 +1015,13 @@ test('issue product labels follow current form answers without replacing unrelat
   assert.ok(script);
   async function replay(body, labels, failureStatus) {
     const writes = [];
-    const issuePath = '/repos/Rig-AI/rig/issues/7';
+    const issuePath = '/repos/shivbera18/rig/issues/7';
     await runInNewContext(script, {
       require: name => {
         assert.equal(name, 'node:fs');
         return { readFileSync: () => JSON.stringify({ issue: { number: 7, body: '### Product or interface\n\nDesktop app', labels: [] } }) };
       },
-      process: { env: { GITHUB_EVENT_PATH: 'fixture.json', GITHUB_REPOSITORY: 'Rig-AI/rig', GITHUB_API_URL: 'https://api.github.invalid', GH_TOKEN: 'synthetic' } },
+      process: { env: { GITHUB_EVENT_PATH: 'fixture.json', GITHUB_REPOSITORY: 'shivbera18/rig', GITHUB_API_URL: 'https://api.github.invalid', GH_TOKEN: 'synthetic' } },
       fetch: async (url, options) => {
         assert.equal(options.headers.Authorization, 'Bearer synthetic');
         if (options.method === 'GET') {
@@ -1072,7 +1072,7 @@ test('issue notification is restricted to public destination events and builds p
   assert.deepEqual(workflow.on, { issues: { types: ['opened'] } });
   assert.deepEqual(workflow.permissions, { contents: 'read', issues: 'read' });
   const job = workflow.jobs['notify-feishu'];
-  assert.equal(job.if, "${{ github.repository == 'Rig-AI/rig' && github.event.repository.private == false && !github.event.issue.pull_request }}");
+  assert.equal(job.if, "${{ github.repository == 'shivbera18/rig' && github.event.repository.private == false && !github.event.issue.pull_request }}");
   const generate = job.steps.find(step => step.name === 'Build Feishu payload').run;
   // Execute only the payload builder, never the delivery step or its secrets.
   assert.doesNotMatch(generate, /\$\{\{\s*github\.event/);
@@ -1082,8 +1082,8 @@ test('issue notification is restricted to public destination events and builds p
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const marker = path.join(directory, 'must-not-execute');
   const event = {
-    repository: { full_name: 'Rig-AI/rig', html_url: 'https://github.com/Rig-AI/rig' },
-    issue: { number: 7, title: 'Synthetic issue', body: `$(touch ${marker}) <at id=all>test</at>`, labels: [{ name: 'bug' }], created_at: '2026-09-18T00:00:00Z', html_url: 'https://github.com/Rig-AI/rig/issues/7', user: { login: 'fixture' } },
+    repository: { full_name: 'shivbera18/rig', html_url: 'https://github.com/shivbera18/rig' },
+    issue: { number: 7, title: 'Synthetic issue', body: `$(touch ${marker}) <at id=all>test</at>`, labels: [{ name: 'bug' }], created_at: '2026-09-18T00:00:00Z', html_url: 'https://github.com/shivbera18/rig/issues/7', user: { login: 'fixture' } },
   };
   const eventPath = path.join(directory, 'event.json');
   writeFileSync(eventPath, JSON.stringify(event));

@@ -13,7 +13,7 @@ Use this reference for Agent, Session, Memory, Goal, Plan, Worker, subagent, Age
 
 Use only the current region's Rig index:
 
-- `region: cn` → `https://agent.minimaxi.com/docs/llms.txt`
+- `region: cn` → `https://agent.rig.cn/docs/llms.txt`
 - `region: en` → `https://agent.rig.io/docs/llms.txt`
 
 Read the current `.md` pages for `/docs/code/agents/team`, `/docs/code/agents/custom-agents`, `/docs/code/agents/memory`, and `/docs/code/desktop/goal`.

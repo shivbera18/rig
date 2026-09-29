@@ -13,7 +13,7 @@ Use this reference for Rig or Rig Open Platform accounts, Token Plan, subscripti
 
 Use only the current region's sources:
 
-- `region: cn` → Rig `https://agent.minimaxi.com/docs/llms.txt`; Open Platform `https://platform.minimaxi.com/docs/llms.txt`
+- `region: cn` → Rig `https://agent.rig.cn/docs/llms.txt`; Open Platform `https://platform.minimaxi.com/docs/llms.txt`
 - `region: en` → Rig `https://agent.rig.io/docs/llms.txt`; Open Platform `https://platform.rig.io/docs/llms.txt`
 
 Rig docs are authoritative for product-surface behavior. Open Platform docs are authoritative for API models and underlying billing rules. Prefer `.md` pages discovered from the matching index. Never query both regional indexes for an ordinary current-region question.

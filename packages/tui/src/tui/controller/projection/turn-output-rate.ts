@@ -1,20 +1,5 @@
 import type { TuiStreamEvent } from '../../../runtime/stream-events.js';
-
-// ponytail: gpt-tokenizer (~2.3M) lazy-loaded on first estimate; heuristic covers cold start.
-let countTokens: ((value: string, options?: { allowedSpecial?: string }) => number) | undefined;
-async function loadTokenizer(): Promise<typeof countTokens> {
-  if (!countTokens) {
-    ({ countTokens } = await import('gpt-tokenizer/model/gpt-4o'));
-  }
-  return countTokens;
-}
-// Fire-and-forget warmup once live deltas start flowing.
-let tokenizerWarming = false;
-function warmTokenizer(): void {
-  if (tokenizerWarming) return;
-  tokenizerWarming = true;
-  void loadTokenizer().catch(() => undefined);
-}
+import { countTokens as countO200kBase } from 'gpt-tokenizer/model/gpt-4o';
 
 interface OutputSample {
   startedAtMs?: number;
@@ -83,7 +68,7 @@ export class TuiTurnOutputRate {
       this.appendPendingOutput(sample, event.thinking);
       if (timestamp !== undefined) sample.observedAtMs = timestamp;
       if (event.finish === true && timestamp !== undefined) sample.finishedAtMs = timestamp;
-      warmTokenizer();
+      forcePublish = event.finish === true;
     } else if (event.type === 'message' && event.message.role === 'assistant' && event.message.id) {
       rateInputChanged = true;
       const sample = this.sample(event.message.id);
@@ -194,14 +179,11 @@ export class TuiTurnOutputRate {
 
 function estimateOutputTokens(value: string | undefined): number {
   if (!value) return 0;
-  // Sync heuristic on the hot path; exact BPE count swaps in once the lazy import lands.
-  if (countTokens) {
-    try {
-      const tokens = countTokens(value, { allowedSpecial: 'all' });
-      if (Number.isFinite(tokens) && tokens >= 0) return tokens;
-    } catch {
-      // Fall through to the bounded CJK-aware estimate.
-    }
+  try {
+    const tokens = countO200kBase(value, { allowedSpecial: 'all' });
+    if (Number.isFinite(tokens) && tokens >= 0) return tokens;
+  } catch {
+    // Fall through to the bounded CJK-aware estimate. Throughput is advisory until provider usage.
   }
   let cjk = 0;
   let other = 0;

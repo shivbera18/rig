@@ -10,7 +10,7 @@ Treat a workflow as the combination of product surface, workspace/project contex
 
 Use only the current region's Rig index:
 
-- `region: cn` → `https://agent.minimaxi.com/docs/llms.txt`
+- `region: cn` → `https://agent.rig.cn/docs/llms.txt`
 - `region: en` → `https://agent.rig.io/docs/llms.txt`
 
 Open the matching `.md` page. Relevant page families include `/docs/code/workflows/modes`, `/workspace`, `/tasks`, `/conversation-collaboration`, `/code-review`, `/permissions`, `/docs/code/desktop/browser`, `/panels`, `/shortcuts`, `/updates-feedback`, `/goal`, and `/docs/code/automation/schedules`, `/remote-control`, `/im`.

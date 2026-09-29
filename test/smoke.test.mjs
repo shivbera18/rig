@@ -71,7 +71,7 @@ test("CLI defaults to the shared user config without migrating the old source di
   const home = options.cwd;
   const config = path.join(home, ".rig", "config.yaml");
   const oldConfig = path.join(home, ".rig", "config.yaml");
-  for (const file of [config, oldConfig]) mkdirSync(path.dirname(file));
+  mkdirSync(path.dirname(config), { recursive: true });
   writeFileSync(config, "telemetry:\n  enabled: true\n", { mode: 0o600 });
   const oldContents = "telemetry:\n  enabled: false\n";
   writeFileSync(oldConfig, oldContents, { mode: 0o600 });
@@ -338,7 +338,7 @@ test("provider add rejects invalid token limits without saving a provider", asyn
       const options = fixture(t);
       // Keep data separate from cwd so assertions must use the CLI's config location.
       const dataDir = path.join(options.cwd, "data");
-      mkdirSync(dataDir);
+      mkdirSync(dataDir, { recursive: true });
       options.env.RIG_DATA_DIR = dataDir;
       options.env.RIG_DATA_DIR = dataDir;
       const configPath = path.join(dataDir, "config.yaml");
@@ -354,7 +354,7 @@ test("provider add rejects invalid token limits without saving a provider", asyn
           assert.ok(result.stderr.includes(flag), result.stderr);
           // Startup may seed defaults; only persisting a custom provider is a failure.
           const config = existsSync(configPath) ? parseYaml(readFileSync(configPath, "utf8")) : {};
-          assert.deepEqual(config?.custom-provider ?? {}, {});
+          assert.deepEqual(config?.["custom-provider"] ?? {}, {});
         }
       }
     });

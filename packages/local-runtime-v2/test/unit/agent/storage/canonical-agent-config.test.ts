@@ -912,20 +912,20 @@ describe("canonical Agent directory safety", () => {
     const markdown = "---\nname: researcher\ndescription: desc\n---\nPrompt\n";
     const warnSpy = vi.spyOn(logger, "warn");
 
-    const minimaxRoot = join(parentDir, ".rig-profile");
-    const mavisRoot = join(parentDir, ".rig-profile");
-    await mkdir(join(minimaxRoot, "agents", "researcher"), { recursive: true });
+    const rigRoot = join(parentDir, ".rig");
+    const rigLink = join(parentDir, ".rig-link");
+    await mkdir(join(rigRoot, "agents", "researcher"), { recursive: true });
     await writeFile(
-      join(minimaxRoot, "agents", "researcher", "agent.md"),
+      join(rigRoot, "agents", "researcher", "agent.md"),
       markdown,
     );
-    await symlink(minimaxRoot, mavisRoot);
+    await symlink(rigRoot, rigLink);
 
     await expect(
       readCanonicalAgentConfig({
-        agentDir: join(mavisRoot, "agents", "researcher"),
+        agentDir: join(rigLink, "agents", "researcher"),
         routeName: "researcher",
-        trustedRoot: mavisRoot,
+        trustedRoot: rigLink,
       }),
     ).resolves.toMatchObject({ name: "researcher" });
 
@@ -1011,9 +1011,9 @@ describe("canonical Agent directory safety", () => {
         event: "agent_directory_link_followed",
         data_dir_source: "mavis_env",
         segment: "data_dir",
-        logical_link_path: mavisRoot,
-        readlink_raw_target: minimaxRoot,
-        realpath_resolved_target: await realpath(minimaxRoot),
+        logical_link_path: rigLink,
+        readlink_raw_target: rigRoot,
+        realpath_resolved_target: await realpath(rigRoot),
         resolved_target_kind: "directory",
         target_scope: "expected_default_target",
         root_kind: ".rig",

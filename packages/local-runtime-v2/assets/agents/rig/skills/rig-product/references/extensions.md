@@ -12,7 +12,7 @@ Use this reference for Skills, Plugins, MCP, Apps, Connectors, Marketplace, exte
 
 Use only the current region's Rig index:
 
-- `region: cn` → `https://agent.minimaxi.com/docs/llms.txt`
+- `region: cn` → `https://agent.rig.cn/docs/llms.txt`
 - `region: en` → `https://agent.rig.io/docs/llms.txt`
 
 Read the current `.md` pages for `/docs/code/agents/mcp`, `/docs/code/agents/plugins`, and the regional CLI pages `/docs/cli/quick-start`, `/docs/cli/features`, `/docs/cli/faq`.

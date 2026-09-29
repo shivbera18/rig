@@ -20,16 +20,8 @@ import {
   updateLocalByokConfig as updateLegacyByok,
 } from "../../local-runtime/src/config/update.js";
 
-// CI checks out branch main of repo rig: detectGitPortInfo would return
-// profile=main and getDataDir would ignore the RIG_DATA_DIR stub.
-vi.mock("node:child_process", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:child_process")>();
-  return {
-    ...actual,
-    spawnSync: (...args: Parameters<typeof actual.spawnSync>) =>
-      args[0] === "git" ? { status: 1, stdout: "", stderr: "" } : actual.spawnSync(...args),
-  };
-});
+// CI checks out branch main of repo rig, but getDataDir only auto-detects
+// when RIG_DATA_DIR is unset — the stub below keeps the suite hermetic.
 
 const secret = "synthetic-config-permissions-key";
 const document = `custom_provider:\n  example:\n    options:\n      apiKey: ${secret}\n    models: {}\n`;

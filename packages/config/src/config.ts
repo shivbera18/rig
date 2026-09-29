@@ -1494,7 +1494,10 @@ export function getDataDir(): string {
 
   if (shouldUseGitAutoConfig()) {
     const gitInfo = detectGitPortInfo();
-    if (gitInfo.autoDetected && gitInfo.profile) {
+    // An explicit RIG_DATA_DIR stub always wins: branch auto-detection is
+    // for interactive shells with no data-dir configured, not for callers
+    // (tests, daemon children) that pinned their directory.
+    if (gitInfo.autoDetected && gitInfo.profile && !getExplicitDataDirArg()) {
       return resolveDataDir({ profile: gitInfo.profile });
     }
   }

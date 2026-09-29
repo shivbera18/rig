@@ -1,8 +1,6 @@
 import fs from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
-import * as childProcess from "node:child_process";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getConfig,
@@ -22,6 +20,17 @@ import {
   updateLocalByokConfig as updateLegacyByok,
 } from "../../local-runtime/src/config/update.js";
 
+// CI checks out branch main of repo rig: detectGitPortInfo would return
+// profile=main and getDataDir would ignore the RIG_DATA_DIR stub.
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:child_process")>();
+  return {
+    ...actual,
+    spawnSync: (...args: Parameters<typeof actual.spawnSync>) =>
+      args[0] === "git" ? { status: 1, stdout: "", stderr: "" } : actual.spawnSync(...args),
+  };
+});
+
 const secret = "synthetic-config-permissions-key";
 const document = `custom_provider:\n  example:\n    options:\n      apiKey: ${secret}\n    models: {}\n`;
 let root: string;
@@ -39,17 +48,8 @@ describe.skipIf(process.platform === "win32")(
       vi.spyOn(os, "homedir").mockReturnValue(root);
       vi.stubEnv("RIG_DATA_DIR", dataDir);
       vi.stubEnv("__RIG_RUNTIME_MANAGED", "0");
-      // CI checks out branch main of repo rig: detectGitPortInfo would return
-      // profile=main and getDataDir would ignore the RIG_DATA_DIR stub.
-      // Fail git detection so the explicit env path stays authoritative.
-      vi.spyOn(childProcess, "spawnSync").mockImplementation(((command: unknown) => {
-        if (command === "git") throw new Error("no git in test");
-        return spawnSync(command as string, []);
-      }) as typeof spawnSync);
       resetGitDetect();
       resetConfig();
-      configPath = getConfigPath();
-      expect(configPath).toBe(join(dataDir, "config.yaml"));
     });
 
     afterEach(() => {

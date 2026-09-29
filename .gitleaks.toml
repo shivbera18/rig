@@ -74,3 +74,10 @@ condition = "AND"
 paths = ['''(^|/)packages/local-runtime/test/unit/error-reporting-privacy\.test\.ts$''']
 regexTarget = "match"
 regexes = ['''^SECRET = 'SYNTHETIC_PRIVATE_4cd7'$''']
+
+[[rules.allowlists]]
+description = "Revoked Antigravity OAuth client secret from v0.1.0 prototype; catalog went secret-free in v0.2.0"
+condition = "AND"
+paths = ['''(^|/)src/auth/catalog\.ts$''']
+regexTarget = "match"
+regexes = ['''^clientSecret: "GOCSPX-''']

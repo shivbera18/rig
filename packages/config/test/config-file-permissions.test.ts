@@ -36,6 +36,7 @@ describe.skipIf(process.platform === "win32")(
       fs.mkdirSync(dataDir);
       vi.spyOn(os, "homedir").mockReturnValue(root);
       vi.stubEnv("RIG_DATA_DIR", dataDir);
+      vi.stubEnv("__RIG_RUNTIME_DISABLE_GIT_AUTO_CONFIG", "1");
       vi.stubEnv("__RIG_RUNTIME_MANAGED", "0");
       resetConfig();
       setLegacyByokProviderMigrationEnabled(false);

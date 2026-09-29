@@ -2,11 +2,12 @@ import fs from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as childProcess from "node:child_process";
 import {
   getConfig,
   getConfigPath,
   resetConfig,
+  resetGitDetect,
   setLegacyByokProviderMigrationEnabled,
   setManagedPresetBaseUrlSyncEnabled,
 } from "../src/config.js";
@@ -36,11 +37,16 @@ describe.skipIf(process.platform === "win32")(
       fs.mkdirSync(dataDir);
       vi.spyOn(os, "homedir").mockReturnValue(root);
       vi.stubEnv("RIG_DATA_DIR", dataDir);
-      vi.stubEnv("__RIG_RUNTIME_DISABLE_GIT_AUTO_CONFIG", "1");
       vi.stubEnv("__RIG_RUNTIME_MANAGED", "0");
+      // CI checks out branch main of repo rig: detectGitPortInfo would return
+      // profile=main and getDataDir would ignore the RIG_DATA_DIR stub.
+      // Fail git detection so the explicit env path stays authoritative.
+      vi.spyOn(childProcess, "spawnSync").mockImplementation(((command: unknown) => {
+        if (command === "git") throw new Error("no git in test");
+        return spawnSync(command as string, []);
+      }) as typeof spawnSync);
+      resetGitDetect();
       resetConfig();
-      setLegacyByokProviderMigrationEnabled(false);
-      setManagedPresetBaseUrlSyncEnabled(false);
       configPath = getConfigPath();
       expect(configPath).toBe(join(dataDir, "config.yaml"));
     });
@@ -49,6 +55,7 @@ describe.skipIf(process.platform === "win32")(
       vi.restoreAllMocks();
       vi.unstubAllEnvs();
       resetConfig();
+      resetGitDetect();
       setLegacyByokProviderMigrationEnabled(true);
       setManagedPresetBaseUrlSyncEnabled(true);
       fs.rmSync(root, { recursive: true, force: true });

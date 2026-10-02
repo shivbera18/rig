@@ -49,6 +49,10 @@
     }
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shivbera18/rig.git"
+  },
   "bin": {
     "rig": "dist/cli.js"
   },

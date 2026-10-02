@@ -5,7 +5,7 @@ const allowedOrigin = process.env.RIG_TEST_ALLOWED_ORIGIN;
 const allowed = allowedOrigin ? new URL(allowedOrigin) : undefined;
 const originalFetch = globalThis.fetch;
 const originalConnect = Socket.prototype.connect;
-if (process.env.RIG_TEST_PROCESS_PROBE === '1') {
+if ((process.env.RIG_TEST_PROCESS_PROBE) === '1') {
   const startedAt = Date.now();
   const probe = setInterval(() => {
     process.stderr.write(`[test-process-probe] ${JSON.stringify({
@@ -25,11 +25,11 @@ globalThis.fetch = function (input, init) {
   if (allowed && url.origin === allowed.origin) return originalFetch(input, init);
   // Offline acceptance after restoring managed capabilities: these requests return only local failure responses and never reach servers.
   // Keep attempted requests in a separate log; unknown addresses still fail tests.
-  if (process.env.RIG_TEST_MANAGED_OFFLINE === '1' && [
+  if ((process.env.RIG_TEST_MANAGED_OFFLINE) === '1' && [
     'agent.rig.cn', 'agent.rig.io', 'agent.minimaxi.com',
     'www.minimaxi.com', 'platform.rig.io', 'models.dev',
   ].includes(url.hostname) && url.protocol === 'https:') {
-    appendFileSync(process.env.RIG_TEST_NETWORK_AUDIT + '.managed', `${url.origin}${url.pathname}\n`);
+    appendFileSync((process.env.RIG_TEST_NETWORK_AUDIT) + '.managed', `${url.origin}${url.pathname}\n`);
     return Promise.resolve(new Response(JSON.stringify({ error: 'Managed service offline fixture' }), { status: 503 }));
   }
   return denied();

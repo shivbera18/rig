@@ -143,5 +143,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          MCODE_RELEASE_DIRECTORY: ${{ runner.temp }}/package
-          MCODE_RELEASE_REPORTS: ${{ runner.temp }}/reports
+          RIG_RELEASE_DIRECTORY: ${{ runner.temp }}/package
+          RIG_RELEASE_REPORTS: ${{ runner.temp }}/reports

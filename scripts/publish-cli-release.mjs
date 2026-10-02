@@ -31,10 +31,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const tag = process.env.RIG_RELEASE_TAG;
   const version = versionFromTag(tag);
   const revision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  if (!process.env.MCODE_RELEASE_DIRECTORY || !process.env.MCODE_RELEASE_REPORTS) throw new Error('Release directory and reports are required.');
-  const archive = path.join(process.env.MCODE_RELEASE_DIRECTORY, `rig-${version}.tar.gz`);
-  const sha256 = validateReleaseReports({ archive, reports: process.env.MCODE_RELEASE_REPORTS, version, revision });
-  const notes = path.join(process.env.MCODE_RELEASE_DIRECTORY, 'release-notes.md');
+  if (!process.env.RIG_RELEASE_DIRECTORY || !process.env.RIG_RELEASE_REPORTS) throw new Error('Release directory and reports are required.');
+  const archive = path.join(process.env.RIG_RELEASE_DIRECTORY, `rig-${version}.tar.gz`);
+  const sha256 = validateReleaseReports({ archive, reports: process.env.RIG_RELEASE_REPORTS, version, revision });
+  const notes = path.join(process.env.RIG_RELEASE_DIRECTORY, 'release-notes.md');
   writeFileSync(notes, `Built from public source commit ${revision}. SHA-256: \`${sha256}\`.
 
 Download the tar.gz and its checksum, verify the checksum, then install:

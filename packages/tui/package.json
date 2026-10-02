@@ -1,6 +1,6 @@
 {
   "name": "@shivcdhry/rig",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "private": true,
   "description": "Rig CLI and TUI product entry.",
   "type": "module",

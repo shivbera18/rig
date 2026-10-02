@@ -55,7 +55,8 @@ export async function runRigUpdate(
   if (plan.kind === 'manual') {
     write(
       'Rig could not identify the owner of this installation. ' +
-        `Update manually with:\n  ${plan.command}\n`,
+        `Update manually with:\n  ${plan.command}\n` +
+        (plan.diagnosis ? `Installation details: ${plan.diagnosis}\n` : ''),
     );
     return;
   }

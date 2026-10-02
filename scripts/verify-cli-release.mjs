@@ -9,10 +9,10 @@ import { fileURLToPath } from 'node:url';
 import { versionFromTag } from './lib/cli-release.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const version = versionFromTag(process.env.MCODE_RELEASE_TAG);
-if (!process.env.MCODE_RELEASE_ARCHIVE) throw new Error('MCODE_RELEASE_ARCHIVE is required.');
+const version = versionFromTag(process.env.RIG_RELEASE_TAG);
+if (!process.env.RIG_RELEASE_ARCHIVE) throw new Error('RIG_RELEASE_ARCHIVE is required.');
 if (!['linux', 'darwin'].includes(process.platform)) throw new Error('Package validation currently supports Linux and macOS.');
-const archive = path.resolve(process.env.MCODE_RELEASE_ARCHIVE);
+const archive = path.resolve(process.env.RIG_RELEASE_ARCHIVE);
 const sha256 = createHash('sha256').update(readFileSync(archive)).digest('hex');
 assert.equal(readFileSync(`${archive}.sha256`, 'utf8'), `${sha256}  ${path.basename(archive)}\n`, 'Release archive checksum mismatch');
 const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
@@ -44,7 +44,7 @@ try {
   const installed = path.join(prefix, 'lib/node_modules/@shivcdhry/rig');
   const release = JSON.parse(readFileSync(path.join(installed, 'release.json'), 'utf8'));
   assert.equal(release.version, version);
-  assert.equal(release.tag, process.env.MCODE_RELEASE_TAG);
+  assert.equal(release.tag, process.env.RIG_RELEASE_TAG);
   assert.equal(release.revision, revision);
   const result = execFileSync(path.join(prefix, 'bin/rig'), ['--version'], { cwd: home, env, encoding: 'utf8', timeout: 30000 });
   assert.equal(result.trim(), version);
@@ -54,11 +54,11 @@ try {
   try { assert.equal(db.prepare('select 42 as value').get().value, 42); } finally { db.close(); }
   assert.match(execFileSync(require('@vscode/ripgrep').rgPath, ['--version'], { encoding: 'utf8' }), /ripgrep/);
   execFileSync(process.execPath, ['--test', 'test/smoke.test.mjs', 'test/byok.test.mjs'], {
-    cwd: root, env: { ...env, MCODE_TEST_CLI: path.join(installed, 'cli.js') }, stdio: 'inherit', timeout: 240000,
+    cwd: root, env: { ...env, RIG_TEST_CLI: path.join(installed, 'cli.js') }, stdio: 'inherit', timeout: 240000,
   });
-  if (process.env.MCODE_VERIFY_REPORT_DIR) {
-    mkdirSync(process.env.MCODE_VERIFY_REPORT_DIR, { recursive: true });
-    writeFileSync(path.join(process.env.MCODE_VERIFY_REPORT_DIR, 'package-install.json'), JSON.stringify({
+  if (process.env.RIG_VERIFY_REPORT_DIR) {
+    mkdirSync(process.env.RIG_VERIFY_REPORT_DIR, { recursive: true });
+    writeFileSync(path.join(process.env.RIG_VERIFY_REPORT_DIR, 'package-install.json'), JSON.stringify({
       status: 'PASS', version, revision, sha256, platform: process.platform, arch: process.arch, node: process.version,
     }, null, 2) + '\n');
   }

@@ -11,7 +11,7 @@ export function versionFromTag(tag) {
   return tag.slice(1);
 }
 
-export function cliBuildVersion(root, tag = process.env.MCODE_RELEASE_TAG) {
+export function cliBuildVersion(root, tag = process.env.RIG_RELEASE_TAG) {
   const version = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')).version;
   const tuiVersion = JSON.parse(readFileSync(path.join(root, 'packages/tui/package.json'), 'utf8')).version;
   if (version !== tuiVersion) throw new Error('Root and TUI package versions must match.');

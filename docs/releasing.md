@@ -55,10 +55,10 @@ To reproduce the packaging and installation checks locally, use a clean reviewed
 commit and keep output outside the repository:
 
 ```bash
-export MCODE_RELEASE_TAG="v$(node -p 'require("./package.json").version')"
+export RIG_RELEASE_TAG="v$(node -p 'require("./package.json").version')"
 pnpm verify
-node scripts/package-cli-release.mjs "$MCODE_RELEASE_TAG" /tmp/rig-release
-MCODE_RELEASE_ARCHIVE="/tmp/rig-release/rig-${MCODE_RELEASE_TAG#v}.tar.gz" pnpm verify --profile package
+node scripts/package-cli-release.mjs "$RIG_RELEASE_TAG" /tmp/rig-release
+RIG_RELEASE_ARCHIVE="/tmp/rig-release/rig-${RIG_RELEASE_TAG#v}.tar.gz" pnpm verify --profile package
 ```
 
 The `package` profile validates installation of an existing archive; it does not

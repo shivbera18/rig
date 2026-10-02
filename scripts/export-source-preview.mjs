@@ -73,7 +73,7 @@ try {
     extractSourceArchive(
       destination,
       snapshot,
-      process.env.MCODE_SOURCE_EXTRACTOR,
+      process.env.RIG_SOURCE_EXTRACTOR,
     ),
   );
   const snapshotRoot = path.join(snapshot, "rig");
@@ -109,10 +109,10 @@ try {
     await measure("cleanup", () =>
       rmSync(snapshot, { recursive: true, force: true }),
     );
-  if (process.env.MCODE_VERIFY_REPORT_DIR) {
-    mkdirSync(process.env.MCODE_VERIFY_REPORT_DIR, { recursive: true });
+  if (process.env.RIG_VERIFY_REPORT_DIR) {
+    mkdirSync(process.env.RIG_VERIFY_REPORT_DIR, { recursive: true });
     writeFileSync(
-      path.join(process.env.MCODE_VERIFY_REPORT_DIR, "export.json"),
+      path.join(process.env.RIG_VERIFY_REPORT_DIR, "export.json"),
       `${JSON.stringify({ revision, extractor, stages }, null, 2)}\n`,
     );
   }

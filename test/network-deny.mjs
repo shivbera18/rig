@@ -1,10 +1,11 @@
 // Loaded only in isolated test children. Record attempts even if callers catch failures.
 import { appendFileSync } from 'node:fs';
 import { Socket } from 'node:net';
-const allowed = process.env.MCODE_TEST_ALLOWED_ORIGIN ? new URL(process.env.MCODE_TEST_ALLOWED_ORIGIN) : undefined;
+const allowedOrigin = process.env.RIG_TEST_ALLOWED_ORIGIN ?? process.env.MCODE_TEST_ALLOWED_ORIGIN;
+const allowed = allowedOrigin ? new URL(allowedOrigin) : undefined;
 const originalFetch = globalThis.fetch;
 const originalConnect = Socket.prototype.connect;
-if (process.env.MCODE_TEST_PROCESS_PROBE === '1') {
+if ((process.env.RIG_TEST_PROCESS_PROBE ?? process.env.MCODE_TEST_PROCESS_PROBE) === '1') {
   const startedAt = Date.now();
   const probe = setInterval(() => {
     process.stderr.write(`[test-process-probe] ${JSON.stringify({
@@ -16,7 +17,7 @@ if (process.env.MCODE_TEST_PROCESS_PROBE === '1') {
   probe.unref();
 }
 function denied() {
-  appendFileSync(process.env.MCODE_TEST_NETWORK_AUDIT, new Error('network-attempt').stack + '\n');
+  appendFileSync(process.env.RIG_TEST_NETWORK_AUDIT ?? process.env.MCODE_TEST_NETWORK_AUDIT, new Error('network-attempt').stack + '\n');
   throw new Error('Unexpected network access during standalone validation');
 }
 globalThis.fetch = function (input, init) {
@@ -24,11 +25,11 @@ globalThis.fetch = function (input, init) {
   if (allowed && url.origin === allowed.origin) return originalFetch(input, init);
   // Offline acceptance after restoring managed capabilities: these requests return only local failure responses and never reach servers.
   // Keep attempted requests in a separate log; unknown addresses still fail tests.
-  if (process.env.MCODE_TEST_MANAGED_OFFLINE === '1' && [
+  if ((process.env.RIG_TEST_MANAGED_OFFLINE ?? process.env.MCODE_TEST_MANAGED_OFFLINE) === '1' && [
     'agent.rig.cn', 'agent.rig.io', 'agent.minimaxi.com',
     'www.minimaxi.com', 'platform.rig.io', 'models.dev',
   ].includes(url.hostname) && url.protocol === 'https:') {
-    appendFileSync(process.env.MCODE_TEST_NETWORK_AUDIT + '.managed', `${url.origin}${url.pathname}\n`);
+    appendFileSync((process.env.RIG_TEST_NETWORK_AUDIT ?? process.env.MCODE_TEST_NETWORK_AUDIT) + '.managed', `${url.origin}${url.pathname}\n`);
     return Promise.resolve(new Response(JSON.stringify({ error: 'Managed service offline fixture' }), { status: 503 }));
   }
   return denied();

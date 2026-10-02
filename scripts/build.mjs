@@ -151,7 +151,7 @@ writeFileSync(
       // MUST match the published name: resolveMcodePackageIdentity walks up from
       // dist/cli.js and must find @shivcdhry/rig, else `rig update` reports 'unsupported'.
       name: "@shivcdhry/rig", version, type: "module", private: true,
-      ...(process.env.MCODE_RELEASE_TAG ? {
+      ...(process.env.RIG_RELEASE_TAG ? {
         gitHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
       } : {}),
     },

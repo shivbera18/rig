@@ -61,6 +61,7 @@ jobs:
         run: gitleaks git --redact --config .gitleaks.toml --log-opts=--all
       - run: pnpm verify
         env:
+          RIG_RELEASE_TAG: ${{ steps.release.outputs.tag }}
           RIG_VERIFY_REPORT_DIR: ${{ runner.temp }}/build-report
       - name: Scan distribution
         run: gitleaks dir dist --redact --config .gitleaks.toml
@@ -142,5 +143,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          MCODE_RELEASE_DIRECTORY: ${{ runner.temp }}/package
-          MCODE_RELEASE_REPORTS: ${{ runner.temp }}/reports
+          RIG_RELEASE_DIRECTORY: ${{ runner.temp }}/package
+          RIG_RELEASE_REPORTS: ${{ runner.temp }}/reports

@@ -11,7 +11,7 @@ import { withoutProxyEnvironment } from "./offline-environment.mjs";
 import { cliBuildVersion } from '../scripts/lib/cli-release.mjs';
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const cli = process.env.MCODE_TEST_CLI ?? path.join(root, "dist/cli.js");
+const cli = process.env.RIG_TEST_CLI ?? path.join(root, "dist/cli.js");
 // Full runtime startup can exceed 15s on Windows CI (ACP took 22s).
 // Match the ACP startup budget; lightweight help/validation stays at 15s.
 const runtimeTimeoutMs = process.platform === "win32" ? 30000 : 15000;
@@ -43,9 +43,9 @@ function fixture(t, environment = process.env) {
       ...withoutProxyEnvironment(environment),
       RIG_DATA_DIR: dataDir,
       RIG_DATA_DIR: dataDir,
-      MCODE_TEST_NETWORK_AUDIT: audit,
-      MCODE_TEST_MANAGED_OFFLINE: "1",
-      MCODE_TEST_PROCESS_PROBE: "1",
+      RIG_TEST_NETWORK_AUDIT: audit,
+      RIG_TEST_MANAGED_OFFLINE: "1",
+      RIG_TEST_PROCESS_PROBE: "1",
       NODE_OPTIONS: `--import=${new URL("./network-deny.mjs", import.meta.url).href}`,
     },
   };
@@ -83,7 +83,7 @@ test("CLI defaults to the shared user config without migrating the old source di
   Object.assign(options.env, {
     HOME: home,
     USERPROFILE: home,
-    MCODE_DISABLE_TELEMETRY: "1",
+    RIG_DISABLE_TELEMETRY: "1",
   });
   const result = spawnSync(process.execPath, [cli, "telemetry", "status"], {
     ...options,

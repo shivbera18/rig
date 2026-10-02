@@ -144,8 +144,8 @@ const report = {
     revision.status === 0
       ? revision.stdout.trim()
       : profile === "archive" &&
-          /^[a-f0-9]{40}$/u.test(process.env.MCODE_VERIFY_REVISION ?? "")
-        ? process.env.MCODE_VERIFY_REVISION
+          /^[a-f0-9]{40}$/u.test(process.env.RIG_VERIFY_REVISION ?? "")
+        ? process.env.RIG_VERIFY_REVISION
         : null,
   platform: process.platform,
   arch: process.arch,
@@ -161,7 +161,7 @@ const report = {
     durationMs: null,
   })),
 };
-const reportDir = process.env.MCODE_VERIFY_REPORT_DIR;
+const reportDir = process.env.RIG_VERIFY_REPORT_DIR;
 function saveReport() {
   report.durationMs = Math.round(performance.now() - started);
   if (!reportDir) return;

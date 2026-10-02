@@ -45,6 +45,7 @@ export function buildArchiveTitlePrompts(
     systemPrompt: systemPrompt ?? archiveTitleSystemPrompt(locale),
     userPrompt: `Summarize the core topic of this excerpt.\n\n<excerpt>\n${transcript}\n</excerpt>`,
   };
+}
 
 export function archiveTitleSystemPrompt(locale: string): string {
   return locale.split('-')[0]?.toLowerCase() === 'zh'

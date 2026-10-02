@@ -21,7 +21,7 @@ import type {
 } from '../contracts.js';
 import type { AgentHostTurnCapabilityView } from '../../assembly/turn-capability-lifecycle.js';
 import {
-  isLegacyMinimaxProvider,
+  isLegacyRigProvider,
   modelConfigForRef,
   modelRefForModel,
   savedSessionModel,
@@ -273,7 +273,7 @@ export class LocalAgentConfigBuilder {
     const canRepair =
       turnInput.session.sessionKind !== 'task' ||
       !frozenModel ||
-      isLegacyMinimaxProvider(config, frozenModel.providerId);
+      isLegacyRigProvider(config, frozenModel.providerId);
     let selection = await resolveTurnModelSelection({
       config,
       tuiProductPolicy: this.options.tuiProductPolicy,
@@ -1102,14 +1102,14 @@ function parseModelKey(value: string | undefined): {
   return { provider: raw.slice(0, slash), modelId: raw.slice(slash + 1) };
 }
 
-const MINIMAX_OFFICIAL_SKILL_SOURCE = 1;
+const RIG_OFFICIAL_SKILL_SOURCE = 1;
 
 function toSkillRefs(skills: readonly LocalPromptSkill[]): ISkillRef[] {
   return skills.map((skill) => ({
     name: skill.name,
     ...(skill.description ? { description: skill.description } : {}),
-    global: skill.sourceType === MINIMAX_OFFICIAL_SKILL_SOURCE,
-    mutable: skill.sourceType !== MINIMAX_OFFICIAL_SKILL_SOURCE,
+    global: skill.sourceType === RIG_OFFICIAL_SKILL_SOURCE,
+    mutable: skill.sourceType !== RIG_OFFICIAL_SKILL_SOURCE,
   }));
 }
 
@@ -1167,7 +1167,7 @@ function isRuntimeSkillSelected(
     return false;
   }
   return (
-    skill.sourceType === MINIMAX_OFFICIAL_SKILL_SOURCE ||
+    skill.sourceType === RIG_OFFICIAL_SKILL_SOURCE ||
     isExtensionSkillSelected(selection?.extensionSkills, '', skill.name)
   );
 }

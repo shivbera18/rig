@@ -11,13 +11,13 @@ Shared roots:
 ```bash
 # macOS / Linux / WSL
 DOCX_ROOT="<skill_dir>"
-CLI="dotnet run --project $DOCX_ROOT/scripts/dotnet/MiniMaxAIDocx.Cli --"
+CLI="dotnet run --project $DOCX_ROOT/scripts/dotnet/RigAIDocx.Cli --"
 ```
 
 ```powershell
 # Windows
 $env:DOCX_ROOT = "<skill_dir>"
-$CLI = "dotnet run --project $env:DOCX_ROOT\scripts\dotnet\MiniMaxAIDocx.Cli --"
+$CLI = "dotnet run --project $env:DOCX_ROOT\scripts\dotnet\RigAIDocx.Cli --"
 ```
 
 ## Backend D — builtin dotnet CLI
@@ -26,7 +26,7 @@ $CLI = "dotnet run --project $env:DOCX_ROOT\scripts\dotnet\MiniMaxAIDocx.Cli --"
 - creating DOCX from structured config
 - editing an existing DOCX while preserving it as the same document
 - placeholder fill, table fill, replace-text, header/footer update
-- applying CJK 公文 / 学位论文 / institutional templates
+- applying institutional / academic thesis templates
 - running builtin analyze / diff / merge-runs / validate / gate-check
 
 **Hard no**:
@@ -72,7 +72,7 @@ if (-not ($check | Select-String -Pattern '^\[OK\]\s+dotnet\b')) {
 Same as `D`, plus read the relevant sample under:
 
 ```bash
-$DOCX_ROOT/scripts/dotnet/MiniMaxAIDocx.Core/Samples/*.cs
+$DOCX_ROOT/scripts/dotnet/RigAIDocx.Core/Samples/*.cs
 ```
 
 ## Backend X — local XML patch runtime

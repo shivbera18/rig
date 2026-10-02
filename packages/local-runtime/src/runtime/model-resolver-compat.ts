@@ -1,5 +1,5 @@
 import type { Api, Model } from '@earendil-works/pi-ai';
-import { isFirstPartyMinimaxMessagesRoute } from '@rig/config';
+import { isFirstPartyRigMessagesRoute } from '@rig/config';
 
 export function resolveLocalModelCompatibility(input: {
   api: Api;
@@ -7,14 +7,14 @@ export function resolveLocalModelCompatibility(input: {
   forceAdaptiveThinking: boolean;
   completionsThinkingCompat?: Model<Api>['compat'];
 }): Model<Api>['compat'] | undefined {
-  const firstPartyMinimaxMessages = isFirstPartyMinimaxMessagesRoute(
+  const firstPartyRigMessages = isFirstPartyRigMessagesRoute(
     input.api,
     input.provider,
   );
   const compat: Model<Api>['compat'] = {
     ...(input.forceAdaptiveThinking ? { forceAdaptiveThinking: true } : {}),
     ...(input.completionsThinkingCompat ?? {}),
-    ...(firstPartyMinimaxMessages ? { supportsLongCacheRetention: false } : {}),
+    ...(firstPartyRigMessages ? { supportsLongCacheRetention: false } : {}),
   };
   return Object.keys(compat).length > 0 ? compat : undefined;
 }

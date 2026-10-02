@@ -1314,9 +1314,7 @@ function parseRepoName(remoteUrl: string): string | null {
 }
 
 function getExplicitPublicDataDirEnv(): string | undefined {
-  return (
-    process.env.RIG_DATA_DIR?.trim() || process.env.RIG_DATA_DIR?.trim()
-  );
+  return process.env.RIG_DATA_DIR?.trim() || undefined;
 }
 
 function shouldUseGitAutoConfig(): boolean {
@@ -1584,7 +1582,7 @@ const PRESET_BASE_URLS: Record<PresetKey, string> = {
 };
 
 const LEGACY_MANAGED_PRESET_BASE_URLS = [
-  "https://agent.minimaxi.com/rig/api/v1/llm/v1",
+  "https://agent.rig.cn/rig/api/v1/llm/v1",
 ] as const;
 const MANAGED_PRESET_BASE_URLS = new Set([
   ...Object.values(PRESET_BASE_URLS),
@@ -1612,12 +1610,12 @@ function isManagedPresetBaseUrl(baseURL: string): boolean {
 }
 
 /** Test desktop builds may route the builtin managed Rig provider through a local fault proxy. */
-export function allowsManagedMinimaxProviderOverride(): boolean {
+export function allowsManagedRigProviderOverride(): boolean {
   return getRuntimeBuildEnv() === "test";
 }
 
 function shouldEnforceManagedProviderProtection(): boolean {
-  return !allowsManagedMinimaxProviderOverride();
+  return !allowsManagedRigProviderOverride();
 }
 
 function syncManagedPresetBaseUrl(configPath: string): void {

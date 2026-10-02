@@ -31,14 +31,14 @@ function createPort() {
         models: [{ modelId: 'gpt-4.1', displayName: 'GPT-4.1', contextLimit: 32768, maxOutputTokens: 4096 }],
       },
     ]),
-    getMiniMaxApiKeyStatus: vi.fn(async () => ({
+    getRigApiKeyStatus: vi.fn(async () => ({
       hasApiKey: true,
       maskedApiKey: 'sk-****5678',
       rawApiKey: 'must-never-cross-the-cli-boundary',
     })),
-    getMiniMaxModelSource: vi.fn(async () => 'rig_api_key' as const),
-    setMiniMaxModelSource: vi.fn(async (source: 'token_plan' | 'rig_api_key') => source),
-    upsertMiniMaxApiKey: vi.fn(async () => undefined),
+    getRigModelSource: vi.fn(async () => 'rig_api_key' as const),
+    setRigModelSource: vi.fn(async (source: 'token_plan' | 'rig_api_key') => source),
+    upsertRigApiKey: vi.fn(async () => undefined),
     createUserModelProvider: vi.fn(async () => undefined),
     saveUserModelProviderCandidate: vi.fn(async () => ({
       success: true,
@@ -127,7 +127,7 @@ describe('RigProviderApplication', () => {
 
   it('marks OAuth active when the Rig source is Token Plan', async () => {
     const port = createPort();
-    port.getMiniMaxModelSource.mockResolvedValueOnce('token_plan');
+    port.getRigModelSource.mockResolvedValueOnce('token_plan');
     const application = new RigProviderApplication(port);
 
     const snapshot = await application.snapshot();
@@ -141,9 +141,9 @@ describe('RigProviderApplication', () => {
     const port = createPort();
     const application = new RigProviderApplication(port);
 
-    await expect(application.setMiniMaxSource('token_plan')).resolves.toBe('token_plan');
+    await expect(application.setRigSource('token_plan')).resolves.toBe('token_plan');
 
-    expect(port.setMiniMaxModelSource).toHaveBeenCalledWith('token_plan');
+    expect(port.setRigModelSource).toHaveBeenCalledWith('token_plan');
   });
 
   it('forwards custom provider creation through the CLI port', async () => {
@@ -303,7 +303,7 @@ describe('saved provider model refresh', () => {
       modelId: 'new-model', skipConnectionTest: true, saveAndUse: false,
     });
     expect(port.createUserModelProvider).not.toHaveBeenCalled();
-    expect(port.setMiniMaxModelSource).not.toHaveBeenCalled();
+    expect(port.setRigModelSource).not.toHaveBeenCalled();
     expect(provider.models).toEqual([{ modelId: 'old-model', selected: true }]);
   });
 

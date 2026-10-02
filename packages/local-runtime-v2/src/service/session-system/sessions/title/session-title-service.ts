@@ -32,13 +32,13 @@ Follow these rules:
 
 Examples:
 
-- “给设置页加上深色模式” → “添加设置页深色模式”
+- “Add dark mode to settings page” → “Add dark mode to settings”
 
-- “登录时出现 500，帮我修一下” → “修复登录 500 错误”
+- “Getting 500 error on login, please fix” → “Fix login 500 error”
 
-- “比较两种 session title prompt” → “比较 session title prompt”
+- “Compare two session title prompts” → “Compare session title prompts”
 
-- “foo_bar 是在哪里创建的？” → “定位 foo_bar 创建位置”
+- “Where is foo_bar created?” → “Locate foo_bar creation”
 
 - “what's 2+2” → “Calculate 2+2”
 

@@ -8,33 +8,33 @@ import type {
 import {
   DEFAULT_MODEL_PRESETS,
   getRuntimePresetKey,
-  isLegacyManagedMinimaxProvider,
+  isLegacyManagedRigProvider,
   resolveModelAvailability,
 } from '@rig/config';
 import { LocalModelProviderError, type LocalRuntimeConfig } from '../contracts.js';
 import { parseProviderId, parseSourceQualifiedModelKey } from '../resolution/model-key.js';
 
-export const LEGACY_MINIMAX_PROVIDER_ID = 'custom_provider:rig-legacy';
+export const LEGACY_RIG_PROVIDER_ID = 'custom_provider:rig-legacy';
 
-export function isLegacyMinimaxProvider(config: LocalRuntimeConfig, providerId: string): boolean {
+export function isLegacyRigProvider(config: LocalRuntimeConfig, providerId: string): boolean {
   const key = parseProviderId(providerId)?.providerKey;
   const provider = key ? config.custom_provider?.[key] : undefined;
-  return isLegacyManagedMinimaxProvider(providerId, provider?.options?.baseURL);
+  return isLegacyManagedRigProvider(providerId, provider?.options?.baseURL);
 }
 
 /** Resolves a retired managed alias without changing unrelated custom providers. */
-export function resolveLegacyMinimaxModel(
+export function resolveLegacyRigModel(
   config: LocalRuntimeConfig,
   selection: { readonly providerId: string; readonly modelId: string },
 ): { readonly providerId: string; readonly modelId: string } | undefined {
-  if (!isLegacyMinimaxProvider(config, selection.providerId)) return undefined;
+  if (!isLegacyRigProvider(config, selection.providerId)) return undefined;
   const preset = getRuntimePresetKey();
   const configured = parseSourceQualifiedModelKey(config.defaultModel);
   const officialDefault = parseSourceQualifiedModelKey(DEFAULT_MODEL_PRESETS[preset].defaultModel);
   const candidates = [
     { providerId: 'rig', modelId: selection.modelId },
     ...(configured &&
-    (configured.providerId === 'rig' || isLegacyMinimaxProvider(config, configured.providerId))
+    (configured.providerId === 'rig' || isLegacyRigProvider(config, configured.providerId))
       ? [{ providerId: 'rig', modelId: configured.modelId }]
       : []),
     ...(officialDefault

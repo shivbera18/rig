@@ -5,7 +5,7 @@ import {
   RIG_LIGHT_THEME,
 } from '../../../../src/tui/theme/palettes.js';
 import {
-  MINIMAX_CODE_THEME_CONTRAST_POLICY,
+  RIG_THEME_CONTRAST_POLICY,
   contrastRatio,
 } from '../../../helpers/theme-contrast.js';
 import {
@@ -30,24 +30,24 @@ describe('Rig terminal theme palettes', () => {
   it.each([RIG_DARK_THEME, RIG_LIGHT_THEME])(
     'enforces readable semantic colors for the $appearance palette',
     (palette) => {
-      const background = MINIMAX_CODE_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
+      const background = RIG_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
 
-      for (const role of MINIMAX_CODE_THEME_CONTRAST_POLICY.normalText.roles) {
-        const exception = MINIMAX_CODE_THEME_CONTRAST_POLICY.normalText.exceptions.find(
+      for (const role of RIG_THEME_CONTRAST_POLICY.normalText.roles) {
+        const exception = RIG_THEME_CONTRAST_POLICY.normalText.exceptions.find(
           (candidate) => candidate.appearance === palette.appearance && candidate.role === role,
         );
         expect(
           contrastRatio(palette.colors[role], background),
           `${palette.appearance}.${role} must remain readable against ${background}`,
         ).toBeGreaterThanOrEqual(
-          exception?.minimum ?? MINIMAX_CODE_THEME_CONTRAST_POLICY.normalText.minimum,
+          exception?.minimum ?? RIG_THEME_CONTRAST_POLICY.normalText.minimum,
         );
       }
-      for (const role of MINIMAX_CODE_THEME_CONTRAST_POLICY.nonText.roles) {
+      for (const role of RIG_THEME_CONTRAST_POLICY.nonText.roles) {
         expect(
           contrastRatio(palette.colors[role], background),
           `${palette.appearance}.${role} must remain distinguishable against ${background}`,
-        ).toBeGreaterThanOrEqual(MINIMAX_CODE_THEME_CONTRAST_POLICY.nonText.minimum);
+        ).toBeGreaterThanOrEqual(RIG_THEME_CONTRAST_POLICY.nonText.minimum);
       }
     },
   );
@@ -497,12 +497,12 @@ describe('TuiThemeController theme selection', () => {
     const ui = new ThemeUi();
     const controller = new TuiThemeController({ ui, colorLevel: 3, env: { COLORFGBG: '15;0' } });
     const code = "const retries = 3; // keep streaming\nreturn 'ready';";
-    const minimaxCode = createTuiMarkdownTheme().highlightCode?.(code, 'ts').join('\n');
+    const rigCode = createTuiMarkdownTheme().highlightCode?.(code, 'ts').join('\n');
 
     controller.setTheme('midnight');
     const midnightCode = createTuiMarkdownTheme().highlightCode?.(code, 'ts').join('\n');
 
-    expect(midnightCode).not.toBe(minimaxCode);
+    expect(midnightCode).not.toBe(rigCode);
     expect(stripVTControlCharacters(midnightCode ?? '')).toBe(code);
     controller.dispose();
     restoreTheme();

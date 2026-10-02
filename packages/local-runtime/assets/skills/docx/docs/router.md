@@ -90,8 +90,8 @@ Use when there is no source DOCX to preserve as a document object. Markdown / HT
 business brief source still belongs here after normalization.
 
 ### APPLY_TEMPLATE
-Use when the user’s real ask is “make this content become that document system”. This includes school
-templates, 公文格式, house style, and multi-section institutional layouts.
+Use when the user’s real ask is “make this content become that document system”. This includes academic
+templates, official formats, house style, and multi-section institutional layouts.
 
 ### EDIT_FILL_DOCX
 Use when the source DOCX stays the same document and the user wants content mutation. If the real
@@ -115,8 +115,8 @@ Use when the user asks for a before/after or source/template difference analysis
 
 ## Common misroutes
 
-- “帮我写个 Word 报告” is **not** READ_CONTENT
-- “套成学校模板” is **not** plain EDIT_FILL_DOCX
-- “这份文档为什么看起来不对” is **not** automatically READ_STRUCTURE — it may be READ_RENDERED or REPAIR_LAYOUT
-- “改这份 Word 的几段内容” is **not** CREATE_DOCX
-- “这两个 docx 差在哪” is **not** ordinary READ_CONTENT
+- "Write me a Word report" is **not** READ_CONTENT
+- "Apply school template" is **not** plain EDIT_FILL_DOCX
+- "Why does this document look wrong" is **not** automatically READ_STRUCTURE — it may be READ_RENDERED or REPAIR_LAYOUT
+- "Modify these paragraphs in Word" is **not** CREATE_DOCX
+- "What is the difference between these two docx files" is **not** ordinary READ_CONTENT

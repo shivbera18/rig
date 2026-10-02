@@ -76,7 +76,7 @@ PY
 For complex annual-report financial tables, run `read_pdf_vision.py` one page at a time. Do not pass ranges for these target pages.
 
 ```bash
-cd "$MINIMAX_PDF_SKILL"
+cd "$RIG_PDF_SKILL"
 python3 -m scripts.read_pdf_vision \
   --input "$PDF" \
   --pages 7 \
@@ -154,7 +154,7 @@ If using only the compact LaTeX template, place the generated PNGs in the same w
 Use the case source as the editable deliverable:
 
 ```bash
-cp "$MINIMAX_PDF_SKILL/templates/data-viz-report/cases/annual-report-financial-digest-latex/source.tex" ./report.tex
+cp "$RIG_PDF_SKILL/templates/data-viz-report/cases/annual-report-financial-digest-latex/source.tex" ./report.tex
 # edit company name, dates, tables, source notes, chart paths
 tectonic -X compile report.tex --outdir ./out
 cp ./out/report.pdf ./company_annual_report_digest.pdf

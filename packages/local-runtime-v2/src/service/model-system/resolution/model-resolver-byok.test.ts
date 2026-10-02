@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   firstBuiltinModel,
   planCustomProviderResolution,
-  planMinimaxApiResolution,
+  planRigApiResolution,
   readStringRecord,
 } from './model-resolver-byok.js';
 
@@ -27,7 +27,7 @@ const MESSAGES_API_COMPAT_PATH = String.fromCodePoint(
 describe('Rig API BYOK planning', () => {
   it('returns absent when the source is not configured and fails closed without a key', () => {
     expect(
-      planMinimaxApiResolution({
+      planRigApiResolution({
         byok: undefined,
         providerConfig: undefined,
         modelId: 'model',
@@ -35,7 +35,7 @@ describe('Rig API BYOK planning', () => {
       }),
     ).toBeUndefined();
     expect(() =>
-      planMinimaxApiResolution({
+      planRigApiResolution({
         byok: { rig_api: { apiKey: '   ' } },
         providerConfig: undefined,
         modelId: 'model',
@@ -45,7 +45,7 @@ describe('Rig API BYOK planning', () => {
   });
 
   it('uses fallback, catalog, and user-owned context overrides without managed limits', () => {
-    const fallback = planMinimaxApiResolution({
+    const fallback = planRigApiResolution({
       byok: { rig_api: { apiKey: ' key ' } },
       providerConfig: undefined,
       modelId: 'model',
@@ -57,12 +57,12 @@ describe('Rig API BYOK planning', () => {
       maxTokens: 16_384,
     });
     expect([
-      `https://api.minimaxi.com/${MESSAGES_API_COMPAT_PATH}`,
+      `https://api.rig.cn/${MESSAGES_API_COMPAT_PATH}`,
       `https://api.rig.io/${MESSAGES_API_COMPAT_PATH}`,
     ]).toContain(fallback?.baseUrl);
 
     expect(
-      planMinimaxApiResolution({
+      planRigApiResolution({
         byok: { rig_api: { apiKey: 'key', baseURL: ' https://byok.example ' } },
         providerConfig: undefined,
         modelId: 'model',
@@ -75,7 +75,7 @@ describe('Rig API BYOK planning', () => {
     });
 
     expect(
-      planMinimaxApiResolution({
+      planRigApiResolution({
         byok: {
           rig_api: {
             apiKey: 'key',

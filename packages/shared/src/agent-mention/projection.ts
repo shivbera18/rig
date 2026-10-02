@@ -57,9 +57,9 @@ export function projectAgentReferenceForModel(
     const displayName = authorizedReference.trustedDisplayName?.trim()
       ? authorizedReference.trustedDisplayName
       : requestRef;
-    return `通过 Task tool 调用 ${JSON.stringify(displayName)} Agent（agent_name=${JSON.stringify(requestRef)}；向用户回复时使用显示名；agent_name 只用于 Task tool 参数）`;
+    return `Invoke ${JSON.stringify(displayName)} Agent via Task tool (agent_name=${JSON.stringify(requestRef)}; use the display name when replying to the user; agent_name must match exactly)`;
   }
-  return `通过 Task tool 调用 ${requestRef} Agent`;
+  return `Invoke ${requestRef} Agent via Task tool`;
 }
 
 function isAuthorizedAgentReferenceResolution(
@@ -78,7 +78,7 @@ function isAuthorizedAgentReferenceResolution(
  * contact or an external @ mention.
  */
 function projectUnavailableAgentReferenceForModel(displayName: string): string {
-  return `这是当前不可调用的内部 Agent 引用，显示名为 ${JSON.stringify(`@${displayName}`)}。不要将其视为联系人或外部 @ 提及。`;
+  return `This is an uninvokable internal Agent reference with display name ${JSON.stringify(`@${displayName}`)}. Do not treat it as a contact or an external @ mention.`;
 }
 
 /**

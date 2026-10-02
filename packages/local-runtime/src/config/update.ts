@@ -150,7 +150,7 @@ export async function compareAndSetLocalModelContext(
     const currentContext =
       input.providerId === 'rig'
         ? currentConfig.provider?.rig?.models?.[modelId]?.limit?.context
-        : currentMinimaxApiContext(currentConfig, modelId);
+        : currentRigApiContext(currentConfig, modelId);
     if (currentContext !== input.expectedContextLimit) {
       return { updated: false, config: currentConfig };
     }
@@ -166,12 +166,12 @@ export async function compareAndSetLocalModelContext(
         [modelId]: input.contextLimit,
       };
     } else {
-      const minimaxApi = isPlainRecord(raw.rig_api) ? raw.rig_api : {};
-      const modelContextLimits = isPlainRecord(minimaxApi.modelContextLimits)
-        ? minimaxApi.modelContextLimits
+      const rigApi = isPlainRecord(raw.rig_api) ? raw.rig_api : {};
+      const modelContextLimits = isPlainRecord(rigApi.modelContextLimits)
+        ? rigApi.modelContextLimits
         : {};
       raw.rig_api = {
-        ...minimaxApi,
+        ...rigApi,
         modelContextLimits: { ...modelContextLimits, [modelId]: input.contextLimit },
       };
     }
@@ -186,7 +186,7 @@ export async function compareAndSetLocalModelContext(
   }
 }
 
-function currentMinimaxApiContext(config: LocalRuntimeConfig, modelId: string): number | undefined {
+function currentRigApiContext(config: LocalRuntimeConfig, modelId: string): number | undefined {
   const model = RIG_API_MODEL_CATALOG[modelId];
   const override = config.rig_api?.modelContextLimits?.[modelId];
   return override !== undefined && model?.contextWindowOptions?.includes(override)

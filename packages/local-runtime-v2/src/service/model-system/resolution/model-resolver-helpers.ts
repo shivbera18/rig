@@ -8,7 +8,7 @@ import type { LLMModelConfig } from '@rig/agent-core/pi-turn-runner';
 
 import type { LocalRuntimeAuthContext } from '../contracts.js';
 
-const MANAGED_PROVIDER_USER_AGENT = 'MiniMaxAgent';
+const MANAGED_PROVIDER_USER_AGENT = 'RigAgent';
 
 export function buildLocalProviderHeaders(input: {
   readonly headers?: Record<string, string>;

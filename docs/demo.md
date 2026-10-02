@@ -1,8 +1,6 @@
 # A real coding task
 
-![Real Rig terminal replay: request, failing tests, a code fix, and passing tests](assets/tui-demo.gif)
-
-[Play or download the MP4](assets/tui-demo.mp4) · [View the full-size still](assets/tui-demo.png) · [Example source](../examples/clamp)
+[Example source](../examples/clamp)
 
 ## What was recorded
 
@@ -27,4 +25,4 @@ This demonstrates one small code repair, not acceptance of every project, provid
 
 ## Brand assets
 
-The README's light and dark wordmarks use the existing TUI welcome logo, with blue and cyan from its theme. `assets/social-preview.png` is a local 1280 × 640 sharing card for maintainers to configure as the GitHub Social Preview at release time. Creating these assets does not publish the repository; nothing was uploaded to a third-party media host.
+The README's light and dark wordmarks use the existing TUI welcome logo, with blue and cyan from its theme. `assets/social-preview.svg` is the source for the sharing card maintainers configure as the GitHub Social Preview at release time. Creating these assets does not publish the repository; nothing was uploaded to a third-party media host.

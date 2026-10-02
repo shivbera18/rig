@@ -259,12 +259,12 @@ export interface LocalRuntimeApplication {
     ): Promise<CodexOAuthStartResult>;
     cancelCodexOAuthLogin(loginId: string): Promise<CodexOAuthStatus>;
     listUser(): Promise<readonly Record<string, unknown>[]>;
-    getMiniMaxApiKeyStatus(): Promise<Record<string, unknown>>;
-    getMiniMaxModelSource(): Promise<"token_plan" | "rig_api_key">;
-    setMiniMaxModelSource(input: {
+    getRigApiKeyStatus(): Promise<Record<string, unknown>>;
+    getRigModelSource(): Promise<"token_plan" | "rig_api_key">;
+    setRigModelSource(input: {
       source: "token_plan" | "rig_api_key";
     }): Promise<"token_plan" | "rig_api_key">;
-    upsertMiniMaxApiKey(input: {
+    upsertRigApiKey(input: {
       apiKey: string;
       saveAndUse?: boolean;
     }): Promise<unknown>;

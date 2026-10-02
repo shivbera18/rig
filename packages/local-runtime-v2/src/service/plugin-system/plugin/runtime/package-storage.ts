@@ -28,7 +28,7 @@ import {
   computePluginDirectoryDigest,
   pluginDigestCacheKey,
 } from '../package/package-contract.js';
-import { readMiniMaxPlugin, scanLocalPluginPackages } from '../package/package-readers.js';
+import { readRigPlugin, scanLocalPluginPackages } from '../package/package-readers.js';
 import type {
   ReadPluginPackage,
   RuntimeEligibleScannedReadPluginPackage,
@@ -262,7 +262,7 @@ export class PluginPackageStorage {
     packageRoot: string,
   ): Promise<RuntimeEligibleScannedReadPluginPackage | undefined> {
     try {
-      const { miniapp, ...plugin } = await readMiniMaxPlugin(packageRoot, { source: 'OFFICIAL' });
+      const { miniapp, ...plugin } = await readRigPlugin(packageRoot, { source: 'OFFICIAL' });
       if (!miniapp) return plugin;
       const digests = await computeMiniAppPackageDigests(plugin.rootPath, miniapp.artifacts, {
         rejectHardlinks: true,

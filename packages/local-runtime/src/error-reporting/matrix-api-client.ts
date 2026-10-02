@@ -101,7 +101,7 @@ export async function sendDesktopErrorBatch(params: SendDesktopErrorBatchParams)
     const response = await params.fetchImpl(requestUrl, {
       method: 'POST',
       headers: {
-        'User-Agent': 'MiniMaxAgent',
+        'User-Agent': 'RigAgent',
         'Content-Type': 'application/json',
         // Shared OAuth credential header, consistent with model-resolver and content-safety.
         Authorization: `Bearer ${accessToken}`,

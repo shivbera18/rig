@@ -32,7 +32,7 @@ export interface McodeBusinessEventMap {
     readonly source: McodeLoginSource;
     readonly result_type: '1' | '2';
     readonly fail_reason: McodeLoginFailReason;
-    readonly login_type: 'google' | 'mobile' | 'wechat' | 'apple' | 'minimax_sso' | 'rig_oauth';
+    readonly login_type: 'google' | 'mobile' | 'wechat' | 'apple' | 'rig_sso' | 'rig_oauth';
   };
   readonly btw_session_lifecycle: {
     readonly phase: 'opened' | 'closed';
@@ -251,12 +251,12 @@ export function resolveMcodeBusinessTelemetryEndpoint(
 ): string {
   if (region === 'en') {
     return buildEnv === 'prod'
-      ? 'https://data.hailuo.ai/meerkat-reporter/api/report?project=MiniMaxAgent'
-      : 'https://bigdata-test.talkie-ai.com/meerkat-reporter/api/report?project=MiniMaxAgent';
+      ? 'https://data.hailuo.ai/meerkat-reporter/api/report?project=RigAgent'
+      : 'https://bigdata-test.talkie-ai.com/meerkat-reporter/api/report?project=RigAgent';
   }
   return buildEnv === 'prod'
-    ? 'https://data.hailuoai.com/meerkat-reporter/api/report?project=MiniMaxAgent'
-    : 'https://bigdata-test.xingyeai.com/meerkat-reporter/api/report?project=MiniMaxAgent';
+    ? 'https://data.hailuoai.com/meerkat-reporter/api/report?project=RigAgent'
+    : 'https://bigdata-test.xingyeai.com/meerkat-reporter/api/report?project=RigAgent';
 }
 
 function isEnabledEnvironmentFlag(value: string | undefined): boolean {

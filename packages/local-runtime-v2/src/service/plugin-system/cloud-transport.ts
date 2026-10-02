@@ -216,7 +216,7 @@ function buildHeaders(input: {
   };
   if (input.auth) headers.Authorization = `Bearer ${input.auth.accessToken}`;
   if (input.previewSecret?.trim()) {
-    headers['X-Minimax-Agent-Preview-Secret'] = input.previewSecret.trim();
+    headers['X-Rig-Agent-Preview-Secret'] = input.previewSecret.trim();
   }
   if (input.lane?.trim()) {
     headers.lane = input.lane.trim();

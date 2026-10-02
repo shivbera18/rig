@@ -14,12 +14,8 @@ description: >
   read by an explicit Read tool call before that step starts. Do not skip steps,
   reorder steps, read later steps early, or treat the steps as independent
   tasks. A trace that misses any step prompt is invalid.
-descriptions:
-  zh-Hans: >-
-    用于复杂、开放式深度研究任务，需要外部信息核验、跨来源搜索、事实校验和带引用的长答案。
-    该技能按背景确认、方向判断、深度分析、搜索核验、最终写作五个步骤顺序执行，每一步都必须先显式读取对应 step prompt。
-displayNames:
-  zh-Hans: "深度研究"
+
+
 ---
 
 # Deep Research

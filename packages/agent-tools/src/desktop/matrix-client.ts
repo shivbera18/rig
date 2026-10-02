@@ -7,7 +7,7 @@ import {
   type DesktopMatrixEndpoint,
 } from './matrix-env.js';
 
-const MATRIX_USER_AGENT = 'MiniMaxAgent';
+const MATRIX_USER_AGENT = 'RigAgent';
 const DEFAULT_TIMEOUT_MS = 120_000;
 const UNDICI_DEFAULT_TIMEOUT_MS = 300_000;
 const LONG_REQUEST_THRESHOLD_MS = UNDICI_DEFAULT_TIMEOUT_MS - 20_000;

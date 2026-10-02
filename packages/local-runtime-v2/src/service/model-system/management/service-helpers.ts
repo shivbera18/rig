@@ -9,7 +9,7 @@ import type {
 } from '../contracts.js';
 import {
   cacheStatusView,
-  minimaxApiModels,
+  rigApiModels,
   type ModelCacheStatusView,
 } from '../catalog/list-models.js';
 import { modelConfigFingerprint, type ModelCacheStatusEntry } from '../catalog/model-cache.js';
@@ -114,18 +114,18 @@ export function asLocalModelProviderError(error: unknown): LocalModelProviderErr
   );
 }
 
-export function minimaxContextBaselineFingerprint(
-  config: Parameters<typeof minimaxApiModels>[0],
+export function rigContextBaselineFingerprint(
+  config: Parameters<typeof rigApiModels>[0],
   modelId: string,
 ): string {
   const source = config.rigModelSource ?? 'token_plan';
   return modelConfigFingerprint({
     source,
-    minimaxApi: config.rig_api,
+    rigApi: config.rig_api,
     model:
       source === 'token_plan'
         ? config.provider?.rig?.models?.[modelId]
-        : minimaxApiModels(config)[modelId],
+        : rigApiModels(config)[modelId],
   });
 }
 

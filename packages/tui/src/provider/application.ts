@@ -4,7 +4,7 @@ import type {
   McodeCodexOAuthStatus,
   McodeCreateProviderInput,
   McodeDiscoverProviderModelsInput,
-  McodeMiniMaxModelSource,
+  RigModelSource,
   McodeProviderRuntimePort,
   McodeSaveProviderCandidateInput,
   McodeSaveProviderCandidateResult,
@@ -22,11 +22,11 @@ export class RigProviderApplication {
   async snapshot(
     options: { readonly includeCodexOAuth?: boolean } = {},
   ): Promise<McodeProviderSnapshot> {
-    const [customProviders, minimaxStatus, rigModelSource, codexOAuthStatus] =
+    const [customProviders, rigStatus, rigModelSource, codexOAuthStatus] =
       await Promise.all([
         this.port.listUserModelProviders(),
-        this.port.getMiniMaxApiKeyStatus(),
-        this.port.getMiniMaxModelSource(),
+        this.port.getRigApiKeyStatus(),
+        this.port.getRigModelSource(),
         options.includeCodexOAuth ? this.port.getCodexOAuthStatus() : undefined,
       ]);
     return {
@@ -52,9 +52,9 @@ export class RigProviderApplication {
           active: rigModelSource === 'rig_api_key',
           enabled: true,
           readOnly: false,
-          hasApiKey: minimaxStatus.hasApiKey,
-          ...(minimaxStatus.maskedApiKey ? { maskedApiKey: minimaxStatus.maskedApiKey } : {}),
-          ...(minimaxStatus.cachedStatus ? { status: minimaxStatus.cachedStatus } : {}),
+          hasApiKey: rigStatus.hasApiKey,
+          ...(rigStatus.maskedApiKey ? { maskedApiKey: rigStatus.maskedApiKey } : {}),
+          ...(rigStatus.cachedStatus ? { status: rigStatus.cachedStatus } : {}),
           models: [],
         },
         ...customProviders.map(normalizeCustomProvider),
@@ -62,8 +62,8 @@ export class RigProviderApplication {
     };
   }
 
-  setMiniMaxSource(source: McodeMiniMaxModelSource): Promise<McodeMiniMaxModelSource> {
-    return this.port.setMiniMaxModelSource(source);
+  setRigSource(source: RigModelSource): Promise<RigModelSource> {
+    return this.port.setRigModelSource(source);
   }
 
   connectCodexOAuth(options?: McodeCodexOAuthLoginOptions): Promise<McodeCodexOAuthStartResult> {
@@ -78,8 +78,8 @@ export class RigProviderApplication {
     return this.port.cancelCodexOAuthLogin(loginId);
   }
 
-  async setMiniMaxApiKey(apiKey: string, saveAndUse = true): Promise<void> {
-    await this.port.upsertMiniMaxApiKey({ apiKey, saveAndUse });
+  async setRigApiKey(apiKey: string, saveAndUse = true): Promise<void> {
+    await this.port.upsertRigApiKey({ apiKey, saveAndUse });
   }
 
   async create(input: McodeCreateProviderInput): Promise<void> {

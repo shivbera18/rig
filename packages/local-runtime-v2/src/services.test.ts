@@ -646,7 +646,7 @@ vi.mock("./service/session-system/index.js", async (importOriginal) => {
 
 vi.mock("@rig/config", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@rig/config")>()),
-  allowsManagedMinimaxProviderOverride: () => false,
+  allowsManagedRigProviderOverride: () => false,
   getRuntimeRegion: () => mocked.runtimeRegion,
 }));
 

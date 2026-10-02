@@ -121,7 +121,7 @@ let activeChalk = createTuiChalk({
 });
 type TuiChalkModifier = 'bold' | 'italic' | 'strikethrough' | 'underline';
 
-const MINIMAX_CODE_CHALK_MODIFIERS = new Set<TuiChalkModifier>([
+const RIG_CHALK_MODIFIERS = new Set<TuiChalkModifier>([
   'bold',
   'italic',
   'strikethrough',
@@ -172,7 +172,7 @@ function createDynamicTuiChalk(modifiers: readonly TuiChalkModifier[] = []): Cha
       }
       if (
         typeof property === 'string' &&
-        MINIMAX_CODE_CHALK_MODIFIERS.has(property as TuiChalkModifier)
+        RIG_CHALK_MODIFIERS.has(property as TuiChalkModifier)
       ) {
         return createDynamicTuiChalk([...modifiers, property as TuiChalkModifier]);
       }

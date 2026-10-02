@@ -34,8 +34,8 @@ The generation core that must stay active here is:
 - `<skill_dir>/references/scenario_c_apply_template.md`
 - `<skill_dir>/references/typography_guide.md`
 - `<skill_dir>/references/design_principles.md`
-- `<skill_dir>/references/cjk_typography.md` when CJK / 公文 / thesis formatting is involved
-- `<skill_dir>/scripts/dotnet/MiniMaxAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
+- `<skill_dir>/references/cjk_typography.md` when CJK / official / thesis formatting is involved
+- `<skill_dir>/scripts/dotnet/RigAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
 
 Template work is not “style by vibes”. Use these to anchor the visual system before backend work.
 
@@ -52,7 +52,7 @@ Use this table first. Only read deeper references after you have the nearest ali
 | If the template looks like... | Start here |
 | --- | --- |
 | school / thesis / dissertation template | `AcademicThesis` family + institutional structure preservation |
-| 公文 / Chinese government / strong CJK official template | `ChineseGovernment` + `cjk_typography.md` |
+| official / government / strong CJK official template | `ChineseGovernment` + `cjk_typography.md` |
 | corporate / branded business template | `ModernCorporate` / `ExecutiveBrief` |
 | reference sample with no structural authority | nearest family by visual intent, then treat as `reference_style_only` |
 
@@ -64,7 +64,7 @@ values from scratch:
 | Situation | Alignment rule |
 | --- | --- |
 | school / thesis / institutional template | preserve the template’s structural zones, then align heading / body / spacing expectations to the nearest academic or institutional recipe family |
-| 公文 / government / strong CJK template | `ChineseGovernment` + `cjk_typography.md` is the baseline; template XML can override only where the template explicitly proves it |
+| official / government / strong CJK template | `ChineseGovernment` + `cjk_typography.md` is the baseline; template XML can override |
 | corporate / branded template | align to `ModernCorporate` / `ExecutiveBrief` / closest recipe, then preserve template-specific colors / sections / headers |
 | reference-style-only template | treat the template as style intent, map it to the nearest recipe family, then generate through `D` or `S` |
 
@@ -134,7 +134,7 @@ Reuse the bundled template knowledge under:
 - `<skill_dir>/references/typography_guide.md`
 - `<skill_dir>/references/design_principles.md`
 - `<skill_dir>/references/cjk_typography.md`
-- `<skill_dir>/scripts/dotnet/MiniMaxAIDocx.Core/Samples/*.cs`
+- `<skill_dir>/scripts/dotnet/RigAIDocx.Core/Samples/*.cs`
 
 ## After writing
 

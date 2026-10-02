@@ -62,7 +62,7 @@ ids/paths needed to act on it.
 
 ### Independent confirmation (optional)
 
-`dotnet run --project <skill_dir>/scripts/dotnet/MiniMaxAIDocx.Cli -- analyze --input <input.docx> --json`
+`dotnet run --project <skill_dir>/scripts/dotnet/RigAIDocx.Cli -- analyze --input <input.docx> --json`
 remains available as an **independent confirmation** shot — different runtime, different parser,
 different JSON shape — and is useful when you need to sanity-check the Python analyzer or compare
 counts across two parsers. It is not the structure-truth source. The dotnet `analyze` command

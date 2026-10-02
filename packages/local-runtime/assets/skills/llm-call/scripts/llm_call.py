@@ -2,7 +2,7 @@
 """
 Multi-protocol LLM caller.
 
-Reads provider config from the active MiniMax Code data directory and calls LLM APIs using the
+Reads provider config from the active Rig data directory and calls LLM APIs using the
 correct protocol (Messages, OpenAI Chat Completions, or Gemini
 generateContent) based on the provider's `npm` field.
 
@@ -30,8 +30,8 @@ import yaml
 def _default_data_dir() -> Path:
     return Path(
         os.environ.get('__MAVIS_PARENT_DATA_DIR')
-        or os.environ.get('MINIMAX_DATA_DIR')
-        or str(Path.home() / ".minimax")
+        or os.environ.get('RIG_DATA_DIR')
+        or str(Path.home() / ".rig")
     )
 
 DEFAULT_CONFIG_PATH = _default_data_dir() / "config.yaml"
@@ -367,7 +367,7 @@ class LLMCaller:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Call LLM APIs using config from the active MiniMax Code data directory",
+        description="Call LLM APIs using config from the active Rig data directory",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -378,7 +378,7 @@ Examples:
         """,
     )
     parser.add_argument("--config", type=str, default=None,
-                        help="Path to config.yaml (default: active dataDir/config.yaml, normally ~/.minimax/config.yaml)")
+                        help="Path to config.yaml (default: active dataDir/config.yaml, normally ~/.rig/config.yaml)")
     parser.add_argument("--model", "-m", type=str, default=None,
                         help="Model in provider/model format")
     parser.add_argument("--prompt", "-p", type=str, default=None,

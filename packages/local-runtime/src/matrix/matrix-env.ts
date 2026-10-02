@@ -20,7 +20,7 @@ const MANAGED_MATRIX_BASE_URLS: Record<RigRegion, Record<RigBuildEnv, string>> =
   },
 };
 
-const LEGACY_MANAGED_MATRIX_BASE_URLS = new Set(['https://agent.minimaxi.com']);
+const LEGACY_MANAGED_MATRIX_BASE_URLS = new Set(['https://agent.rig.cn']);
 
 export interface LocalMatrixEndpoint {
   baseUrl: string;

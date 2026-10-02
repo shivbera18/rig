@@ -20,13 +20,13 @@ const MANAGED_PROVIDER_HOSTS = [
   'agent.rig.io',
   'agent.rig.cn',
   // Retain the historical China origin so existing user config migrates as managed.
-  'agent.minimaxi.com',
+  'agent.rig.cn',
 ] as const;
 
 const MANAGED_PROVIDER_ORIGINS = new Set(MANAGED_PROVIDER_HOSTS.map((host) => `https://${host}`));
 
 /** Recognizes generated Rig aliases, including dangling refs, while preserving custom endpoints. */
-export function isLegacyManagedMinimaxProvider(providerId: string, baseURL?: string): boolean {
+export function isLegacyManagedRigProvider(providerId: string, baseURL?: string): boolean {
   return (
     /^custom_provider?:rig-legacy(?:-\d+)?$/u.test(providerId) &&
     (!baseURL || isManagedProviderBaseUrl(baseURL))

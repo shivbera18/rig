@@ -710,44 +710,44 @@ export class CliService {
     ).cancelCodexOAuthLogin(loginId);
   }
 
-  getMiniMaxApiKeyStatus() {
+  getRigApiKeyStatus() {
     return this.requireCapability(
       "modelProviders",
       "Model Provider",
-    ).getMiniMaxApiKeyStatus();
+    ).getRigApiKeyStatus();
   }
 
-  getMiniMaxModelSource() {
+  getRigModelSource() {
     return this.requireCapability(
       "modelProviders",
       "Model Provider",
-    ).getMiniMaxModelSource();
+    ).getRigModelSource();
   }
 
-  setMiniMaxModelSource(
+  setRigModelSource(
     input: Parameters<
       NonNullable<
         LocalRuntimeApplication["modelProviders"]
-      >["setMiniMaxModelSource"]
+      >["setRigModelSource"]
     >[0],
   ) {
     return this.requireCapability(
       "modelProviders",
       "Model Provider",
-    ).setMiniMaxModelSource(input);
+    ).setRigModelSource(input);
   }
 
-  upsertMiniMaxApiKey(
+  upsertRigApiKey(
     input: Parameters<
       NonNullable<
         LocalRuntimeApplication["modelProviders"]
-      >["upsertMiniMaxApiKey"]
+      >["upsertRigApiKey"]
     >[0],
   ) {
     return this.requireCapability(
       "modelProviders",
       "Model Provider",
-    ).upsertMiniMaxApiKey(input);
+    ).upsertRigApiKey(input);
   }
 
   createUserModelProvider(

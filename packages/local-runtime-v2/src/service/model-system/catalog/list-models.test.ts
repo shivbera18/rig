@@ -10,7 +10,7 @@ import {
   customProviderKind,
   defaultThinkingVariant,
   enabledCustomProviders,
-  hasMinimaxApiKey,
+  hasRigApiKey,
   listByokRuntimeModels,
   modelConfigForRef,
   normalizeModelThinkingConfig,
@@ -43,8 +43,8 @@ describe('model catalog helpers', () => {
       'rig-api-key',
     );
 
-    expect(hasMinimaxApiKey(config())).toBe(false);
-    expect(hasMinimaxApiKey(config({ rig_api: { apiKey: '  sk-test  ' } }))).toBe(true);
+    expect(hasRigApiKey(config())).toBe(false);
+    expect(hasRigApiKey(config({ rig_api: { apiKey: '  sk-test  ' } }))).toBe(true);
   });
 
   it('reads configured models and enabled custom providers', () => {

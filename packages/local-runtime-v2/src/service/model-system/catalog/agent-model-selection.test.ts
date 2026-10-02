@@ -159,7 +159,7 @@ describe('resolveAgentModelSelection', () => {
   registerCustomProviderPrefixFallbackTests();
   registerAgentModelInputValidationTests();
   registerExplicitParentSelectionTest();
-  registerMiniMaxM3SelectionTests();
+  registerRigM3SelectionTests();
   registerBuiltinAgentGroupTests();
   registerResolverBoundaryCoverageTest();
 });
@@ -587,7 +587,7 @@ function registerAgentModelInputValidationTests(): void {
   });
 }
 
-function registerMiniMaxM3SelectionTests(): void {
+function registerRigM3SelectionTests(): void {
   it.each([
     ['thinking', 'true', 'on'],
     ['none-thinking', 'true', 'off'],

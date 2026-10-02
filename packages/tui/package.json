@@ -40,7 +40,6 @@
     "undici": "^8.10.2",
     "ws": "^8.20.0",
     "@rig/oauth-core": "workspace:*",
-    "@rig/oauth-lease-protocol": "workspace:*",
     "@rig/rig-tools-host": "workspace:*"
   },
   "optionalDependencies": {

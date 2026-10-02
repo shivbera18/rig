@@ -13,11 +13,8 @@ Generated launchers clear inherited sandbox, API/auth URL, client and scope over
 the host-owned shared-broker coordinates. This keeps Desktop and TUI on the artifact's baked
 business API profile while a lease is in use.
 
-## 内置资源与系统代理
+## Embedded Resources and System Proxy
 
-系统代理发现和 Node fetch 初始化由新版 rig-tools CLI 自身承担。宿主只提供认证 Broker 和资源分发，
-不注入代理地址，也不复制 CLI 的业务域名映射。
+System proxy discovery and Node fetch initialization are handled by the rig-tools CLI itself. The host only provides the auth broker and resource distribution, without injecting proxy addresses or duplicating CLI business domain mappings.
 
-资源校验兼容旧 schema v3。schema v4 允许 CLI、registry-js 许可证和 Windows x64/arm64/ia32
-预编译文件，校验完整资源集合、SHA-256 并拒绝符号链接。`resource-manifest.mjs` 同时供运行时、
-Desktop/TUI 打包与产物验收使用；打包锁定 v4 manifest SHA-256，原生资源的锁定哈希也编入 CLI。
+Resource validation remains backwards-compatible with schema v3. Schema v4 permits CLI, registry-js licenses, and Windows x64/arm64/ia32 precompiled binaries, verifying the complete resource set, SHA-256 hashes, and rejecting symlinks. `resource-manifest.mjs` is used by runtime, Desktop/TUI packaging, and artifact acceptance; packaging locks the v4 manifest SHA-256, and native resource integrity hashes are compiled into the CLI.

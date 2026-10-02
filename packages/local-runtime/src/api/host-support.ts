@@ -4,7 +4,7 @@ import path from "node:path";
 import yaml from "js-yaml";
 import { classifyLLMErrorToCode } from "@rig/agent-core/event-bridge";
 import {
-  allowsManagedMinimaxProviderOverride,
+  allowsManagedRigProviderOverride,
   getRuntimePresetKey,
   resolveLocalRuntimeAuthContextPath,
   resolveModelAvailability,
@@ -1166,7 +1166,7 @@ export function buildRuntimeDoctorSnapshot(input: {
     authMode: providerOptions?.authMode,
     baseURL: providerOptions?.baseURL,
     allowManagedBaseURLOverride:
-      providerId === "rig" && allowsManagedMinimaxProviderOverride(),
+      providerId === "rig" && allowsManagedRigProviderOverride(),
   });
   const warnings = validateRuntimeConfigFile(configPath, input.config);
   const tokenPresent = Boolean(input.authContext?.accessToken?.trim());
@@ -1220,7 +1220,7 @@ export function buildRuntimeDoctorSnapshot(input: {
     },
     // Presence booleans / counts only — BYOK trees hold plaintext keys.
     byok: {
-      minimaxApiKeyPresent: Boolean(input.config.rig_api?.apiKey?.trim()),
+      rigApiKeyPresent: Boolean(input.config.rig_api?.apiKey?.trim()),
       customProviderCount: Object.keys(input.config.custom_provider ?? {})
         .length,
     },

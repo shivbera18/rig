@@ -24,11 +24,11 @@ import {
   updateUserProvider as updateUserProviderOperation,
 } from './service-custom-provider-operations.js';
 import {
-  getMinimaxApiKeyStatus as getMinimaxApiKeyStatusOperation,
-  getMinimaxModelSource as getMinimaxModelSourceOperation,
-  setMinimaxModelSource as setMinimaxModelSourceOperation,
-  updateMinimaxModelContext as updateMinimaxModelContextOperation,
-  upsertMinimaxApiKey as upsertMinimaxApiKeyOperation,
+  getRigApiKeyStatus as getRigApiKeyStatusOperation,
+  getRigModelSource as getRigModelSourceOperation,
+  setRigModelSource as setRigModelSourceOperation,
+  updateRigModelContext as updateRigModelContextOperation,
+  upsertRigApiKey as upsertRigApiKeyOperation,
 } from './service-rig-operations.js';
 import {
   type LocalModelProviderServiceDeps,
@@ -124,35 +124,35 @@ export class LocalModelProviderService {
     return apiKey;
   }
 
-  getMinimaxApiKeyStatus(): {
+  getRigApiKeyStatus(): {
     hasApiKey: boolean;
     maskedApiKey?: string;
     cachedStatus?: ModelCacheStatusView;
   } {
-    return getMinimaxApiKeyStatusOperation(this.context);
+    return getRigApiKeyStatusOperation(this.context);
   }
 
-  getMinimaxModelSource(): 'token_plan' | 'rig_api_key' {
-    return getMinimaxModelSourceOperation(this.context);
+  getRigModelSource(): 'token_plan' | 'rig_api_key' {
+    return getRigModelSourceOperation(this.context);
   }
 
-  async setMinimaxModelSource(source: 'token_plan' | 'rig_api_key'): Promise<string> {
-    return setMinimaxModelSourceOperation(this.context, source);
+  async setRigModelSource(source: 'token_plan' | 'rig_api_key'): Promise<string> {
+    return setRigModelSourceOperation(this.context, source);
   }
 
-  async updateMinimaxModelContext(input: {
+  async updateRigModelContext(input: {
     modelId: string;
     contextLimit: number;
     expectedContextLimit: number;
   }): Promise<ModelContextUpdateOutcome> {
-    return updateMinimaxModelContextOperation(this.context, input);
+    return updateRigModelContextOperation(this.context, input);
   }
 
-  async upsertMinimaxApiKey(input: {
+  async upsertRigApiKey(input: {
     apiKey: string;
     saveAndUse?: boolean;
   }): Promise<ModelProviderView> {
-    return upsertMinimaxApiKeyOperation(this.context, input);
+    return upsertRigApiKeyOperation(this.context, input);
   }
 
   async createUserProvider(input: {

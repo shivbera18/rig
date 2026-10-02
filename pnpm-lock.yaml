@@ -790,9 +790,6 @@ importers:
       '@rig/oauth-core':
         specifier: workspace:*
         version: link:../oauth-core
-      '@rig/oauth-lease-protocol':
-        specifier: workspace:*
-        version: link:../oauth-lease-protocol
       '@rig/rig-tools-host':
         specifier: workspace:*
         version: link:../rig-tools-host

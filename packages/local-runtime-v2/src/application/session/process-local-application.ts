@@ -1,5 +1,5 @@
 import type { GlobalEvent } from '@rig/shared/global-events';
-import { isLegacyManagedMinimaxProvider } from '@rig/config';
+import { isLegacyManagedRigProvider } from '@rig/config';
 
 import {
   annotateModelFavorites,
@@ -91,7 +91,7 @@ export function createProcessLocalApplication(
     account: {
       getStatus: async (input) => {
         let status = await options.peripherals.account.getStatus(input);
-        if (isLegacyManagedMinimaxProvider(selectedProviderId(status) ?? '')) {
+        if (isLegacyManagedRigProvider(selectedProviderId(status) ?? '')) {
           const selected = (await options.modelProvider.application.list(input)).find(
             (model) => model.selected,
           );
@@ -111,7 +111,7 @@ export function createProcessLocalApplication(
           }
         }
         if (selectedProviderId(status) !== 'rig') return status;
-        const source = options.modelProvider.providers.getMinimaxModelSource();
+        const source = options.modelProvider.providers.getRigModelSource();
         return {
           ...status,
           modelSource: source === 'rig_api_key' ? 'byok' : 'token-plan',
@@ -136,14 +136,14 @@ export function createProcessLocalApplication(
       cancelCodexOAuthLogin: async (loginId) => options.modelProvider.oauth.cancelLogin(loginId),
       listUser: async () =>
         options.modelProvider.providers.listUserProviders().map(toProviderRecord),
-      getMiniMaxApiKeyStatus: async () => options.modelProvider.providers.getMinimaxApiKeyStatus(),
-      getMiniMaxModelSource: async () => options.modelProvider.providers.getMinimaxModelSource(),
-      setMiniMaxModelSource: async ({ source }) => {
-        await options.modelProvider.providers.setMinimaxModelSource(source);
+      getRigApiKeyStatus: async () => options.modelProvider.providers.getRigApiKeyStatus(),
+      getRigModelSource: async () => options.modelProvider.providers.getRigModelSource(),
+      setRigModelSource: async ({ source }) => {
+        await options.modelProvider.providers.setRigModelSource(source);
         return source;
       },
-      upsertMiniMaxApiKey: async (request) =>
-        options.modelProvider.providers.upsertMinimaxApiKey(request),
+      upsertRigApiKey: async (request) =>
+        options.modelProvider.providers.upsertRigApiKey(request),
       create: async ({ models, ...request }) =>
         options.modelProvider.providers.createUserProvider({
           ...request,

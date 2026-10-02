@@ -96,7 +96,7 @@ function baikeTitleUrl(pageUrl: string, title: string): string | undefined {
   if (url.hostname !== 'baike.baidu.com' || !/^\/item\/[^/]+\/?$/u.test(url.pathname)) {
     return undefined;
   }
-  const name = /^(.{1,120})_百度百科$/u.exec(title)?.[1]?.trim();
+  const name = /^(.{1,120})_\u767e\u5ea6\u767e\u79d1$/u.exec(title)?.[1]?.trim();
   if (!name || /[/?#]/u.test(name)) return undefined;
   return `${url.origin}/item/${encodeURIComponent(name)}`;
 }

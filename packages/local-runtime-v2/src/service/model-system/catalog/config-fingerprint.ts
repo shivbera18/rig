@@ -1,6 +1,6 @@
 import type { LocalModelConfig, LocalRuntimeConfig } from '../contracts.js';
 import { RIG_API_PROVIDER_ID, parseProviderId } from '../resolution/model-key.js';
-import { minimaxApiBaseUrl, minimaxApiModels } from './rig-api.js';
+import { rigApiBaseUrl, rigApiModels } from './rig-api.js';
 import {
   modelCacheStatusFor,
   modelConfigFingerprint,
@@ -21,7 +21,7 @@ export function byokModelTestStatus(
 ): ModelCacheStatusEntry | undefined {
   const parsed = parseProviderId(providerId);
   if (parsed?.source === 'rig_api') {
-    return minimaxModelTestStatus(config, cache, modelId);
+    return rigModelTestStatus(config, cache, modelId);
   }
   if (parsed?.source !== 'custom-provider') return undefined;
   return customModelTestStatus({
@@ -33,18 +33,18 @@ export function byokModelTestStatus(
   });
 }
 
-function minimaxModelTestStatus(
+function rigModelTestStatus(
   config: LocalRuntimeConfig,
   cache: ModelCacheData,
   modelId: string,
 ): ModelCacheStatusEntry | undefined {
   const apiKey = config.rig_api?.apiKey?.trim();
-  const model = minimaxApiModels(config)[modelId];
+  const model = rigApiModels(config)[modelId];
   if (!apiKey || !model) return undefined;
   const fingerprint = modelConnectionTestFingerprint(
     {
       api: 'anthropic-messages',
-      baseUrl: normalizeProviderBaseUrl('anthropic-messages', minimaxApiBaseUrl(config)),
+      baseUrl: normalizeProviderBaseUrl('anthropic-messages', rigApiBaseUrl(config)),
       apiKey,
       modelId,
     },

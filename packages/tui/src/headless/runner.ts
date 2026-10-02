@@ -24,7 +24,7 @@ import type { TuiModel, TuiSessionUsageRow } from "../types/runtime-models.js";
 import {
   exitCodeForExecError,
   exitCodeForExecResult,
-  MINIMAX_CODE_EXEC_EXIT_CODES,
+  RIG_EXEC_EXIT_CODES,
   TuiExecError,
 } from "./exit-policy.js";
 import {
@@ -119,7 +119,7 @@ export async function runTuiExec(
   const stderr = dependencies.stderr ?? createNodeStreamWriter(process.stderr);
   const processRef = dependencies.processRef ?? process;
   const createTurnId = dependencies.createTurnId ?? createTuiTurnId;
-  let exitCode: number = MINIMAX_CODE_EXEC_EXIT_CODES.internal;
+  let exitCode: number = RIG_EXEC_EXIT_CODES.internal;
   let streamOutputFailure: unknown;
   let terminal:
     | {
@@ -397,7 +397,7 @@ export async function runTuiExec(
       phase: "execution",
     });
     exitCode = exitCodeForExecError(normalized);
-    if (exitCode !== MINIMAX_CODE_EXEC_EXIT_CODES.brokenPipe) {
+    if (exitCode !== RIG_EXEC_EXIT_CODES.brokenPipe) {
       diagnostics.push(
         `rig exec failed: ${formatTuiExecFailure(normalized)}\n`,
       );
@@ -464,7 +464,7 @@ export async function runTuiExec(
       } catch (error) {
         const normalized = normalizeRunError(error);
         exitCode = exitCodeForExecError(normalized);
-        if (exitCode !== MINIMAX_CODE_EXEC_EXIT_CODES.brokenPipe) {
+        if (exitCode !== RIG_EXEC_EXIT_CODES.brokenPipe) {
           diagnostics.push(
             `rig exec failed: ${formatTuiExecFailure(normalized)}\n`,
           );
@@ -472,9 +472,9 @@ export async function runTuiExec(
       }
     } else if (
       shutdownFailure &&
-      exitCode !== MINIMAX_CODE_EXEC_EXIT_CODES.brokenPipe
+      exitCode !== RIG_EXEC_EXIT_CODES.brokenPipe
     ) {
-      exitCode = MINIMAX_CODE_EXEC_EXIT_CODES.internal;
+      exitCode = RIG_EXEC_EXIT_CODES.internal;
     }
     if (shutdownFailure && !shutdownFailurePublished)
       diagnostics.push(`${shutdownFailure}\n`);
@@ -500,7 +500,7 @@ export async function runTuiExec(
       shutdownComplete: !shutdownFailure,
       recoveryReady: stoppedForRecovery && !shutdownFailure,
     });
-    if (exitCode !== MINIMAX_CODE_EXEC_EXIT_CODES.brokenPipe) {
+    if (exitCode !== RIG_EXEC_EXIT_CODES.brokenPipe) {
       for (const diagnostic of diagnostics)
         await writeDiagnostic(stderr, diagnostic);
     }

@@ -255,7 +255,7 @@ export interface LocalModelResolverLike {
   resolveModel(input: LocalModelResolveInput): Promise<LocalResolvedModelConfig>;
 }
 
-export type MiniMaxM3ThinkingMode = 'on' | 'off';
+export type RigM3ThinkingMode = 'on' | 'off';
 
 export type ModelProviderTestApi = ModelProviderApi;
 
@@ -378,7 +378,7 @@ export interface ModelConnectionTestTarget {
   modelId: string;
   headers?: Record<string, string>;
   effort?: string;
-  minimaxM3ThinkingMode?: MiniMaxM3ThinkingMode;
+  rigM3ThinkingMode?: RigM3ThinkingMode;
   /**
    * Output budget the probe requests, taken from the model's configured output
    * limit. Mirrors what a real turn sends so an output-budget rejection can

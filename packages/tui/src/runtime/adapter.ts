@@ -466,19 +466,19 @@ export class TuiRuntimeAdapter implements TuiRuntime {
   cancelCodexOAuthLogin(loginId: string) {
     return this.productAccess.cancelCodexOAuthLogin(loginId);
   }
-  getMiniMaxApiKeyStatus() {
-    return this.productAccess.getMiniMaxApiKeyStatus();
+  getRigApiKeyStatus() {
+    return this.productAccess.getRigApiKeyStatus();
   }
-  getMiniMaxModelSource() {
-    return this.productAccess.getMiniMaxModelSource();
+  getRigModelSource() {
+    return this.productAccess.getRigModelSource();
   }
-  setMiniMaxModelSource(
-    source: import("../provider/contract.js").McodeMiniMaxModelSource,
+  setRigModelSource(
+    source: import("../provider/contract.js").RigModelSource,
   ) {
-    return this.productAccess.setMiniMaxModelSource(source);
+    return this.productAccess.setRigModelSource(source);
   }
-  upsertMiniMaxApiKey(input: { apiKey: string; saveAndUse?: boolean }) {
-    return this.productAccess.upsertMiniMaxApiKey(input);
+  upsertRigApiKey(input: { apiKey: string; saveAndUse?: boolean }) {
+    return this.productAccess.upsertRigApiKey(input);
   }
   createUserModelProvider(
     input: import("../provider/contract.js").McodeCreateProviderInput,

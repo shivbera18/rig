@@ -3,8 +3,7 @@ name: pptx
 description: >-
   Read, create, and edit PowerPoint PPTX/PPT presentations.
   Covers: parsing, summarizing, extracting content, inspecting themes/layouts, creating new decks with PptxGenJS, and editing existing PPTX while preserving formatting.
-descriptions:
-  zh-Hans: "读取、创建和编辑 PowerPoint PPTX/PPT，支持解析、总结、抽取内容、检查主题布局和保留格式编辑。"
+
 ---
 
 ## Scope

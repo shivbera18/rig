@@ -8,9 +8,9 @@ The current source target is **TUI 0.4.12**. This repository contains the termin
 | --- | --- | --- |
 | TUI capability version | 0.4.12 | `packages/tui/package.json` |
 | Root workspace version | 0.4.12, aligned with the TUI | Root `package.json` |
-| Published npm observation | `@rig-ai/code@0.4.12`; npm `latest` was 0.4.12 on 2026-09-18 | Public npm registry |
+| Published npm observation | `@shivcdhry/rig` | Public npm registry |
 | Shared-source baseline | `9b9885e42a3cf1a3df1cfa52a46e4fdb034cfcee` | `release/extraction.json` |
-| Embedded rig-tools | 0.0.4, extracted from public `@rig-ai/code@0.3.11` | `scripts/lib/rig-tools-artifact.mjs` |
+| Embedded rig-tools | 0.0.4, extracted from public `@shivcdhry/rig` | `scripts/lib/rig-tools-artifact.mjs` |
 | Historical live-service acceptance and demo | TUI 0.3.11, recorded 2026-09-11 | `docs/verification.md`, `docs/release-audit.md`, `docs/demo.md` |
 
 The product, TUI, and root workspace use the same 0.4.12 version. The embedded tool has its own version. Workspace and local-build manifests remain `private: true` to prevent accidental npm publication. Matching version strings do not prove that this source tree reproduces the published npm tarball.

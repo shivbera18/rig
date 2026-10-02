@@ -355,7 +355,7 @@ function codexSessionMeta(sessionId: string, cwd: string, messages: readonly Age
       id,
       timestamp,
       cwd,
-      originator: 'minimax_plugin_hook_projection',
+      originator: 'rig_plugin_hook_projection',
       cli_version: 'rig-plugin-hook-projection-v1',
       model_provider: null,
       base_instructions: null,

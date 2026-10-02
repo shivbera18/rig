@@ -12,7 +12,7 @@ export async function testProvider(
   opts?: { apiKeyOverride?: string },
 ): Promise<ModelProviderTestOutcome> {
   if (parseProviderId(providerId)?.source === 'rig_api') {
-    return enqueueProviderMutation(context.minimaxMutationKey(), () =>
+    return enqueueProviderMutation(context.rigMutationKey(), () =>
       testProviderNow(context, providerId, opts),
     );
   }
@@ -39,7 +39,7 @@ export async function testModel(
   modelId: string,
 ): Promise<ModelProviderTestOutcome> {
   if (parseProviderId(providerId)?.source === 'rig_api') {
-    return enqueueProviderMutation(context.minimaxMutationKey(), () =>
+    return enqueueProviderMutation(context.rigMutationKey(), () =>
       testModelNow(context, providerId, modelId),
     );
   }

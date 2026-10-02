@@ -15,7 +15,6 @@
   <a href="docs/examples.md">Examples</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
 </p>
-<p align="center"><strong>English</strong> · <a href="README_ZH.md">简体中文</a></p>
 <p align="center">
   <img src="docs/assets/node.svg" alt="Compatibility: Node.js 22.19+, 24.2+, 25, and 26">
   <a href="LICENSE-STATUS.md"><img src="docs/assets/license.svg" alt="First-party default license: MIT"></a>

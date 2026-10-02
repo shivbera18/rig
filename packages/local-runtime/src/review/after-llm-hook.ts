@@ -297,10 +297,7 @@ async function handleCorrectionResponse(input: {
       );
     }
     if (applied.failedCorrections === 0 && applied.explicitlyDropped === pending.invalid.length) {
-      const conclusion =
-        input.prepared.responseLanguage === 'zh-CN'
-          ? '未发现需要报告的问题。'
-          : 'No reportable issues were found.';
+      const conclusion = 'No reportable issues were found.';
       input.state.finalize(conclusion, 'pass');
       input.validation.recordResult(
         { sessionId: input.sessionId, turnId: input.turnId, prepared: input.prepared },
@@ -358,10 +355,7 @@ function invalidReviewFallback(
   state: ReviewTurnState,
   prepared: PreparedReview,
 ): PiAfterLlmCallHookDecision {
-  const fallback =
-    prepared.responseLanguage === 'zh-CN'
-      ? '模型返回审查结果格式无效，请重试。'
-      : 'The model returned the code review result in an invalid format. Please retry.';
+  const fallback = 'The model returned the code review result in an invalid format. Please retry.';
   state.finalize(fallback, 'failed');
   return { type: 'replaceText' as const, text: fallback };
 }
@@ -374,10 +368,8 @@ function finalizePassingReview(
   return { type: 'replaceText', text: summary };
 }
 
-function acceptedFindingSummary(language: 'zh-CN' | 'en', count: number): string {
-  return language === 'zh-CN'
-    ? `发现 ${count} 个需要处理的问题。`
-    : `Found ${count} issue${count === 1 ? '' : 's'} that require attention.`;
+function acceptedFindingSummary(_language: 'zh-CN' | 'en', count: number): string {
+  return `Found ${count} issue${count === 1 ? '' : 's'} that require attention.`;
 }
 
 function projectionContext(prepared: PreparedReview): ReviewProjectionContext {
@@ -412,29 +404,17 @@ function buildFindingCorrectionPrompt(
   const serialized = JSON.stringify(payload, null, 2);
   const discoveryInstruction =
     delivery === 'git-discovery'
-      ? prepared.responseLanguage === 'zh-CN'
-        ? '预计算变更清单已省略。请使用 Git 检查当前本地 Git diff，重新确认每个候选项的文件和行范围；无法确认属于当前 diff 时必须使用 action="drop"。'
-        : 'The precomputed change manifest was omitted. Inspect the current local Git diff to confirm each candidate file and line range; use action="drop" when the candidate cannot be confirmed in the current diff.'
+      ? 'The precomputed change manifest was omitted. Inspect the current local Git diff to confirm each candidate file and line range; use action="drop" when a finding cannot be confirmed against the active diff.'
       : undefined;
-  return prepared.responseLanguage === 'zh-CN'
-    ? [
-        '以下代码审查候选项未通过运行时定位校验。只修正这些候选项，不要重新输出已经通过校验的候选项。',
-        '删除行为本身有问题时，将 target 挂到对应 old 侧删除行；如果评论挂在当前仍存在的 new 侧代码上，使用 relatedChange 指向引入问题的本地改动。',
-        ...(discoveryInstruction ? [discoveryInstruction] : []),
-        '',
-        serialized,
-        '',
-        '只返回一个 <review-candidate-corrections version="1"> XML 文档。每项必须原样复制 candidate-key，并使用 action="replace" 提供修正后的 <finding>，或使用 action="drop" 放弃不成立的问题。title 和 content 使用普通 XML 文本节点；输出前先将 & 转义为 &amp;，再将 < 转义为 &lt;、> 转义为 &gt;，不得在文本节点中输出裸露的 &、< 或 >。XML 属性值还要将 " 转义为 &quot;、\' 转义为 &apos;。不要增加新的 candidate-key，不要输出 Markdown 或 XML 之外的文本。',
-      ].join('\n')
-    : [
-        'The following code review candidates failed runtime location validation. Correct only these candidates; do not repeat candidates that already passed.',
-        'When the deletion itself is defective, target the corresponding deleted lines on the old side. When the comment belongs on surviving new-side code, use relatedChange to identify the local change that introduced the issue.',
-        ...(discoveryInstruction ? [discoveryInstruction] : []),
-        '',
-        serialized,
-        '',
-        'Return exactly one <review-candidate-corrections version="1"> XML document. Copy each candidate-key exactly and use action="replace" with a corrected <finding>, or action="drop" for an issue that is not valid. Use ordinary XML text nodes for title and content. Escape & as &amp; first, then < as &lt; and > as &gt;; never emit a raw &, <, or > inside those text nodes. In XML attribute values, also escape " as &quot; and \' as &apos;. Do not add candidate keys or output Markdown or text outside the XML.',
-      ].join('\n');
+  return [
+    'The following code review candidates failed runtime location validation. Correct only these candidates; do not re-emit candidates that already passed validation.',
+    'When the deletion itself is defective, target the corresponding deleted lines on the old side. When the comment belongs on surviving new-side code, use relatedChange to identify the local change that introduced the issue.',
+    ...(discoveryInstruction ? [discoveryInstruction] : []),
+    '',
+    serialized,
+    '',
+    'Return exactly one <review-candidate-corrections version="1"> XML document. Copy each candidate-key exactly and use action="replace" with a corrected <finding>, or action="drop" for an issue that is not valid. Use ordinary XML text nodes for title and content. Escape & as &amp; first, then < as &lt; and > as &gt;; never emit a raw &, <, or > inside those text nodes. In XML attribute values, also escape " as &quot; and \' as &apos;. Do not add candidate keys or output Markdown or text outside the XML.',
+  ].join('\n');
 }
 
 function buildDocumentRetryPrompt(prepared: PreparedReview, error: unknown): string {
@@ -443,37 +423,22 @@ function buildDocumentRetryPrompt(prepared: PreparedReview, error: unknown): str
     '<workspace>',
   );
   const escapingChecklist = buildXmlEscapingRetryChecklist(prepared.responseLanguage);
-  return prepared.responseLanguage === 'zh-CN'
-    ? `审查候选 XML 无法解析或顶层 schema 不合法：${detail}\n请只返回一份修正后的 <review-candidates version="2"> XML。\n${escapingChecklist}\n如果没有有效问题，返回 verdict="pass" 且 findings 为空的候选 XML。不要输出 Markdown 或 XML 之外的文本。`
-    : `The review candidate XML could not be parsed or its top-level schema was invalid: ${detail}\nReturn exactly one corrected <review-candidates version="2"> XML document.\n${escapingChecklist}\nIf there are no valid findings, return candidate XML with verdict="pass" and empty findings. Do not output Markdown or text outside the XML.`;
+  return `The review candidate XML could not be parsed or its top-level schema was invalid: ${detail}\nReturn exactly one corrected <review-candidates version="2"> XML document.\n${escapingChecklist}\nIf no reportable issues remain, return <review-candidates version="2" verdict="pass" />.`;
 }
 
-function buildXmlEscapingRetryChecklist(language: 'zh-CN' | 'en'): string {
-  return language === 'zh-CN'
-    ? [
-        '请对整份 XML 应用以下完整转义规则，不要只修解析器报出的单个位置：',
-        '- 普通文本节点（summary、title、content）：原始 & 必须写成 &amp;，原始 < 必须写成 &lt;，原始 > 必须写成 &gt;。',
-        '- XML 属性值：除上述三项外，原始双引号必须写成 &quot;，原始单引号必须写成 &apos;。',
-        '- 只转义文本和属性值，不要转义 <review-candidates>、<finding>、<target> 等 XML 结构标签。',
-        '- 代码片段、反引号内文本和错误信息也必须遵守相同规则，反引号不会豁免 XML 转义。',
-        '- 按原始文本先处理 &，再处理 < 和 >；不要重复转义已经合法的 XML entity（&amp;、&lt;、&gt;、&quot;、&apos;）。',
-        '- 示例：原始文本 x < 3 && y > 0 必须输出为 x &lt; 3 &amp;&amp; y &gt; 0。',
-        '- 返回前逐个扫描所有 summary、title、content 和属性值，确认不存在裸露的 &、<、>，属性值中也不存在裸露的引号。',
-      ].join('\n')
-    : [
-        'Apply this complete escaping checklist to the entire XML document, not only the location reported by the parser:',
-        '- Ordinary text nodes (summary, title, content): write raw & as &amp;, raw < as &lt;, and raw > as &gt;.',
-        '- XML attribute values: in addition to those three mappings, write raw double quotes as &quot; and raw single quotes as &apos;.',
-        '- Escape only text and attribute values. Do not escape structural XML tags such as <review-candidates>, <finding>, or <target>.',
-        '- Code snippets, backtick-delimited text, and error messages follow the same rules; backticks do not exempt XML escaping.',
-        '- Starting from raw text, escape & before < and >. Do not double-escape valid XML entities (&amp;, &lt;, &gt;, &quot;, &apos;).',
-        '- Example: raw text x < 3 && y > 0 must be emitted as x &lt; 3 &amp;&amp; y &gt; 0.',
-        '- Before returning, scan every summary, title, content, and attribute value for raw &, <, or >, and for raw quotes inside attribute values.',
-      ].join('\n');
+function buildXmlEscapingRetryChecklist(_language: 'zh-CN' | 'en'): string {
+  return [
+    'Apply this complete escaping checklist to the entire XML document, not only the location reported by the parser:',
+    '- Ordinary text nodes (summary, title, content): write raw & as &amp;, raw < as &lt;, and raw > as &gt;.',
+    '- XML attribute values: in addition to those three mappings, write raw double quotes as &quot; and raw single quotes as &apos;.',
+    '- Escape only text and attribute values. Do not escape structural XML tags such as <review-candidates>, <finding>, <target>.',
+    '- Code snippets, backtick-delimited text, and error messages follow the same rules; backticks do not exempt XML escaping.',
+    '- Starting from raw text, escape & before < and >. Do not double-escape valid XML entities (&amp;, &lt;, &gt;, &quot;, &apos;).',
+    '- Example: raw text x < 3 && y > 0 must be emitted as x &lt; 3 &amp;&amp; y &gt; 0.',
+    '- Before returning, scan every summary, title, content, and attribute value for raw &, <, or >, and for raw quotes inside attributes.',
+  ].join('\n');
 }
 
-function buildMissingCandidateRetryPrompt(prepared: PreparedReview): string {
-  return prepared.responseLanguage === 'zh-CN'
-    ? '代码审查必须返回候选 XML。请只返回一份 <review-candidates version="2"> XML。summary、title 和 content 使用普通 XML 文本节点；输出前先将 & 转义为 &amp;，再将 < 转义为 &lt;、> 转义为 &gt;，不得在文本节点中输出裸露的 &、< 或 >。XML 属性值还要将 " 转义为 &quot;、\' 转义为 &apos;。如果没有有效问题，返回 verdict="pass" 且 findings 为空的候选 XML。不要输出 Markdown 或 XML 之外的文本。'
-    : 'Code review must return candidate XML. Return exactly one <review-candidates version="2"> XML document. Use ordinary XML text nodes for summary, title, and content. Escape & as &amp; first, then < as &lt; and > as &gt;; never emit a raw &, <, or > inside those text nodes. In XML attribute values, also escape " as &quot; and \' as &apos;. If there are no valid findings, return candidate XML with verdict="pass" and empty findings. Do not output Markdown or text outside the XML.';
+function buildMissingCandidateRetryPrompt(_prepared: PreparedReview): string {
+  return 'Code review must return candidate XML. Return exactly one <review-candidates version="2"> XML document. Use ordinary XML text nodes for summary, title, and content; escape & as &amp; before emitting XML. If no reportable issues remain, return <review-candidates version="2" verdict="pass" />.';
 }

@@ -5,7 +5,7 @@ const FOUR_DAYS_MS = 4 * DAY_MS;
 const RECENT_CALENDAR_DAYS = 7;
 
 const EN_WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
-const ZH_WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'] as const;
+const ZH_WEEKDAYS = EN_WEEKDAYS;
 
 const DEFAULT_TIME_ZONE = (() => {
   try {
@@ -139,12 +139,12 @@ function formatSocialTime(
   }
 
   const elapsedMs = nowMs - timestampMs;
-  if (elapsedMs < MINUTE_MS) return locale === 'zh' ? '刚刚' : 'Now';
+  if (elapsedMs < MINUTE_MS) return 'Now';
   if (isSameDay(timestamp, now)) return formatTime(timestamp);
 
   const dayDelta = calendarDayIndex(now) - calendarDayIndex(timestamp);
   if (dayDelta === 1) {
-    const yesterday = locale === 'zh' ? '昨天' : 'Yesterday';
+    const yesterday = 'Yesterday';
     return `${yesterday} ${formatTime(timestamp)}`;
   }
   if (dayDelta > 1 && dayDelta < RECENT_CALENDAR_DAYS) {
@@ -168,18 +168,18 @@ function formatCommunityTime(
   if (timestampMs > nowMs) return formatDate(timestamp, locale, !sameYear);
 
   const elapsedMs = nowMs - timestampMs;
-  if (elapsedMs < MINUTE_MS) return locale === 'zh' ? '刚刚' : 'Now';
+  if (elapsedMs < MINUTE_MS) return 'Now';
   if (elapsedMs < HOUR_MS) {
     const minutes = Math.floor(elapsedMs / MINUTE_MS);
-    return locale === 'zh' ? `${minutes}分钟前` : `${minutes}m`;
+    return `${minutes}m`;
   }
   if (elapsedMs < DAY_MS) {
     const hours = Math.floor(elapsedMs / HOUR_MS);
-    return locale === 'zh' ? `${hours}小时前` : `${hours}h`;
+    return `${hours}h`;
   }
   if (elapsedMs < FOUR_DAYS_MS) {
     const days = Math.floor(elapsedMs / DAY_MS);
-    return locale === 'zh' ? `${days}天前` : `${days}d`;
+    return `${days}d`;
   }
 
   return formatDate(timestamp, locale, !sameYear);

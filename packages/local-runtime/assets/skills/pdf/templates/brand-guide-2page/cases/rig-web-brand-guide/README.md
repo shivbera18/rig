@@ -88,7 +88,7 @@ From the skill root:
 ```bash
 SKILL={{DATA_DIR}}/.builtin-skills/pdf
 CASE="$SKILL/templates/brand-guide-2page/cases/rig-web-brand-guide"
-OUT=/tmp/MiniMax_Brand_Style_Guide.pdf
+OUT=/tmp/Rig_Brand_Style_Guide.pdf
 
 bash "$SKILL/scripts/make.sh" check
 bash "$SKILL/scripts/make.sh" render   --in "$CASE/source.html"   --out "$OUT"   --format A4   --wait 1200

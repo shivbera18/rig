@@ -26,31 +26,31 @@ export function localeOrDefault(locale: UserLocaleHint): Lang {
 
 const ACTION_LABEL: Record<Lang, Record<PermissionBehavior, string>> = {
   en: { allow: 'Allowed', ask: 'Needs confirmation', deny: 'Blocked' },
-  zh: { allow: '已允许', ask: '需要确认', deny: '已拒绝' },
+  zh: { allow: 'Allowed', ask: 'Needs confirmation', deny: 'Blocked' },
 };
 
 const BEHAVIOR_LABEL: Record<Lang, Record<PermissionBehavior, string>> = {
   en: { allow: 'allow', ask: 'ask', deny: 'deny' },
-  zh: { allow: '允许', ask: '询问', deny: '拒绝' },
+  zh: { allow: 'allow', ask: 'ask', deny: 'deny' },
 };
 
 const SOURCE_LABEL: Record<Lang, Record<PermissionRuleSource, string>> = {
   en: { global: 'global', agent: 'agent', session: 'session' },
-  zh: { global: '全局', agent: 'agent', session: '会话' },
+  zh: { global: 'global', agent: 'agent', session: 'session' },
 };
 
 const MODE_OFF_REASON: Record<Lang, string> = {
   en: 'Allowed: permission mode is off; permission review was skipped.',
-  zh: '已允许：权限模式为 off，已跳过权限审查。',
+  zh: 'Allowed: permission mode is off; permission review was skipped.',
 };
 
 const MODE_BYPASS_REASON: Record<Lang, string> = {
   en: 'Allowed: permission mode is bypassPermissions and no bypass-immune safety rule matched.',
-  zh: '已允许：权限模式为 bypassPermissions，且未命中任何强制安全规则。',
+  zh: 'Allowed: permission mode is bypassPermissions and no bypass-immune safety rule matched.',
 };
 
-function formatMode(lang: Lang, mode: PermissionMode): string {
-  return lang === 'zh' ? `已允许：权限模式 ${mode} 放行。` : `Allowed by permission mode: ${mode}.`;
+function formatMode(_lang: Lang, mode: PermissionMode): string {
+  return `Allowed by permission mode: ${mode}.`;
 }
 
 function formatWorkingDirectoryReason(
@@ -59,80 +59,60 @@ function formatWorkingDirectoryReason(
   lang: Lang,
 ): string {
   if (behavior === 'allow') {
-    return lang === 'zh'
-      ? `已允许：文件路径在已批准的读写边界内。路径：${fsPath}`
-      : `Allowed: filesystem path is within an approved read/write boundary. Path: ${fsPath}`;
+    return `Allowed: filesystem path is within an approved read/write boundary. Path: ${fsPath}`;
   }
   if (behavior === 'ask') {
-    return lang === 'zh'
-      ? `需要确认：文件路径在工作区或允许路径之外。路径：${fsPath}`
-      : `Needs confirmation: filesystem path is outside the workspace or configured allow paths. Path: ${fsPath}`;
+    return `Needs confirmation: filesystem path is outside the workspace or configured allow paths. Path: ${fsPath}`;
   }
-  return lang === 'zh'
-    ? `已拒绝：文件路径在工作区或允许路径之外。路径：${fsPath}`
-    : `Blocked: filesystem path is outside the workspace or configured allow paths. Path: ${fsPath}`;
+  return `Blocked: filesystem path is outside the workspace or configured allow paths. Path: ${fsPath}`;
 }
 
-function formatInternalWhitelistReason(fsPath: string, lang: Lang): string {
-  return lang === 'zh'
-    ? `已允许：Rig 内部托管路径。路径：${fsPath}`
-    : `Allowed: internal Rig-managed path. Path: ${fsPath}`;
+function formatInternalWhitelistReason(fsPath: string, _lang: Lang): string {
+  return `Allowed: internal Rig-managed path. Path: ${fsPath}`;
 }
 
-function formatTrustedExactWriteReason(fsPath: string, lang: Lang): string {
-  return lang === 'zh'
-    ? `已允许：当前 Turn 已授权写入精确路径。路径：${fsPath}`
-    : `Allowed: the current turn allows writing the exact path. Path: ${fsPath}`;
+function formatTrustedExactWriteReason(fsPath: string, _lang: Lang): string {
+  return `Allowed: the current turn allows writing the exact path. Path: ${fsPath}`;
 }
 
-function formatTempDirectoryReason(fsPath: string, lang: Lang): string {
-  return lang === 'zh'
-    ? `已允许：文件路径在临时目录内。路径：${fsPath}`
-    : `Allowed: filesystem path is inside a temporary directory. Path: ${fsPath}`;
+function formatTempDirectoryReason(fsPath: string, _lang: Lang): string {
+  return `Allowed: filesystem path is inside a temporary directory. Path: ${fsPath}`;
 }
 
 const SANDBOX_REASON: Record<Lang, string> = {
   en: 'Allowed: path is covered by the sandbox allow-list.',
-  zh: '已允许：路径在 sandbox 允许列表内。',
+  zh: 'Allowed: path is covered by the sandbox allow-list.',
 };
 
-function formatPathValidationReason(error: string, lang: Lang): string {
-  return lang === 'zh'
-    ? `已拒绝：文件路径非法。${error}`
-    : `Blocked: invalid filesystem path. ${error}`;
+function formatPathValidationReason(error: string, _lang: Lang): string {
+  return `Blocked: invalid filesystem path. ${error}`;
 }
 
-function formatDangerousRemovalReason(fsPath: string, lang: Lang): string {
-  return lang === 'zh'
-    ? `已拒绝：危险删除目标。路径：${fsPath}`
-    : `Blocked: dangerous removal target. Path: ${fsPath}`;
+function formatDangerousRemovalReason(fsPath: string, _lang: Lang): string {
+  return `Blocked: dangerous removal target. Path: ${fsPath}`;
 }
 
-function formatRmRewriteReason(rewrittenCommand: string, lang: Lang): string {
-  return lang === 'zh'
-    ? `已允许：rm 命令已改写为 rig-trash 以便恢复。原命令：${rewrittenCommand}`
-    : `Allowed: rm command was rewritten to rig-trash for recoverable deletion. Original command: ${rewrittenCommand}`;
+function formatRmRewriteReason(rewrittenCommand: string, _lang: Lang): string {
+  return `Allowed: rm command was rewritten to rig-trash for recoverable deletion. Original command: ${rewrittenCommand}`;
 }
 
 const UNKNOWN_REASON: Record<Lang, string> = {
   en: 'Unknown reason',
-  zh: '原因未知',
+  zh: 'Unknown reason',
 };
 
 const EMPTY_BASH_REASON: Record<Lang, string> = {
   en: 'Allowed: empty bash command.',
-  zh: '已允许：空的 bash 命令。',
+  zh: 'Allowed: empty bash command.',
 };
 
 function formatSubcommandSummary(
   prefix: string,
   command: string,
   detail: string,
-  lang: Lang,
+  _lang: Lang,
 ): string {
-  return lang === 'zh'
-    ? `${prefix}：bash 子命令 "${command}" 的判定。${detail}`
-    : `${prefix}: bash subcommand decision for "${command}". ${detail}`;
+  return `${prefix}: bash subcommand decision for "${command}". ${detail}`;
 }
 
 function formatRuleDecisionReason(rule: PermissionRule, lang: Lang): string {
@@ -143,9 +123,7 @@ function formatRuleDecisionReason(rule: PermissionRule, lang: Lang): string {
   const scope = rule.ruleValue.ruleContent
     ? `${rule.ruleValue.toolName}(${rule.ruleValue.ruleContent})`
     : rule.ruleValue.toolName;
-  return lang === 'zh'
-    ? `${action}：命中 ${source} ${behaviorWord} 权限规则，作用域 ${scope}。`
-    : `${action}: matched ${source} ${behaviorWord} permission rule for ${scope}.`;
+  return `${action}: matched ${source} ${behaviorWord} permission rule for ${scope}.`;
 }
 
 function formatSafetyDecisionReason(
@@ -154,19 +132,19 @@ function formatSafetyDecisionReason(
   lang: Lang,
 ): string {
   if (
-    /^(<system-reminder|Allowed|Blocked|Needs confirmation|Auto classifier|LLM classifier|No LLM client|⚠️|已允许|已拒绝|需要确认|⚠️ )/.test(
+    /^(<system-reminder|Allowed|Blocked|Needs confirmation|Auto classifier|LLM classifier|No LLM client|⚠️)/u.test(
       description,
     )
   ) {
     return description;
   }
   if (behavior === 'allow') {
-    return lang === 'zh' ? `已允许：${description}` : `Allowed: ${description}`;
+    return `Allowed: ${description}`;
   }
   if (behavior === 'deny') {
-    return lang === 'zh' ? `已拒绝：${description}` : `Blocked: ${description}`;
+    return `Blocked: ${description}`;
   }
-  return lang === 'zh' ? `需要确认：${description}` : `Needs confirmation: ${description}`;
+  return `Needs confirmation: ${description}`;
 }
 
 function formatSubcommandDecisionReason(
@@ -245,24 +223,23 @@ export function formatDecisionReason(
 
 const AUTO_CLASSIFIER_ALLOW_PREFIX: Record<Lang, string> = {
   en: 'Auto classifier',
-  zh: '自动判定',
+  zh: 'Auto classifier',
 };
 
 const AUTO_CLASSIFIER_BLOCK_PREFIX: Record<Lang, string> = {
   en: '⚠️ Blocked by auto classifier; explicit confirmation required to continue',
-  zh: '⚠️ 自动判定已阻止，需用户显式确认才能继续',
+  zh: '⚠️ Blocked by auto classifier; explicit confirmation required to continue',
 };
 
 const AUTO_CLASSIFIER_CONFIRM_PREFIX: Record<Lang, string> = {
   en: 'Needs confirmation',
-  zh: '需要确认',
+  zh: 'Needs confirmation',
 };
 
 const AUTO_CLASSIFIER_TIMEOUT_TEMPLATE: Record<Lang, (suffix: string) => string> = {
   en: (suffix) => `⚠️ Auto classifier timed out${suffix}; asking user to confirm.`,
-  zh: (suffix) => `⚠️ 自动 classifier 超时${suffix}，请用户手动确认。`,
+  zh: (suffix) => `⚠️ Auto classifier timed out${suffix}; asking user to confirm.`,
 };
-
 export function formatAutoClassifierReason(
   verdict: 'allow' | 'block' | 'confirm' | 'timeout',
   reasonText: string,

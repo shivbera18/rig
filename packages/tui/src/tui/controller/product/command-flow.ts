@@ -1518,7 +1518,7 @@ export class TuiCommandFlow {
    * `/provider` OAuth row — so sign-in always runs the same region picker and
    * auth command as `/login`.
    */
-  startMiniMaxLogin(): void {
+  startRigLogin(): void {
     this.pendingLoginContinuation = undefined;
     this.showLoginRegionPicker();
   }

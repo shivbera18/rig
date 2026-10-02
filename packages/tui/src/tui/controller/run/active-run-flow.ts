@@ -27,9 +27,9 @@ import type {
 } from '../../../runtime/port.js';
 import {
   type TuiCommandCatalog,
-  MINIMAX_CODE_ACTIVE_RUN_COMMANDS,
-  MINIMAX_CODE_COMMANDS,
-  MINIMAX_CODE_DISCOVERABLE_COMMANDS,
+  RIG_ACTIVE_RUN_COMMANDS,
+  RIG_COMMANDS,
+  RIG_DISCOVERABLE_COMMANDS,
   type TuiCommand,
 } from '../../commands/catalog.js';
 import { TuiHelpPanel } from '../../features/help/panel.js';
@@ -62,7 +62,7 @@ export function createTuiInitialAutocomplete(
   workspaceFiles?: Partial<
     TuiWorkspaceFilePort & Pick<McodePluginRuntimeAccess, 'listInstalledPlugins'>
   >,
-  builtInCommands: readonly TuiCommand[] = MINIMAX_CODE_DISCOVERABLE_COMMANDS,
+  builtInCommands: readonly TuiCommand[] = RIG_DISCOVERABLE_COMMANDS,
 ) {
   return createTuiAutocomplete(builtInCommands, [], workspace, workspaceFiles);
 }
@@ -90,7 +90,7 @@ export function createTuiAutocomplete(
 
 export function buildTuiSkillCommands(result: TuiSkillList): TuiCommand[] {
   const builtinNames = new Set(
-    [...MINIMAX_CODE_COMMANDS, ...MINIMAX_CODE_ACTIVE_RUN_COMMANDS].flatMap((command) =>
+    [...RIG_COMMANDS, ...RIG_ACTIVE_RUN_COMMANDS].flatMap((command) =>
       [command.name, ...(command.aliases ?? [])].map((name) => name.toLocaleLowerCase()),
     ),
   );
@@ -268,7 +268,7 @@ export class TuiActiveRunFlow {
       : '';
     this.autocompleteHasLiveRun = this.hasLiveRun(chat);
     const builtInCommands = [
-      ...(this.commandCatalog?.searchableCommands ?? MINIMAX_CODE_DISCOVERABLE_COMMANDS),
+      ...(this.commandCatalog?.searchableCommands ?? RIG_DISCOVERABLE_COMMANDS),
     ];
     const skillCommands = this.options.skillCommands();
     const workspace =
@@ -312,7 +312,7 @@ export class TuiActiveRunFlow {
     if (this.isStopped()) return;
     const panel = new TuiHelpPanel({
       commands: [
-        ...(this.commandCatalog?.discoverableCommands ?? MINIMAX_CODE_DISCOVERABLE_COMMANDS),
+        ...(this.commandCatalog?.discoverableCommands ?? RIG_DISCOVERABLE_COMMANDS),
       ],
       queueEnabled: this.options.queueEnabled,
       keybindings: this.options.keybindings,

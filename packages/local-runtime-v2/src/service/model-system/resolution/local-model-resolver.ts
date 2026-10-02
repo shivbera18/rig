@@ -7,7 +7,7 @@ import {
 } from '@earendil-works/pi-ai';
 import type { StreamFn, ThinkingLevel as PiThinkingLevel } from '@earendil-works/pi-agent-core';
 import {
-  isFirstPartyMinimaxMessagesRoute,
+  isFirstPartyRigMessagesRoute,
   resolveProviderAuthMode,
   type ProviderAuthMode,
   type ProviderAuthModeSource,
@@ -35,8 +35,8 @@ import {
 } from '../identity.js';
 import { parseProviderId } from './model-key.js';
 import {
-  isMiniMaxM3ModelId,
-  isMiniMaxM3ThinkingMode,
+  isRigM3ModelId,
+  isRigM3ThinkingMode,
   type ByokThinkingProtocol,
   isThinkingEffortDisabled,
   modelRefForModel,
@@ -47,7 +47,7 @@ import {
 import {
   firstBuiltinModel,
   planCustomProviderResolution,
-  planMinimaxApiResolution,
+  planRigApiResolution,
   readStringRecord,
 } from './model-resolver-byok.js';
 import {
@@ -84,7 +84,7 @@ interface ModelIdentity {
   readonly modelId: string;
 }
 
-type ByokResolutionPlan = NonNullable<ReturnType<typeof planMinimaxApiResolution>>;
+type ByokResolutionPlan = NonNullable<ReturnType<typeof planRigApiResolution>>;
 
 interface SelectedModel {
   readonly identity: ModelIdentity;
@@ -122,7 +122,7 @@ export class LocalModelResolver implements LocalModelResolverLike {
     const providerConfig = this.options.providerConfigGetter?.() ?? this.options.providerConfig;
     const selected = selectModel(input.agentConfig, providerConfig, this.options);
     if (selected.byokPlan) return this.finishByok(input, selected);
-    const switched = selectMinimaxByok(selected.identity, providerConfig, this.options);
+    const switched = selectRigByok(selected.identity, providerConfig, this.options);
     if (switched.byokPlan) return this.finishByok(input, switched);
     return this.resolveManagedModel(input, switched.identity, providerConfig);
   }
@@ -296,7 +296,7 @@ function selectExternalByokPlan(
   options: LocalModelResolverOptions,
 ): ByokResolutionPlan | undefined {
   if (parsed.source === 'rig_api') {
-    return planMinimaxApiResolution({
+    return planRigApiResolution({
       byok: options.byokConfigGetter?.(),
       providerConfig,
       modelId: identity.modelId,
@@ -341,7 +341,7 @@ function fallbackBuiltinIdentity(
   };
 }
 
-function selectMinimaxByok(
+function selectRigByok(
   identity: ModelIdentity,
   providerConfig: LocalModelsConfig | undefined,
   options: LocalModelResolverOptions,
@@ -353,7 +353,7 @@ function selectMinimaxByok(
   ) {
     return { identity };
   }
-  const byokPlan = planMinimaxApiResolution({
+  const byokPlan = planRigApiResolution({
     byok,
     providerConfig,
     modelId: identity.modelId,
@@ -531,7 +531,7 @@ function selectedEffortPiLevel(
   thinkingLevel: ThinkingLevel | undefined,
   modelId: string | undefined,
 ): PiThinkingLevel | undefined {
-  if (isMiniMaxM3ModelId(modelId) && isMiniMaxM3ThinkingMode(selectedEffort)) {
+  if (isRigM3ModelId(modelId) && isRigM3ThinkingMode(selectedEffort)) {
     return piThinkingLevelFor(thinkingLevel);
   }
   return selectedEffort as PiThinkingLevel | undefined;
@@ -655,8 +655,8 @@ function resolvedModelCompatibility(
   ) {
     thinkingCompat = { forceAdaptiveThinking: true };
   }
-  const firstPartyMinimaxMessages = isFirstPartyMinimaxMessagesRoute(input.api, input.provider);
-  const base = firstPartyMinimaxMessages
+  const firstPartyRigMessages = isFirstPartyRigMessagesRoute(input.api, input.provider);
+  const base = firstPartyRigMessages
     ? { ...thinkingCompat, supportsLongCacheRetention: false }
     : thinkingCompat;
   // Pi applies any field present on `model.compat` ahead of its own provider/baseUrl

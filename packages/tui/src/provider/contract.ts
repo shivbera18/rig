@@ -12,7 +12,7 @@ const MCODE_PROVIDER_API_FORMAT_SET = new Set<string>(MCODE_PROVIDER_API_FORMATS
 export function isModelProviderApiFormat(value: unknown): value is McodeProviderApiFormat {
   return typeof value === 'string' && MCODE_PROVIDER_API_FORMAT_SET.has(value);
 }
-export type McodeMiniMaxModelSource = 'token_plan' | 'rig_api_key';
+export type RigModelSource = 'token_plan' | 'rig_api_key';
 export type RigProviderKind = 'codex-oauth' | 'rig-oauth' | 'rig-api-key' | 'custom';
 
 export interface McodeProviderStatus {
@@ -63,7 +63,7 @@ export interface McodeProviderView {
 }
 
 export interface McodeProviderSnapshot {
-  readonly rigModelSource: McodeMiniMaxModelSource;
+  readonly rigModelSource: RigModelSource;
   readonly providers: readonly McodeProviderView[];
 }
 
@@ -173,15 +173,15 @@ export interface McodeProviderRuntimePort {
   startCodexOAuthLogin(options?: McodeCodexOAuthLoginOptions): Promise<McodeCodexOAuthStartResult>;
   cancelCodexOAuthLogin(loginId: string): Promise<McodeCodexOAuthStatus>;
   listUserModelProviders(): Promise<readonly McodeRuntimeProviderView[]>;
-  getMiniMaxApiKeyStatus(): Promise<{
+  getRigApiKeyStatus(): Promise<{
     readonly hasApiKey: boolean;
     readonly maskedApiKey?: string;
     readonly rawApiKey?: string;
     readonly cachedStatus?: McodeProviderStatus;
   }>;
-  getMiniMaxModelSource(): Promise<McodeMiniMaxModelSource>;
-  setMiniMaxModelSource(source: McodeMiniMaxModelSource): Promise<McodeMiniMaxModelSource>;
-  upsertMiniMaxApiKey(input: {
+  getRigModelSource(): Promise<RigModelSource>;
+  setRigModelSource(source: RigModelSource): Promise<RigModelSource>;
+  upsertRigApiKey(input: {
     readonly apiKey: string;
     readonly saveAndUse?: boolean;
   }): Promise<void>;

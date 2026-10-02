@@ -6,7 +6,7 @@
 
 import { buildProviderHeaders, providerCompletionUrl } from './provider-request.js';
 import {
-  resolveMiniMaxM3ThinkingProtocol,
+  resolveRigM3ThinkingProtocol,
   resolveModelThinkingProtocol,
 } from '../resolution/model-ref.js';
 import { byokEffectiveOutputLimit } from '../resolution/model-resolver-byok.js';
@@ -193,8 +193,8 @@ function resolveTestOutputLimit(target: ModelConnectionTestTarget): number {
 function buildTestRequest(target: ModelConnectionTestTarget): { url: string; init: RequestInit } {
   const messages = [{ role: 'user', content: 'ping' }];
   const thinking = resolveModelThinkingProtocol(target.api, target.effort, target.modelId);
-  const requestPatch = target.minimaxM3ThinkingMode
-    ? resolveMiniMaxM3ThinkingProtocol(target.api, target.minimaxM3ThinkingMode)
+  const requestPatch = target.rigM3ThinkingMode
+    ? resolveRigM3ThinkingProtocol(target.api, target.rigM3ThinkingMode)
     : (thinking?.requestPatch ?? {});
   const maxTokens = resolveTestOutputLimit(target);
   if (target.api === 'anthropic-messages') {

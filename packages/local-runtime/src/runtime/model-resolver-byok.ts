@@ -11,7 +11,7 @@ import type {
   LocalRigApiConfig,
   LocalModelsConfig,
 } from '../config/types.js';
-import { MINIMAX_API_DEFAULT_BASE_URL } from '../model-provider/list-models.js';
+import { RIG_API_DEFAULT_BASE_URL } from '../model-provider/list-models.js';
 import {
   mergeProviderHeaders,
   normalizeProviderBaseUrl,
@@ -65,7 +65,7 @@ export async function resolveByokResolutionPlan(
   return { ...resolved, apiKey };
 }
 
-export function planMinimaxApiResolution(input: {
+export function planRigApiResolution(input: {
   byok: LocalByokProviderConfig | undefined;
   providerConfig: LocalModelsConfig | undefined;
   modelId: string;
@@ -89,7 +89,7 @@ export function planMinimaxApiResolution(input: {
     apiKey,
     baseUrl: normalizeProviderBaseUrl(
       'anthropic-messages',
-      cfg.baseURL?.trim() || MINIMAX_API_DEFAULT_BASE_URL,
+      cfg.baseURL?.trim() || RIG_API_DEFAULT_BASE_URL,
     ),
     contextWindow:
       contextLimit ??

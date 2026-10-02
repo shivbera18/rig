@@ -1,38 +1,34 @@
-# 主题配置指南
+# Theme Configuration Guide
 
-rig TUI 的配色由**具名主题**决定，每个主题同时提供深色和浅色两套调色板。终端深浅背景默认由
-终端证据自动探测，`/theme` 在此之上让用户切换主题、锁定明暗，并支持自己编写主题文件。
+The color scheme of the Rig TUI is defined by **named themes**, with each theme providing both dark and light palettes. Dark or light terminal backgrounds are automatically detected from terminal evidence by default. The `/theme` command allows users to switch themes, lock appearance, and write custom theme files.
 
 ## TL;DR
 
-输入 `/theme` 打开主题面板：
+Enter `/theme` to open the theme picker panel:
 
-- `↑` / `↓` 移动光标，**实时预览**对应配色；`Enter` 保存并立即生效，`Esc` / `Ctrl+C` 取消并还原打开面板时的主题。
-- `a` 在「自动 / 浅色 / 深色」之间循环。自动模式跟随终端探测结果，锁定后不再被终端证据覆盖。
-- 每行右侧是配色条，面板底部显示当前外观、主题来源和说明。
-- 主题选择写入运行时数据目录下的 `tui/tui-settings.json`；写入失败时面板保持打开并提示，不会丢失当前选择。
-- `/theme` 是 `search-only` 命令：可以直接输入 `/theme` 使用，也能在命令搜索中找到，但不会出现在默认 slash 列表里。
+- `↑` / `↓` moves the cursor with **live preview** of the selected theme; `Enter` saves and activates immediately, `Esc` / `Ctrl+C` cancels and restores the original theme.
+- `a` cycles between "auto / light / dark". Auto mode follows terminal detection; locking prevents overriding by terminal evidence.
+- The right side of each line shows a color preview strip; the bottom of the panel displays current appearance, source, and description.
+- Theme selection is written to `tui/tui-settings.json` in the runtime data directory; on write failure the panel stays open with an error notice.
+- `/theme` is a `search-only` command: type `/theme` directly or find it in command search, though it does not appear in the default slash list.
 
-## 内置主题
+## Built-in Themes
 
-| 主题 ID | 名称 | 特点 |
+| Theme ID | Name | Description |
 | --- | --- | --- |
-| `rig` | Rig | 默认主题。Rig 蓝 + Catppuccin 语法高亮 |
-| `midnight` | Midnight | 更深的蓝黑背景，抬高了前景对比度 |
-| `graphite` | Graphite | 中性低彩度表面，长输出更安静 |
-| `aurora` | Aurora | 偏青绿的次级色阶 |
+| `rig` | Rig | Default theme. Rig blue + Catppuccin syntax highlighting |
+| `midnight` | Midnight | Deep blue-black background with higher foreground contrast |
+| `graphite` | Graphite | Neutral low-chroma surface for quieter long output |
+| `aurora` | Aurora | Cyan-tinted secondary tones |
 
-每个主题都定义了完整的深色和浅色版本，因此终端切换到浅色时不会出现缺色或错配。`rig`
-的取值与主题系统引入前完全一致，现有用户不会看到任何视觉变化。
+Each theme defines complete dark and light versions, preventing missing or mismatched colors when switching terminal modes.
 
-内置主题的正文色与 `line` 非文本色需要满足
-[WCAG AA 对比度](./tui-foundation.md#主题与终端能力) 基线（正文 4.5:1、非文本 3:1），由
-`packages/tui/test/unit/tui/theme/palettes.test.ts` 对全部主题、全部外观做回归校验。
+Built-in themes meet the [WCAG AA contrast](./tui-foundation.md) baseline (normal text 4.5:1, non-text 3:1), regression-tested by `packages/tui/test/unit/tui/theme/palettes.test.ts`.
 
-## 配置落点
+## Configuration Storage
 
-- 文件：`~/.rig/tui/tui-settings.json`（即运行时数据目录下的 `tui/tui-settings.json`）。
-- 键：`theme`，值是主题 ID，或 `主题ID/light`、`主题ID/dark` 锁定外观。
+- File: `~/.rig/tui/tui-settings.json` (inside the runtime data directory).
+- Key: `theme`, value is the theme ID, or `themeId/light`, `themeId/dark` to lock appearance.
 
 ```json
 {
@@ -41,21 +37,18 @@ rig TUI 的配色由**具名主题**决定，每个主题同时提供深色和�
 }
 ```
 
-`theme` 与 `tuiMode` 写在同一份文件里，写入其中一个不会覆盖另一个；文件中的未知键也会原样保留。
-无法识别的 `theme` 值会回退到默认主题，不会阻断启动。
+`theme` and `tuiMode` are stored in the same file without overwriting each other. Unrecognized theme values fall back to the default theme without blocking startup.
 
-## 自定义主题文件
+## Custom Theme Files
 
-Rig 从运行时数据目录下的 `tui/themes/*.json` 读取用户主题。
+Rig reads user themes from `tui/themes/*.json` under the runtime data directory.
 
-- 一个文件提供一种外观。`aurora.json` 提供深色，`aurora-light.json` 提供浅色；两个文件的
-  `name` 相同即组成一个可选主题。
-- 没有提供的外观会回退到默认主题对应外观的调色板，因此只写深色文件也能正常使用。
-- 文件名可以是任意 `.json`，主题 ID 取文件里的 `name`；`name` 不能包含 `/`，也不能与内置主题
-  ID 相同（内置主题优先，冲突文件会被忽略并在加载问题里报告）。
-- **热重载**：编辑正在使用的自定义主题文件后，保存即生效，无需重启。
+- Each file provides one appearance: `aurora.json` provides dark, `aurora-light.json` provides light; sharing the same `name` groups them into a selectable theme.
+- Missing appearances fall back to the default theme's matching palette.
+- Files can be any `.json` file; theme ID is taken from `name` inside the file.
+- **Hot reload**: changes to active custom theme files take effect immediately on save.
 
-### 文件格式
+### File Format
 
 ```json
 {
@@ -83,59 +76,41 @@ Rig 从运行时数据目录下的 `tui/themes/*.json` 读取用户主题。
 }
 ```
 
-| 字段 | 必填 | 说明 |
+| Field | Required | Description |
 | --- | --- | --- |
-| `name` | 是 | 主题 ID，`[a-z0-9][a-z0-9._-]{0,63}` |
-| `appearance` | 是 | `dark` 或 `light` |
-| `label` / `description` | 否 | 面板中显示的名称与说明 |
-| `vars` | 否 | 可复用的颜色别名 |
-| `colors` | 是 | UI 颜色对象；可以只写要覆盖的字段 |
-| `syntax` | 否 | 语法高亮色板；未写的色调沿用默认主题 |
+| `name` | Yes | Theme ID, `[a-z0-9][a-z0-9._-]{0,63}` |
+| `appearance` | Yes | `dark` or `light` |
+| `label` / `description` | No | Name and description shown in the picker |
+| `vars` | No | Reusable color aliases |
+| `colors` | Yes | UI colors object; fields can be partially overridden |
+| `syntax` | No | Syntax highlighting palette; omitted tones fall back to default |
 
-`colors` 和 `syntax` 的值可以是：
+Values in `colors` and `syntax` can be:
+- **hex literals**: `"#68c0ff"` or 3-digit shorthand `"#6cf"`.
+- **`vars` reference**: name of an alias defined in `vars`.
+- **Empty string** `""`: use terminal default color.
 
-- **hex 字面量**：`"#68c0ff"` 或三位简写 `"#6cf"`。
-- **`vars` 引用**：在 `colors` / `syntax` 里写 `vars` 中定义的别名名。
-- **空字符串** `""`：使用终端默认色。
+`vars` values must be hex literals or empty strings (nested references are not supported).
 
-`vars` 的值只能是 hex 字面量或空字符串——**不支持嵌套引用**（`vars.a` 不能再指向另一个 `vars` 键），
-这类写法会在加载时被拒绝并给出定位到具体路径的错误。
+Partial `colors` overrides inherit remaining fields from the default theme.
 
-只写部分 `colors` 字段即可，其余沿用默认主题对应外观的值——这样新增主题只需描述差异。
+### Available Fields
 
-### 可用字段
+`colors` supports 21 keys:
+`brand`, `wordmarkHighlight`, `wordmarkShadow`, `signal`, `orbit`, `accent`, `markdownHeading`, `markdownCode`, `markdownLink`, `userMessageBg`, `diffAddedBg`, `diffRemovedBg`, `text`, `muted`, `dim`, `border`, `line`, `success`, `warning`, `error`.
 
-`colors` 支持以下 21 个键：
+`syntax` supports 13 tones:
+`blue`, `flamingo`, `green`, `mauve`, `overlay2`, `peach`, `pink`, `red`, `sapphire`, `subtext0`, `teal`, `text`, `yellow`.
 
-`brand`、`wordmarkHighlight`、`wordmarkShadow`、`signal`、`orbit`、`accent`、`markdownHeading`、
-`markdownCode`、`markdownLink`、`userMessageBg`、`diffAddedBg`、`diffRemovedBg`、`text`、`muted`、
-`dim`、`border`、`line`、`success`、`warning`、`error`。
+## Related Files
 
-`syntax` 支持以下 13 个色调：
-
-`blue`、`flamingo`、`green`、`mauve`、`overlay2`、`peach`、`pink`、`red`、`sapphire`、`subtext0`、
-`teal`、`text`、`yellow`。
-
-自定义主题不参与内置主题的对比度回归校验。终端只支持 16 色时，UI 颜色会映射到终端语义色，
-语法色使用固定的 ANSI16 映射（与内置主题一致）。
-
-## 终端能力与降级
-
-主题只消费探测到的 terminal capability，不改变任何业务语义：
-
-- 深浅背景优先采用 OSC 11 查询结果，其次是终端的 DEC 2031 上报，最后回退到 `COLORFGBG`；
-- 锁定外观后（`/theme` 按 `a`，或配置里写 `主题ID/dark`），终端证据不再改变外观；
-- ANSI16 / 256 / truecolor 逐级降级，不支持颜色时仍保持文本层级。
-
-## 相关文件
-
-| 路径 | 职责 |
+| Path | Responsibility |
 | --- | --- |
-| `src/tui/theme/contracts.ts` | 主题、调色板、语法色板的类型契约 |
-| `src/tui/theme/palettes.ts` | 内置主题定义与默认主题 |
-| `src/tui/theme/custom-themes.ts` | 自定义主题文件的发现、校验、加载与热重载 |
-| `src/tui/theme/registry.ts` | 内置与自定义主题的合并、解析与回退 |
-| `src/tui/theme/controller.ts` | 主题选择、外观锁定、终端明暗探测 |
-| `src/tui/theme/runtime.ts` | 颜色与语法色板的活绑定 |
-| `src/tui/features/settings/theme-picker.ts` | `/theme` 面板 |
-| `src/host/tui-settings.ts` | `tui-settings.json` 读写 |
+| `src/tui/theme/contracts.ts` | Theme, palette, and syntax types |
+| `src/tui/theme/palettes.ts` | Built-in theme definitions |
+| `src/tui/theme/custom-themes.ts` | Discovery, validation, loading, and reload |
+| `src/tui/theme/registry.ts` | Theme merging and fallbacks |
+| `src/tui/theme/controller.ts` | Selection, appearance locking, background detection |
+| `src/tui/theme/runtime.ts` | Dynamic bindings for colors |
+| `src/tui/features/settings/theme-picker.ts` | `/theme` picker UI |
+| `src/host/tui-settings.ts` | `tui-settings.json` reading and writing |

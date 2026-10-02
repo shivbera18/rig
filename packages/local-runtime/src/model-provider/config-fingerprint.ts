@@ -1,6 +1,6 @@
 import type { LocalModelConfig, LocalRuntimeConfig } from '../config/types.js';
 import { RIG_API_PROVIDER_ID, parseProviderId } from '../config/model-key.js';
-import { minimaxApiBaseUrl, minimaxApiModels } from './rig-api.js';
+import { rigApiBaseUrl, rigApiModels } from './rig-api.js';
 import {
   modelCacheStatusFor,
   modelConfigFingerprint,
@@ -22,12 +22,12 @@ export function byokModelTestStatus(
   const parsed = parseProviderId(providerId);
   if (parsed?.source === 'rig_api') {
     const apiKey = config.rig_api?.apiKey?.trim();
-    const model = minimaxApiModels(config)[modelId];
+    const model = rigApiModels(config)[modelId];
     if (!apiKey || !model) return undefined;
     const fingerprint = modelConnectionTestFingerprint(
       {
         api: 'anthropic-messages',
-        baseUrl: normalizeProviderBaseUrl('anthropic-messages', minimaxApiBaseUrl(config)),
+        baseUrl: normalizeProviderBaseUrl('anthropic-messages', rigApiBaseUrl(config)),
         apiKey,
         modelId,
       },

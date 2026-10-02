@@ -13,7 +13,7 @@ import type {
 import type { ModelProviderServiceContext } from './service-context.js';
 import { LocalModelProviderService } from './service.js';
 
-const MINIMAX_KEY = 'sk-user-rig-key-12345678';
+const RIG_KEY = 'sk-user-rig-key-12345678';
 const CUSTOM_KEY = 'sk-custom-key-abcdefgh';
 
 let dataDir: string;
@@ -110,15 +110,15 @@ describe('LocalModelProviderService context', () => {
   it('stores Rig credentials while exposing only their masked view', async () => {
     const harness = createHarness();
 
-    await harness.service.upsertMinimaxApiKey({ apiKey: MINIMAX_KEY, saveAndUse: true });
+    await harness.service.upsertRigApiKey({ apiKey: RIG_KEY, saveAndUse: true });
 
-    expect(harness.config.rig_api?.apiKey).toBe(MINIMAX_KEY);
+    expect(harness.config.rig_api?.apiKey).toBe(RIG_KEY);
     expect(harness.config.rigModelSource).toBe('rig_api_key');
-    expect(harness.service.getMinimaxApiKeyStatus()).toEqual({
+    expect(harness.service.getRigApiKeyStatus()).toEqual({
       hasApiKey: true,
-      maskedApiKey: `${MINIMAX_KEY.slice(0, 4)}****${MINIMAX_KEY.slice(-4)}`,
+      maskedApiKey: `${RIG_KEY.slice(0, 4)}****${RIG_KEY.slice(-4)}`,
     });
-    expect(JSON.stringify(harness.service.listEffectiveProviders())).not.toContain(MINIMAX_KEY);
+    expect(JSON.stringify(harness.service.listEffectiveProviders())).not.toContain(RIG_KEY);
     expect(harness.selectModel).not.toHaveBeenCalled();
   });
 

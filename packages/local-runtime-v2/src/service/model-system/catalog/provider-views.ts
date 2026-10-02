@@ -18,14 +18,14 @@ import type {
 } from '../contracts.js';
 import { modelConnectionTestFingerprint } from './config-fingerprint.js';
 import {
-  MINIMAX_API_FORMAT,
-  MINIMAX_API_PROVIDER_NAME,
+  RIG_API_FORMAT,
+  RIG_API_PROVIDER_NAME,
   builtinProviderKind,
   buildModelEntry,
   cacheStatusView,
   customProviderKind,
-  minimaxApiBaseUrl,
-  minimaxApiModels,
+  rigApiBaseUrl,
+  rigApiModels,
   type ModelCacheStatusView,
   type ModelProviderKind,
   type ModelProviderModelEntry,
@@ -55,7 +55,7 @@ export function buildBuiltinProviderView(
   const providerKind = builtinProviderKind(config, providerId, provider);
   const models =
     providerId === 'rig' && config.rigModelSource === 'rig_api_key'
-      ? minimaxApiModels(config)
+      ? rigApiModels(config)
       : (provider.models ?? {});
   return {
     providerId,
@@ -79,27 +79,27 @@ export function buildBuiltinProviderView(
   };
 }
 
-export function buildMinimaxProviderView(
+export function buildRigProviderView(
   config: LocalRuntimeConfig,
   cache: ModelCacheData,
 ): ModelProviderView {
   const apiKey = config.rig_api?.apiKey?.trim();
   return {
     providerId: RIG_API_PROVIDER_ID,
-    name: MINIMAX_API_PROVIDER_NAME,
+    name: RIG_API_PROVIDER_NAME,
     source: 'rig_api',
     kind: 'rig-api-key',
     enabled: true,
-    baseUrl: minimaxApiBaseUrl(config),
-    apiFormat: MINIMAX_API_FORMAT,
+    baseUrl: rigApiBaseUrl(config),
+    apiFormat: RIG_API_FORMAT,
     hasApiKey: Boolean(apiKey),
     ...(apiKey ? { maskedApiKey: maskSecret(apiKey) } : {}),
     models: providerModelEntries(config, cache, {
       providerId: RIG_API_PROVIDER_ID,
-      models: minimaxApiModels(config),
+      models: rigApiModels(config),
       providerSource: 'rig_api',
       providerKind: 'rig-api-key',
-      providerName: MINIMAX_API_PROVIDER_NAME,
+      providerName: RIG_API_PROVIDER_NAME,
     }),
     ...(statusOf(cache, RIG_API_PROVIDER_ID) ?? {}),
   };
@@ -230,7 +230,7 @@ function customModelFingerprint(
 
 // Unvalidated read, reserved for the Rig API view returned straight after a
 // key write. The badge the settings UI renders comes from
-// `getMinimaxApiKeyStatus`, which does check the fingerprint. BYOK provider
+// `getRigApiKeyStatus`, which does check the fingerprint. BYOK provider
 // views must use `fingerprintedProviderStatus` instead.
 function statusOf(
   cache: ModelCacheData,

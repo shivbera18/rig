@@ -1,15 +1,16 @@
 import type { ComposerCopyKey } from './copy.en.js';
 
 export const ZH_HANS_COMPOSER_COPY = {
-  imagePreviewLoading: '正在加载预览…',
-  imagePreviewUnavailable: '无法预览 · 附件仍可发送',
-  imagePreviewTextOnly: '当前终端不支持显示图片预览',
-  imagePreviewHint: 'Esc 收起 · Enter 发送',
-  placeholder: 'Ask Mcode to do anything',
-  draftSaveFailed: '无法保存草稿恢复备份。',
-  draftCleanupFailed: '无法清理草稿恢复备份。',
-  draftMigrationFailed: '无法将草稿恢复备份迁移到当前会话。',
-  draftRestoreFailed: '无法读取草稿恢复备份。',
-  draftRecoveryUnavailable: '可继续正常使用 Rig，重启后可能无法恢复未发送内容。',
-  draftCleanupNextStep: '磁盘上可能仍保留旧草稿或附件备份。',
+  imagePreviewLoading: 'Loading preview…',
+  imagePreviewUnavailable: 'Preview unavailable · attachment is still ready to send',
+  imagePreviewTextOnly: 'Image preview is not supported by this terminal',
+  imagePreviewHint: 'Esc dismiss · Enter send',
+  placeholder: 'Ask Rig to do anything',
+  draftSaveFailed: "Couldn't save draft recovery.",
+  draftCleanupFailed: "Couldn't clean up draft recovery.",
+  draftMigrationFailed: "Couldn't move draft recovery to this session.",
+  draftRestoreFailed: "Couldn't read draft recovery.",
+  draftRecoveryUnavailable:
+    'You can continue using Rig. Unsent input may not be recoverable after restarting.',
+  draftCleanupNextStep: 'An older draft or attachment backup may remain on disk.',
 } as const satisfies Readonly<Record<ComposerCopyKey, string>>;

@@ -85,7 +85,7 @@ export function toSkillScope(kind: SkillSourceKind): SkillScope {
 }
 
 export function toSkillSourceType(kind: SkillSourceKind): SkillSourceType {
-  return kind === 'builtin' ? SkillSourceType.MINIMAX_OFFICIAL : SkillSourceType.USER_CONTRIBUTION;
+  return kind === 'builtin' ? SkillSourceType.RIG_OFFICIAL : SkillSourceType.USER_CONTRIBUTION;
 }
 
 export function parseCursor(cursor: string | undefined): number {

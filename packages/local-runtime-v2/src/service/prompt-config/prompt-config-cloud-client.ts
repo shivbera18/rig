@@ -121,7 +121,7 @@ export function resolvePromptConfigCloudBaseUrl(): string {
   if (region === 'cn') {
     if (build === 'test' || build === 'dev') return 'https://matrix-test.example.invalid';
     if (build === 'staging') return 'https://matrix-pre.example.invalid';
-    return 'https://agent.minimaxi.com';
+    return 'https://agent.rig.cn';
   }
   if (build === 'test' || build === 'dev') return 'https://matrix-overseas-test.example.invalid';
   if (build === 'staging') return 'https://matrix-overseas-pre.example.invalid';
@@ -171,7 +171,7 @@ function buildHeaders(input: {
   else headers['X-Rig-Anonymous'] = 'true';
   if (input.etag) headers['if-none-match'] = input.etag;
   if (input.previewSecret?.trim())
-    headers['X-Minimax-Agent-Preview-Secret'] = input.previewSecret.trim();
+    headers['X-Rig-Agent-Preview-Secret'] = input.previewSecret.trim();
   if (input.lane?.trim()) {
     headers.lane = input.lane.trim();
     headers.bedrock_lane = input.lane.trim();

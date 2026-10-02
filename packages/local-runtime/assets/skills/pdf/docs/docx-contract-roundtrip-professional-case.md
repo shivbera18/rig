@@ -269,11 +269,11 @@ Also run docx validation when available:
 
 ```bash
 export PATH="$HOME/.dotnet:$PATH"
-dotnet run --project "$DOCX_SKILL/scripts/dotnet/MiniMaxAIDocx.Cli" -- \
+dotnet run --project "$DOCX_SKILL/scripts/dotnet/RigAIDocx.Cli" -- \
   validate --input "$OUTPUT_DIR/contract_roundtrip.docx" --business \
   | tee "$OUTPUT_DIR/roundtrip_validate.txt"
 
-dotnet run --project "$DOCX_SKILL/scripts/dotnet/MiniMaxAIDocx.Cli" -- \
+dotnet run --project "$DOCX_SKILL/scripts/dotnet/RigAIDocx.Cli" -- \
   analyze --input "$OUTPUT_DIR/contract_roundtrip.docx" --json \
   > "$OUTPUT_DIR/roundtrip_analyze.json"
 ```

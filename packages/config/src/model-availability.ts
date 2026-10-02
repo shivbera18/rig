@@ -74,7 +74,7 @@ export type ModelAvailability =
     };
 
 /** Shared cache-compatibility policy for Rig's first-party Messages route. */
-export function isFirstPartyMinimaxMessagesRoute(api: string, providerId: string): boolean {
+export function isFirstPartyRigMessagesRoute(api: string, providerId: string): boolean {
   return (
     api === 'anthropic-messages' &&
     (providerId === MANAGED_RIG_PROVIDER_ID || providerId === RIG_API_PROVIDER_ID)

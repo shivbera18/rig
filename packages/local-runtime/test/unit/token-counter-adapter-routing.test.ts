@@ -92,10 +92,10 @@ describe('buildResponsesInputTokensUrl version handling (issue #258)', () => {
 
   it('keeps the Rig anthropic-compat stripping behavior stable', () => {
     expect(
-      buildResponsesInputTokensUrl('https://api.minimaxi.com/anthropic', {
+      buildResponsesInputTokensUrl('https://api.rig.cn/anthropic', {
         stripMessagesCompatibilityPrefix: true,
       }),
-    ).toBe('https://api.minimaxi.com/v1/responses/input_tokens');
+    ).toBe('https://api.rig.cn/v1/responses/input_tokens');
   });
 
   it('falls back to string handling for non-URL base values', () => {

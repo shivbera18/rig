@@ -3,29 +3,29 @@ import { MANAGED_RIG_PROVIDER_ID, RIG_API_PROVIDER_ID } from '../identity.js';
 import type { LocalModelConfig, ModelContextUpdateOutcome } from '../contracts.js';
 import {
   cacheStatusView,
-  minimaxApiModels,
+  rigApiModels,
   type ModelCacheStatusView,
 } from '../catalog/list-models.js';
 import { modelCacheStatusFor, type ModelCacheStatusEntry } from '../catalog/model-cache.js';
-import { buildMinimaxProviderView, type ModelProviderView } from '../catalog/provider-views.js';
+import { buildRigProviderView, type ModelProviderView } from '../catalog/provider-views.js';
 import { ModelProviderServiceContext } from './service-context.js';
 import { LocalModelProviderError } from '../contracts.js';
 import {
   asLocalModelProviderError,
   contextChangedError,
   enqueueProviderMutation,
-  minimaxContextBaselineFingerprint,
+  rigContextBaselineFingerprint,
   requireCacheStatusView,
 } from './service-helpers.js';
 import { assertValidRawApiKey } from './service-input.js';
 
-interface MinimaxContextUpdateInput {
+interface RigContextUpdateInput {
   modelId: string;
   contextLimit: number;
   expectedContextLimit: number;
 }
 
-interface PreparedMinimaxContextUpdate {
+interface PreparedRigContextUpdate {
   modelId: string;
   currentModel: LocalModelConfig;
   baselineFingerprint: string;
@@ -33,7 +33,7 @@ interface PreparedMinimaxContextUpdate {
   compareAndSet: NonNullable<ModelProviderServiceContext['deps']['compareAndSetModelContext']>;
 }
 
-export function getMinimaxApiKeyStatus(context: ModelProviderServiceContext): {
+export function getRigApiKeyStatus(context: ModelProviderServiceContext): {
   hasApiKey: boolean;
   maskedApiKey?: string;
   cachedStatus?: ModelCacheStatusView;
@@ -56,13 +56,13 @@ export function getMinimaxApiKeyStatus(context: ModelProviderServiceContext): {
   };
 }
 
-export function getMinimaxModelSource(
+export function getRigModelSource(
   context: ModelProviderServiceContext,
 ): 'token_plan' | 'rig_api_key' {
   return context.deps.configGetter().rigModelSource ?? 'token_plan';
 }
 
-export async function setMinimaxModelSource(
+export async function setRigModelSource(
   context: ModelProviderServiceContext,
   source: 'token_plan' | 'rig_api_key',
 ): Promise<string> {
@@ -73,7 +73,7 @@ export async function setMinimaxModelSource(
   await context.deps.updateByokConfig((draft, currentConfig) => {
     if (source === 'rig_api_key') {
       try {
-        context.resolveMinimaxTestTarget(currentConfig, undefined);
+        context.resolveRigTestTarget(currentConfig, undefined);
       } catch (error) {
         blocked = asLocalModelProviderError(error);
         return;
@@ -85,31 +85,31 @@ export async function setMinimaxModelSource(
   return source;
 }
 
-export async function updateMinimaxModelContext(
+export async function updateRigModelContext(
   context: ModelProviderServiceContext,
-  input: MinimaxContextUpdateInput,
+  input: RigContextUpdateInput,
 ): Promise<ModelContextUpdateOutcome> {
-  return enqueueProviderMutation(context.minimaxMutationKey(), () =>
-    updateMinimaxModelContextTransaction(context, input),
+  return enqueueProviderMutation(context.rigMutationKey(), () =>
+    updateRigModelContextTransaction(context, input),
   );
 }
 
-async function updateMinimaxModelContextTransaction(
+async function updateRigModelContextTransaction(
   context: ModelProviderServiceContext,
-  input: MinimaxContextUpdateInput,
+  input: RigContextUpdateInput,
 ): Promise<ModelContextUpdateOutcome> {
-  const prepared = prepareMinimaxContextUpdate(context, input);
+  const prepared = prepareRigContextUpdate(context, input);
   if (prepared.source === 'token_plan') {
     return updateTokenPlanModelContext(prepared, input);
   }
-  return updateMinimaxApiModelContext(context, prepared, input);
+  return updateRigApiModelContext(context, prepared, input);
 }
 
-function prepareMinimaxContextUpdate(
+function prepareRigContextUpdate(
   context: ModelProviderServiceContext,
-  input: MinimaxContextUpdateInput,
-): PreparedMinimaxContextUpdate {
-  const modelId = requireMinimaxContextSelection(input);
+  input: RigContextUpdateInput,
+): PreparedRigContextUpdate {
+  const modelId = requireRigContextSelection(input);
   const compareAndSet = context.deps.compareAndSetModelContext;
   if (!compareAndSet) {
     throw new LocalModelProviderError(
@@ -123,7 +123,7 @@ function prepareMinimaxContextUpdate(
   const currentModel =
     source === 'token_plan'
       ? baselineConfig.provider?.rig?.models?.[modelId]
-      : minimaxApiModels(baselineConfig)[modelId];
+      : rigApiModels(baselineConfig)[modelId];
   if (!currentModel) {
     throw new LocalModelProviderError(404, 'Model not found', 'MODEL_NOT_FOUND');
   }
@@ -142,11 +142,11 @@ function prepareMinimaxContextUpdate(
     );
   }
 
-  const baselineFingerprint = minimaxContextBaselineFingerprint(baselineConfig, modelId);
+  const baselineFingerprint = rigContextBaselineFingerprint(baselineConfig, modelId);
   return { modelId, currentModel, baselineFingerprint, source, compareAndSet };
 }
 
-function requireMinimaxContextSelection(input: MinimaxContextUpdateInput): string {
+function requireRigContextSelection(input: RigContextUpdateInput): string {
   const modelId = input.modelId?.trim();
   if (!modelId || !Number.isSafeInteger(input.contextLimit) || input.contextLimit <= 0) {
     throw new LocalModelProviderError(
@@ -166,30 +166,30 @@ function requireMinimaxContextSelection(input: MinimaxContextUpdateInput): strin
 }
 
 async function updateTokenPlanModelContext(
-  prepared: PreparedMinimaxContextUpdate,
-  input: MinimaxContextUpdateInput,
+  prepared: PreparedRigContextUpdate,
+  input: RigContextUpdateInput,
 ): Promise<ModelContextUpdateOutcome> {
   const updated = await prepared.compareAndSet(
-    minimaxContextUpdateSelection(prepared.source, prepared.modelId, input),
+    rigContextUpdateSelection(prepared.source, prepared.modelId, input),
     async (latestConfig) =>
-      minimaxContextBaselineFingerprint(latestConfig, prepared.modelId) ===
+      rigContextBaselineFingerprint(latestConfig, prepared.modelId) ===
       prepared.baselineFingerprint,
   );
   if (!updated) throw contextChangedError();
   return { ok: true };
 }
 
-async function updateMinimaxApiModelContext(
+async function updateRigApiModelContext(
   context: ModelProviderServiceContext,
-  prepared: PreparedMinimaxContextUpdate,
-  input: MinimaxContextUpdateInput,
+  prepared: PreparedRigContextUpdate,
+  input: RigContextUpdateInput,
 ): Promise<ModelContextUpdateOutcome> {
   const candidateModel: LocalModelConfig = {
     ...prepared.currentModel,
     limit: { ...prepared.currentModel.limit, context: input.contextLimit },
   };
   const target = context.resolveTestTarget(RIG_API_PROVIDER_ID, prepared.modelId, {
-    minimaxModelOverride: candidateModel,
+    rigModelOverride: candidateModel,
   });
   const result = await context.deps.tester.test(
     `${target.cacheKey}@${target.fingerprint}`,
@@ -203,9 +203,9 @@ async function updateMinimaxApiModelContext(
   let candidateCacheWritten = false;
   try {
     const updated = await prepared.compareAndSet(
-      minimaxContextUpdateSelection(prepared.source, prepared.modelId, input),
+      rigContextUpdateSelection(prepared.source, prepared.modelId, input),
       async (latestConfig) => {
-        const latestFingerprint = minimaxContextBaselineFingerprint(latestConfig, prepared.modelId);
+        const latestFingerprint = rigContextBaselineFingerprint(latestConfig, prepared.modelId);
         if (latestFingerprint !== prepared.baselineFingerprint) return false;
         previousCacheEntry = await context.deps.cache.replaceModelStatus(target.cacheKey, entry);
         candidateCacheWritten = true;
@@ -234,10 +234,10 @@ async function updateMinimaxApiModelContext(
   return { ok: true, status };
 }
 
-function minimaxContextUpdateSelection(
-  source: PreparedMinimaxContextUpdate['source'],
+function rigContextUpdateSelection(
+  source: PreparedRigContextUpdate['source'],
   modelId: string,
-  input: MinimaxContextUpdateInput,
+  input: RigContextUpdateInput,
 ): {
   providerId: string;
   modelId: string;
@@ -252,7 +252,7 @@ function minimaxContextUpdateSelection(
   };
 }
 
-export async function upsertMinimaxApiKey(
+export async function upsertRigApiKey(
   context: ModelProviderServiceContext,
   input: { apiKey: string; saveAndUse?: boolean },
 ): Promise<ModelProviderView> {
@@ -261,5 +261,5 @@ export async function upsertMinimaxApiKey(
     draft.rig_api = { ...(draft.rig_api ?? {}), apiKey };
     if (input.saveAndUse) draft.rigModelSource = 'rig_api_key';
   });
-  return buildMinimaxProviderView(context.deps.configGetter(), context.deps.cache.load());
+  return buildRigProviderView(context.deps.configGetter(), context.deps.cache.load());
 }

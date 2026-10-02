@@ -5,8 +5,7 @@ description: >
   resumes, proposals, 可视化报告), LaTeX thesis, Markdown→PDF conversion, PDF form filling, and PDF
   reading/extraction/OCR. Trigger on any task with PDF as primary input or output. Not for DOCX or
   PPT.
-descriptions:
-  zh-Hans: '生成、重排、填写和读取 PDF，支持报告、简历、提案、Markdown/LaTeX 转 PDF、表单和 OCR。'
+
 metadata:
   version: '3.0'
   category: document-pdf

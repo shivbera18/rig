@@ -5,12 +5,8 @@ description:
   `.htm` file to a public URL. Use when a user asks to deploy or launch a local website, static
   site, frontend project, or asks to deploy an absolute HTML file path; use edit-deployed-website to
   edit an already deployed website.
-descriptions:
-  zh-Hans: '支持静态网站部署，适合前端网站分享、作品展示和快速发布。'
-  en: 'Deploy static websites — ideal for sharing frontend sites, showcasing work, and publishing quickly.'
-displayNames:
-  zh-Hans: '网站部署'
-  en: 'Deploy Website'
+
+
 ---
 
 # Deploy Website

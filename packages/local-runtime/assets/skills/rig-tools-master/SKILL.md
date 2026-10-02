@@ -9,14 +9,8 @@ description: >-
   documents. For an ordinary direct call to a connected plugin or MCP tool already in the model's
   tool list, call that tool directly and do not load this skill solely for access.
 requiresBeta: mcodeTools
-descriptions:
-  zh-Hans:
-    '调用任何 rig-tools Bash 命令前必须先加载本 skill。`rig-tools` CLI 已在 PATH 中，可通过 Bash
-    直接调用。它既是 Connector 工具与 Bash
-    脚本、管道、本地文件、循环或批处理组合使用的主要入口，也是图片/照片、视频、音频、音乐和文档等多模态生成与理解的主要入口；已连接插件或
-    MCP 工具的普通单次调用直接使用模型工具列表。'
-displayNames:
-  zh-Hans: 'rig-tools Connector'
+
+
 ---
 
 # rig-tools Master

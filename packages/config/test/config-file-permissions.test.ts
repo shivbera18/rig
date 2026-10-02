@@ -42,6 +42,8 @@ describe.skipIf(process.platform === "win32")(
       vi.stubEnv("__RIG_RUNTIME_MANAGED", "0");
       resetGitDetect();
       resetConfig();
+      configPath = getConfigPath();
+      expect(configPath).toBe(join(dataDir, "config.yaml"));
     });
 
     afterEach(() => {

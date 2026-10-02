@@ -15,7 +15,7 @@ import { isContextOverflow, streamSimple, type AssistantMessage } from '@earendi
 
 import {
   parseSourceQualifiedModelKey,
-  resolveLegacyMinimaxModel,
+  resolveLegacyRigModel,
   type LocalConversationRuntimeConfig,
   type LocalResolvedModelConfig,
 } from '../../service/model-system/index.js';
@@ -133,7 +133,7 @@ async function resolveEvaluatorModelPort(
 function resolveEvaluatorModelSelection(config: LocalConversationRuntimeConfig) {
   const configured = parseSourceQualifiedModelKey(config.defaultLightModel ?? config.defaultModel);
   if (!configured) return configured;
-  return resolveLegacyMinimaxModel(config, configured) ?? configured;
+  return resolveLegacyRigModel(config, configured) ?? configured;
 }
 
 async function callEvaluatorModel(input: {

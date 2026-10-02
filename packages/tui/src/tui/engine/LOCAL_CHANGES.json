@@ -93,8 +93,8 @@
       "path": "keys.ts",
       "currentSha256": "77f291399218bdc0fd849fb95c9c5dfc31ff9232516283e7f25781bef60a132f",
       "changeIds": ["L024"],
-      "reason": "登记 /btw 侧会话快捷键所需的最小兼容改动：传统终端将 Ctrl+/ 编码为与 Ctrl+_ 相同的 0x1F。",
-      "behaviorImpact": "传统终端可匹配 Ctrl+/；kitty 和 modifyOtherKeys 终端继续使用可区分的键序列。"
+      "reason": "Compatibility change for /btw session shortcut: legacy terminals encode Ctrl+/ identically to Ctrl+_ (0x1F).",
+      "behaviorImpact": "Legacy terminals match Ctrl+/; kitty and modifyOtherKeys terminals use distinguished sequences."
     },
     {
       "path": "latex.ts",
@@ -194,8 +194,8 @@
       "path": "alt-screen-search.ts",
       "changeIds": ["L025"],
       "currentSha256": "5d4a8f5434bebe91e2fd01700bb331807ee9b9107ad96c33b730f663fae1e063",
-      "reason": "活动搜索索引与命中复用",
-      "behaviorImpact": "内容或宽度变化失效，避免重复 Unicode 映射。"
+      "reason": "Active search index and match caching",
+      "behaviorImpact": "Invalidates on content or width change, avoiding repeated Unicode mapping."
     }
   ]
 }

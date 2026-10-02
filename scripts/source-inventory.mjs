@@ -34,7 +34,7 @@ const violations = suiteInventoryViolations(files, readSuites(root));
 // Standard MIT text with the reviewed first-party attribution.
 // Source: https://opensource.org/license/mit
 const rootLicenseSha256 =
-  "28bb5c2948742f9f8d27ed84882844d09dff07cb5df64f20729875e8582a18ea";
+  "2a1a3e94f4160c53a597a5c3b2955aae52932c7c713183197d4567e141036f2e";
 if (
   createHash("sha256")
     .update(readFileSync(path.join(root, "LICENSE")))

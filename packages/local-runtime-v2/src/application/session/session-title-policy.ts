@@ -5,7 +5,7 @@ import {
   type ContentSafetyService,
 } from "../../service/content-safety/index.js";
 import {
-  isLegacyMinimaxProvider,
+  isLegacyRigProvider,
   parseSourceQualifiedModelKey,
   type LocalRuntimeConfig,
 } from "../../service/model-system/index.js";
@@ -68,7 +68,7 @@ function isUnmanagedProvider(
   config: LocalRuntimeConfig,
   model: NonNullable<ReturnType<typeof parseSourceQualifiedModelKey>>,
 ): boolean {
-  if (isLegacyMinimaxProvider(config, model.providerId)) return false;
+  if (isLegacyRigProvider(config, model.providerId)) return false;
   if (model.source === "rig_api") return true;
   if (model.source === "custom-provider") {
     const provider = config.custom_provider?.[model.providerKey];

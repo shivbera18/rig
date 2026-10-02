@@ -94,7 +94,7 @@ const KNOWN_DATA_DIR_SOURCES = new Set([
   'default',
   'profile',
   'desktop_custom',
-  'minimax_env',
+  'rig_env',
   'mavis_env',
   'legacy_runtime_env',
   'test_isolation',
@@ -753,14 +753,14 @@ async function isExpectedDefaultDataDirTarget(
   try {
     return samePath(
       resolvedTarget,
-      await realpath(join(dirname(root), expectedDefaultMinimaxDataDirName(root))),
+      await realpath(join(dirname(root), expectedDefaultRigDataDirName(root))),
     );
   } catch {
     return false;
   }
 }
 
-function expectedDefaultMinimaxDataDirName(root: string): string {
+function expectedDefaultRigDataDirName(root: string): string {
   const name = basename(root);
   return name.startsWith('.rig-') ? `.rig${name.slice('.rig'.length)}` : '.rig';
 }

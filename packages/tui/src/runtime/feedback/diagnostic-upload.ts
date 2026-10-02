@@ -23,7 +23,7 @@ const LOG_UPLOAD_API_BASE: Readonly<Record<RigRegion, Readonly<Record<RigBuildEn
       dev: 'https://matrix-test.example.invalid',
       test: 'https://matrix-test.example.invalid',
       staging: 'https://matrix-pre.example.invalid',
-      prod: 'https://agent.minimaxi.com',
+      prod: 'https://agent.rig.cn',
     },
     en: {
       dev: 'https://matrix-overseas-test.example.invalid',
@@ -159,7 +159,7 @@ export async function uploadTuiFeedbackDiagnostics(
   const presignResponse = await fetchImpl(`${baseUrl}/matrix/api/v1/log/upload`, {
     method: 'POST',
     headers: {
-      'User-Agent': 'MiniMaxAgent',
+      'User-Agent': 'RigAgent',
       Origin: baseUrl,
       Referer: `${baseUrl}/`,
       'Content-Type': 'application/json',

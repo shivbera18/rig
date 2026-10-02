@@ -215,9 +215,9 @@ if [[ "$LEVEL" == "full" ]]; then
     check_fail "project" "directory not found: $DOTNET_DIR"
     PROJECT_BROKEN=1
   else
-    if [ -f "$DOTNET_DIR/MiniMaxAIDocx.Cli/bin/Debug/net10.0/MiniMaxAIDocx.Cli.dll" ] || \
-       [ -f "$DOTNET_DIR/MiniMaxAIDocx.Cli/bin/Debug/net9.0/MiniMaxAIDocx.Cli.dll" ] || \
-       [ -f "$DOTNET_DIR/MiniMaxAIDocx.Cli/bin/Debug/net8.0/MiniMaxAIDocx.Cli.dll" ]; then
+    if [ -f "$DOTNET_DIR/RigAIDocx.Cli/bin/Debug/net10.0/RigAIDocx.Cli.dll" ] || \
+       [ -f "$DOTNET_DIR/RigAIDocx.Cli/bin/Debug/net9.0/RigAIDocx.Cli.dll" ] || \
+       [ -f "$DOTNET_DIR/RigAIDocx.Cli/bin/Debug/net8.0/RigAIDocx.Cli.dll" ]; then
       check_ok "project" "built"
     else
       if dotnet restore "$DOTNET_DIR" --verbosity quiet >/dev/null 2>&1 && \

@@ -41,7 +41,7 @@ try {
     '--registry=https://registry.npmjs.org/', '--include=optional', '--ignore-scripts=false',
     '--allow-scripts=better-sqlite3', '--no-audit', '--no-fund', archive],
   { cwd: home, env, stdio: 'inherit', timeout: 300000 });
-  const installed = path.join(prefix, 'lib/node_modules/@rig-ai/code');
+  const installed = path.join(prefix, 'lib/node_modules/@shivcdhry/rig');
   const release = JSON.parse(readFileSync(path.join(installed, 'release.json'), 'utf8'));
   assert.equal(release.version, version);
   assert.equal(release.tag, process.env.MCODE_RELEASE_TAG);

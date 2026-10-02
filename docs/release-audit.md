@@ -11,7 +11,7 @@ Date: 2026-09-11. Scope: standalone TUI 0.3.11 source, retained capabilities, de
 - The source gate checks internal addresses, generated protocols, environment files, the explicit inventory, workspace exports, and native helper hashes. The standalone gate checks actual build dependencies and key TUI capabilities. Scanning and review do not prove the absence of every unknown issue.
 - `release/extraction.json` records the source baseline and 32 package roots: 27 declare Apache-2.0 and five MIT. Pi and Sandbox Runtime licenses, upstream revisions, and modification records remain. Assets retain their independent declarations.
 - `release/dependency-licenses.json` records 503 dependency entries and 13 license expressions. Multiple-license expressions and additional declarations such as Zlib remain intact. This is a declaration inventory, not a complete license-text bundle for binary distribution.
-- rig-tools comes from pinned public `@rig-ai/code@0.3.11`. The build verifies archive SHA-512 and embedded CLI SHA-256, retaining the 0.0.4 manifest and original distribution notices. The public package declares MIT; the root license does not relicense it. This historical audit did not make a legal determination about first-party source.
+- rig-tools comes from pinned public `@shivcdhry/rig`. The build verifies archive SHA-512 and embedded CLI SHA-256, retaining the 0.0.4 manifest and original distribution notices. The public package declares MIT; the root license does not relicense it. This historical audit did not make a legal determination about first-party source.
 
 ## Live-service evidence
 

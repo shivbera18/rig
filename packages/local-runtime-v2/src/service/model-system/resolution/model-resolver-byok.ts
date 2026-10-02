@@ -34,7 +34,7 @@ export interface ByokResolutionPlan {
   readonly modelCompat?: LocalModelCompatOverrides;
 }
 
-export function planMinimaxApiResolution(input: {
+export function planRigApiResolution(input: {
   readonly byok: LocalByokProviderConfig | undefined;
   readonly providerConfig: LocalModelsConfig | undefined;
   readonly modelId: string;
@@ -60,7 +60,7 @@ export function planMinimaxApiResolution(input: {
     provider: RIG_API_PROVIDER_ID,
     api: 'anthropic-messages',
     apiKey,
-    baseUrl: config.baseURL?.trim() || defaultMinimaxApiBaseUrl(),
+    baseUrl: config.baseURL?.trim() || defaultRigApiBaseUrl(),
     contextWindow:
       contextLimit ??
       (input.catalog.fromCatalog
@@ -248,8 +248,8 @@ function readModelCompat(value: unknown): LocalModelCompatOverrides | undefined 
   return Object.keys(compat).length > 0 ? compat : undefined;
 }
 
-function defaultMinimaxApiBaseUrl(): string {
+function defaultRigApiBaseUrl(): string {
   const origin =
-    getRuntimeRegion() === 'cn' ? 'https://api.minimaxi.com' : 'https://api.rig.io';
+    getRuntimeRegion() === 'cn' ? 'https://api.rig.cn' : 'https://api.rig.io';
   return `${origin}/${MESSAGES_API_COMPAT_PATH}`;
 }

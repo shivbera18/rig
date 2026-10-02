@@ -55,7 +55,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    ".github/workflows/release.yml"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "7.18.0",

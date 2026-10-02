@@ -48,23 +48,15 @@ function readSkillName(input: unknown): string | undefined {
   return typeof name === 'string' ? name.trim().toLowerCase() : undefined;
 }
 
-function buildRepeatedCodeReviewSkillReason(prepared: ReviewTurnState['prepared']): string {
-  if (prepared?.responseLanguage === 'zh-CN') {
-    return '当前结构化 Review 已经激活，不要再读取 code-review Skill；请使用允许的只读工具继续审查。';
-  }
+function buildRepeatedCodeReviewSkillReason(_prepared: ReviewTurnState['prepared']): string {
   return 'Structured Review is already active. Do not load the code-review Skill; continue with the allowed read-only tools.';
 }
 
 function buildRepeatedCodeReviewReason(prepared: ReviewTurnState['prepared']): string {
   const isSlash = prepared?.trigger === 'slash';
-  if (prepared?.responseLanguage === 'zh-CN') {
-    return isSlash
-      ? '当前 Review 已由 Slash 请求激活，不能再次调用 code_review。请直接使用允许的只读工具检查当前改动，并返回 Review 结果。'
-      : '当前 Turn 的 Review 已经激活，不能再次调用 code_review。请直接使用允许的只读工具继续检查，并返回 Review 结果。';
-  }
   return isSlash
-    ? 'Code Review is already active for this Slash request. Do not call code_review again. Inspect the current changes with the allowed read-only tools and return the Review result directly.'
-    : 'Code Review is already active for this turn. Do not call code_review again. Continue with the allowed read-only tools and return the Review result directly.';
+    ? 'Code Review is already active for this Slash request. Do not call code_review again. Inspect the current changes using the allowed read-only tools and return the review result.'
+    : 'Code Review is already active for this turn. Do not call code_review again. Continue with the allowed read-only tools and return the review result.';
 }
 
 function readToolSource(toolCall: unknown): unknown {

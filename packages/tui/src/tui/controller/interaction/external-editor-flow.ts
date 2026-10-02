@@ -6,7 +6,7 @@ import {
 import { formatTuiKeybinding, type TuiKeybindingRegistry } from '../../shell/keybindings.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 
-export const MINIMAX_CODE_EXTERNAL_EDITOR_SETUP_HINT = `Set MCODE_EDITOR, VISUAL, or EDITOR to use ${formatTuiKeybinding('composer.external-editor')}; GUI editors need --wait.`;
+export const RIG_EXTERNAL_EDITOR_SETUP_HINT = `Set RIG_EDITOR, VISUAL, or EDITOR to use ${formatTuiKeybinding('composer.external-editor')}; GUI editors need --wait.`;
 
 interface ExternalEditorDraft {
   getExpandedText(): string;
@@ -50,7 +50,7 @@ export class TuiExternalEditorFlow {
     });
     if (!command) {
       this.options.setHint(
-        `Set MCODE_EDITOR, VISUAL, or EDITOR to use ${formatTuiKeybinding('composer.external-editor', this.options.keybindings)}; GUI editors need --wait.`,
+        `Set RIG_EDITOR, VISUAL, or EDITOR to use ${formatTuiKeybinding('composer.external-editor', this.options.keybindings)}; GUI editors need --wait.`,
       );
       this.options.onChanged();
       return;

@@ -200,7 +200,7 @@ async function downloadRemoteSkillArchive(archiveUrl: string, fetchImpl: typeof 
   try {
     response = await fetchImpl(archiveUrl, {
       method: 'GET',
-      headers: { 'User-Agent': 'MiniMaxAgent' },
+      headers: { 'User-Agent': 'RigAgent' },
       signal: AbortSignal.timeout(REMOTE_SKILL_ARCHIVE_TIMEOUT_MS),
     });
   } catch (err) {

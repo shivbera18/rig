@@ -121,8 +121,7 @@ export class TuiUpdateFlow {
     }
     if (plan.kind === 'manual') {
       this.options.append(
-        `Automatic update is unavailable for this installation. Update manually with: ${plan.command}` +
-          (plan.diagnosis ? ` (${plan.diagnosis})` : ''),
+        `Automatic update is unavailable for this installation. Update manually with: ${plan.command}${plan.diagnosis ? ` (${plan.diagnosis})` : ''}`,
         'warning',
       );
       return;

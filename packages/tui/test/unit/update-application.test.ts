@@ -1330,6 +1330,61 @@ describe('Rig update install-source commands', () => {
   ] as const)('recognizes npm global ownership for %s', (packageRoot, prefix, platform) => {
     expect(classifyNpmGlobalInstall(packageRoot, prefix, platform)).toBe('npm-global');
   });
+
+  it('reports detection details when prefix comparison fails', async () => {
+    const detection = await detectRigInstallSource({
+      installRoot: '/install',
+      platform: 'win32',
+      packageRoot: () => 'C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@other\\pkg',
+      npmGlobalPrefix: async () => 'C:\\Users\\demo\\AppData\\Roaming\\npm',
+      managedInstall: () => false,
+      prefixInstall: () => undefined,
+    });
+    expect(detection).toEqual({
+      source: 'unsupported',
+      diagnosis: {
+        packageRoot: 'C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@other\\pkg',
+        npmGlobalPrefix: 'C:\\Users\\demo\\AppData\\Roaming\\npm',
+      },
+    });
+  });
+
+  it('reports detection details when the npm prefix lookup fails', async () => {
+    const detection = await detectRigInstallSource({
+      installRoot: '/install',
+      platform: 'win32',
+      packageRoot: () => 'C:\\custom\\node_modules\\@shivcdhry\\rig',
+      npmGlobalPrefix: async () => {
+        throw new Error('npm not found');
+      },
+      managedInstall: () => false,
+      prefixInstall: () => undefined,
+    });
+    expect(detection).toEqual({
+      source: 'unsupported',
+      diagnosis: {
+        packageRoot: 'C:\\custom\\node_modules\\@shivcdhry\\rig',
+        npmGlobalPrefixError: 'npm not found',
+      },
+    });
+  });
+
+  it('carries detection details into the manual update plan', async () => {
+    const application = createApplication({
+      detectInstallSource: async () => ({
+        source: 'unsupported' as const,
+        diagnosis: {
+          packageRoot: 'C:\\custom\\node_modules\\@shivcdhry\\rig',
+          npmGlobalPrefixError: 'npm not found',
+        },
+      }),
+    });
+    await expect(application.inspect()).resolves.toMatchObject({
+      kind: 'manual',
+      diagnosis:
+        'packageRoot=C:\\custom\\node_modules\\@shivcdhry\\rig; npmGlobalPrefix=<unavailable: npm not found>',
+    });
+  });
 });
 
 function createApplication(

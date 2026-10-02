@@ -17,10 +17,12 @@ import {
   resolveLatestRigRegistryVersion,
   runRigPackageManagerCommand,
   type RigInstallSource,
-  type RigNpmDistTag,
   type RigNpmDistribution,
   type RigNpmPackageName,
   type RigNpmPrefixInstall,
+  formatRigInstallSourceDiagnosis,
+  type RigInstallSourceDetection,
+  type RigNpmDistTag,
   type RigPackageManagerCommand,
   type RigPackageManagerInstallSource,
   type RigPackageManagerRunOptions,
@@ -90,6 +92,7 @@ export type RigUpdatePlan =
       readonly source: 'unsupported';
       readonly currentVersion: string;
       readonly command: string;
+      readonly diagnosis?: string;
     };
 
 export interface RigUpdateOutcome {
@@ -113,7 +116,7 @@ export interface RigUpdateApplicationOptions {
 }
 
 export interface RigUpdateApplicationDependencies {
-  readonly detectInstallSource: () => Promise<RigInstallSource>;
+  readonly detectInstallSource: () => Promise<RigInstallSource | RigInstallSourceDetection>;
   readonly createManagedService: () => ManagedUpdateService;
   readonly resolveLatestPackageVersion: (tag: RigNpmDistTag) => Promise<string>;
   readonly runPackageManager: (
@@ -238,7 +241,12 @@ export class RigUpdateApplication {
   }
 
   async inspect(): Promise<RigUpdatePlan> {
-    const source = await this.dependencies.detectInstallSource();
+    const detection = await this.dependencies.detectInstallSource();
+    const source = typeof detection === 'string' ? detection : detection.source;
+    const diagnosis =
+      typeof detection === 'string'
+        ? undefined
+        : formatRigInstallSourceDiagnosis(detection.diagnosis);
     if (source === 'managed-installer') {
       const result = await this.dependencies.createManagedService().check();
       return {
@@ -254,6 +262,7 @@ export class RigUpdateApplication {
         kind: 'manual',
         source,
         currentVersion: this.currentVersion,
+        ...(diagnosis ? { diagnosis } : {}),
         command: buildRigPackageManagerCommand(
           'npm-global',
           this.packageTag,

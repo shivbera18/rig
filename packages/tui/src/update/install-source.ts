@@ -62,6 +62,16 @@ export interface ResolveLatestRigRegistryVersionDependencies {
   readonly runtimeExecutable: string;
 }
 
+export interface RigInstallSourceDiagnosis {
+  readonly packageRoot?: string;
+  readonly npmGlobalPrefix?: string;
+  readonly npmGlobalPrefixError?: string;
+}
+
+export type RigInstallSourceDetection =
+  | RigInstallSource
+  | { readonly source: RigInstallSource; readonly diagnosis: RigInstallSourceDiagnosis };
+
 export interface DetectRigInstallSourceDependencies {
   readonly installRoot: string;
   readonly platform: NodeJS.Platform;
@@ -83,7 +93,7 @@ export function isManagedRigInstallRoot(installRoot: string): boolean {
 
 export async function detectRigInstallSource(
   dependencies: Partial<DetectRigInstallSourceDependencies> & { installRoot: string },
-): Promise<RigInstallSource> {
+): Promise<RigInstallSourceDetection> {
   const platform = dependencies.platform ?? process.platform;
   const resolved: DetectRigInstallSourceDependencies = {
     installRoot: dependencies.installRoot,
@@ -100,15 +110,32 @@ export async function detectRigInstallSource(
   if (resolved.prefixInstall()) return 'npm-prefix';
 
   const packageRoot = resolved.packageRoot();
-  if (!packageRoot) return 'unsupported';
+  if (!packageRoot) return { source: 'unsupported', diagnosis: {} };
   const heuristic = classifyRigInstallPath(packageRoot);
   if (heuristic) return heuristic;
 
   try {
-    return classifyNpmGlobalInstall(packageRoot, await resolved.npmGlobalPrefix(), platform);
-  } catch {
-    return 'unsupported';
+    const npmGlobalPrefix = await resolved.npmGlobalPrefix();
+    const source = classifyNpmGlobalInstall(packageRoot, npmGlobalPrefix, platform);
+    return source === 'unsupported'
+      ? { source, diagnosis: { packageRoot, npmGlobalPrefix } }
+      : source;
+  } catch (error) {
+    return {
+      source: 'unsupported',
+      diagnosis: {
+        packageRoot,
+        npmGlobalPrefixError: error instanceof Error ? error.message : String(error),
+      },
+    };
   }
+}
+
+export function formatRigInstallSourceDiagnosis(diagnosis: RigInstallSourceDiagnosis): string {
+  const prefix =
+    diagnosis.npmGlobalPrefix ??
+    `<unavailable${diagnosis.npmGlobalPrefixError ? `: ${diagnosis.npmGlobalPrefixError}` : ''}>`;
+  return `packageRoot=${diagnosis.packageRoot ?? '<unknown>'}; npmGlobalPrefix=${prefix}`;
 }
 
 export function classifyRigInstallPath(

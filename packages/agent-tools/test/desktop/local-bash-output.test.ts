@@ -129,7 +129,7 @@ describe('LocalBashTool — foreground output truncation', () => {
 
   it('caps a large nonzero-exit result while preserving the error ToolResult status', async () => {
     const tool = new LocalBashTool(workspace, undefined, { mode: 'off' });
-    const script = `for(let i=0;i<400;i++) console.error('error-row-'+i+'-'+'e'.repeat(90)); process.exit(7)`;
+    const script = `for(let i=0;i<400;i++) console.error('error-row-'+i+'-'+'e'.repeat(90)); process.stderr.write('', () => process.exit(7))`;
     const command = `${JSON.stringify(process.execPath)} -e ${JSON.stringify(script)}`;
     const result = await tool.execute(SESSION_CTX, { command });
 

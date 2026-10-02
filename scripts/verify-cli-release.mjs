@@ -26,7 +26,7 @@ try {
   const env = {
     ...process.env, HOME: home, USERPROFILE: home,
     RIG_DATA_DIR: path.join(home, 'data'), RIG_DATA_DIR: path.join(home, 'data'),
-    MCODE_DISABLE_TELEMETRY: '1',
+    RIG_DISABLE_TELEMETRY: '1',
   };
   for (const name of Object.keys(env)) {
     if (/^npm_config_/i.test(name)) delete env[name];

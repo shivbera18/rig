@@ -18,7 +18,7 @@ import type { WorkspaceMiniAppInitializationResult } from '../../../contracts.js
 import { PluginSystemError } from '../../../errors.js';
 import { runAllFinally } from '../../../plugin-system-helpers.js';
 import { canonicalizePluginRoot, readPluginJsonObject } from '../../package/filesystem.js';
-import { readMiniAppMcode } from '../../package/miniapp/reader.js';
+import { readMiniAppRig } from '../../package/miniapp/reader.js';
 import {
   computePluginDirectoryDigest,
   validatePluginPortablePath,
@@ -368,7 +368,7 @@ async function assertExistingWorkspacePackage(
     throw new Error('workspace MiniApp package identity mismatch');
   }
   try {
-    readMiniAppMcode(packageJson.value.rig);
+    readMiniAppRig(packageJson.value.rig);
   } catch {
     // Update identity historically exposes one stable workspace reason rather
     // than the package reader's detailed authoring-schema diagnostic.
@@ -576,7 +576,7 @@ async function resolveWorkspaceCandidate(input: {
     throw new PluginSystemError(
       'WORKSPACE_CANDIDATE_INVALID',
       'workspace MiniApp candidate is invalid',
-      { reasonCode: 'MINIAPP_MCODE_SCHEMA_INVALID' },
+      { reasonCode: 'MINIAPP_RIG_SCHEMA_INVALID' },
     );
   }
   return { source, package: packageRead };

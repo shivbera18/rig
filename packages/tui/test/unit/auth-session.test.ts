@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { createAuthNamespace, type OAuthClient } from '@rig/oauth-core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createMcodeSharedAuthSession } from '../../src/runtime/auth-session.js';
+import { createRigSharedAuthSession } from '../../src/runtime/auth-session.js';
 
 const roots: string[] = [];
 
@@ -13,7 +13,7 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 
-describe('createMcodeSharedAuthSession', () => {
+describe('createRigSharedAuthSession', () => {
   it('persists and reuses a plaintext credential without a passphrase provider', async () => {
     const dataDir = await mkdtemp(join(tmpdir(), 'rig-tui-auth-session-'));
     roots.push(dataDir);
@@ -41,7 +41,7 @@ describe('createMcodeSharedAuthSession', () => {
       refreshToken: unused,
       revokeToken: unused,
     };
-    const session = createMcodeSharedAuthSession({
+    const session = createRigSharedAuthSession({
       dataDir,
       region: 'en',
       buildEnv: 'test',
@@ -56,7 +56,7 @@ describe('createMcodeSharedAuthSession', () => {
     expect(raw).toContain('shared-access-token');
     expect(raw).toContain('shared-refresh-token');
 
-    const restored = createMcodeSharedAuthSession({
+    const restored = createRigSharedAuthSession({
       dataDir,
       region: 'en',
       buildEnv: 'test',

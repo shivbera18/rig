@@ -46,7 +46,7 @@ export function resolveTuiExternalEditorCommand(
   options: ResolveTuiExternalEditorCommandOptions = {},
 ): string | undefined {
   const env = options.env ?? process.env;
-  const configured = [options.configuredCommand, env.RIG_EDITOR, env.MCODE_EDITOR, env.VISUAL, env.EDITOR].find(
+  const configured = [options.configuredCommand, env.RIG_EDITOR, env.VISUAL, env.EDITOR].find(
     (value) => value?.trim(),
   );
   if (configured) return configured.trim();

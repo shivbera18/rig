@@ -10,11 +10,11 @@ import {
   tuiColors as colors,
 } from '../../theme/runtime.js';
 import type {
-  McodeProviderSnapshot,
-  McodeProviderTestResult,
-  McodeProviderView,
-  McodeSaveProviderCandidateInput,
-  McodeSaveProviderCandidateResult,
+  RigProviderSnapshot,
+  RigProviderTestResult,
+  RigProviderView,
+  RigSaveProviderCandidateInput,
+  RigSaveProviderCandidateResult,
 } from '../../../provider/contract.js';
 import { TuiProviderEditor } from './editor.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
@@ -29,12 +29,12 @@ type ProviderManagerMode =
   | { readonly kind: 'rig-key'; readonly replacing: boolean };
 
 export interface TuiProviderManagerOptions {
-  snapshot: McodeProviderSnapshot;
-  onRefresh(): Promise<McodeProviderSnapshot>;
-  onRefreshModels?(provider: McodeProviderView): Promise<number>;
-  onTest(providerId: string, modelId?: string): Promise<McodeProviderTestResult>;
+  snapshot: RigProviderSnapshot;
+  onRefresh(): Promise<RigProviderSnapshot>;
+  onRefreshModels?(provider: RigProviderView): Promise<number>;
+  onTest(providerId: string, modelId?: string): Promise<RigProviderTestResult>;
   onConnectCodex?(): void;
-  onSaveCustom?(input: McodeSaveProviderCandidateInput): Promise<McodeSaveProviderCandidateResult>;
+  onSaveCustom?(input: RigSaveProviderCandidateInput): Promise<RigSaveProviderCandidateResult>;
   onSetRigApiKey(apiKey: string): Promise<void>;
   onSetRigSource(source: 'token_plan' | 'rig_api_key'): Promise<void>;
   /** Starts the same sign-in flow as `/login`; absent when the host has no auth. */
@@ -45,7 +45,7 @@ export interface TuiProviderManagerOptions {
 
 export class TuiProviderManager implements Component, Focusable {
   private editor?: TuiProviderEditor;
-  private snapshotValue: McodeProviderSnapshot;
+  private snapshotValue: RigProviderSnapshot;
   private selectedIndex = 0;
   private mode: ProviderManagerMode = { kind: 'list' };
   private readonly secretInput = new Input({ mask: '•' });
@@ -227,11 +227,11 @@ export class TuiProviderManager implements Component, Focusable {
     ];
   }
 
-  private providers(): readonly McodeProviderView[] {
+  private providers(): readonly RigProviderView[] {
     return this.snapshotValue.providers;
   }
 
-  private selectedProvider(): McodeProviderView | undefined {
+  private selectedProvider(): RigProviderView | undefined {
     return this.providers()[this.selectedIndex];
   }
 
@@ -356,7 +356,7 @@ export class TuiProviderManager implements Component, Focusable {
     this.requestRender();
   }
 
-  private async connectCodex(provider: McodeProviderView): Promise<void> {
+  private async connectCodex(provider: RigProviderView): Promise<void> {
     const state = provider.status?.state;
     if (state === 'connected') {
       this.setStatus('OpenAI Codex is already connected.', 'info');
@@ -500,13 +500,13 @@ export class TuiProviderManager implements Component, Focusable {
  * never claims the glyph — rendering both made two rows look simultaneously
  * selected.
  */
-function isSelectedSource(provider: McodeProviderView): boolean {
+function isSelectedSource(provider: RigProviderView): boolean {
   return (
     (provider.kind === 'rig-oauth' || provider.kind === 'rig-api-key') && provider.active
   );
 }
 
-function markerFor(provider: McodeProviderView): string {
+function markerFor(provider: RigProviderView): string {
   if (provider.kind === 'codex-oauth') {
     return provider.status?.state === 'connected' ? '✓' : '○';
   }
@@ -514,14 +514,14 @@ function markerFor(provider: McodeProviderView): string {
   return provider.active ? '●' : '○';
 }
 
-function providerModelList(provider: McodeProviderView): string | undefined {
+function providerModelList(provider: RigProviderView): string | undefined {
   if (provider.models.length === 0) return undefined;
   return sanitizeTerminalText(
     provider.models.map((model) => model.displayName ?? model.modelId).join(', '),
   );
 }
 
-function providerDetail(provider: McodeProviderView): string {
+function providerDetail(provider: RigProviderView): string {
   if (provider.kind === 'codex-oauth') {
     if (provider.status?.state === 'connected') return 'Connected with OpenAI OAuth';
     if (provider.status?.state === 'pending') {
@@ -548,7 +548,7 @@ function providerDetail(provider: McodeProviderView): string {
   ].join(' · ');
 }
 
-function providerSummary(provider: McodeProviderView): string {
+function providerSummary(provider: RigProviderView): string {
   if (provider.kind === 'codex-oauth') {
     if (provider.status?.state === 'connected') return 'Connected';
     if (provider.status?.state === 'pending') return 'Waiting for sign-in';

@@ -1,12 +1,12 @@
 import type {
-  McodeUpdateApplyOptions,
-  McodeUpdateOutcome,
-  McodeUpdatePlan,
+  RigUpdateApplyOptions,
+  RigUpdateOutcome,
+  RigUpdatePlan,
 } from '../../../update/application.js';
 import { disposeComponents, type Component } from '../../rendering/component.js';
 import { TuiUpdatePanel } from '../../features/update/panel.js';
 import type { TuiInteractionSurface } from '../../shell/interaction-surface.js';
-import { McodeUpdateAdmissionError } from '../../../update/progress.js';
+import { RigUpdateAdmissionError } from '../../../update/progress.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 
 type AppendUpdateNotice = (content: string, kind?: 'warning' | 'error') => void;
@@ -14,19 +14,19 @@ type AppendUpdateNotice = (content: string, kind?: 'warning' | 'error') => void;
 export interface TuiUpdateOptions {
   readonly version: string;
   readonly checkForUpdate?: () => Promise<{ latestVersion: string } | undefined>;
-  readonly inspectUpdate?: () => Promise<McodeUpdatePlan>;
+  readonly inspectUpdate?: () => Promise<RigUpdatePlan>;
   readonly applyUpdate?: (
-    plan: McodeUpdatePlan,
-    options?: McodeUpdateApplyOptions,
-  ) => Promise<McodeUpdateOutcome>;
+    plan: RigUpdatePlan,
+    options?: RigUpdateApplyOptions,
+  ) => Promise<RigUpdateOutcome>;
 }
 
 export interface TuiUpdateFlowOptions {
-  readonly inspect: () => Promise<McodeUpdatePlan>;
+  readonly inspect: () => Promise<RigUpdatePlan>;
   readonly apply: (
-    plan: McodeUpdatePlan,
-    options?: McodeUpdateApplyOptions,
-  ) => Promise<McodeUpdateOutcome>;
+    plan: RigUpdatePlan,
+    options?: RigUpdateApplyOptions,
+  ) => Promise<RigUpdateOutcome>;
   readonly append: AppendUpdateNotice;
   readonly showPanel: (panel: Component) => void;
   readonly closePanel: (panel?: Component) => boolean;
@@ -87,7 +87,7 @@ export class TuiUpdateFlow {
       return;
     }
     const requestSequence = ++this.requestSequence;
-    let plan: McodeUpdatePlan;
+    let plan: RigUpdatePlan;
     try {
       plan = await this.options.inspect();
     } catch (error) {
@@ -151,7 +151,7 @@ export class TuiUpdateFlow {
   }
 
   private startBackgroundUpdate(
-    plan: Extract<McodeUpdatePlan, { kind: 'available' | 'package-manager' }>,
+    plan: Extract<RigUpdatePlan, { kind: 'available' | 'package-manager' }>,
     panel: Component,
   ): void {
     if (this.updateTask) {
@@ -222,7 +222,7 @@ export class TuiUpdateFlow {
   private async requireAdmission(): Promise<void> {
     const admission = await this.options.admit?.();
     if (admission && !admission.allowed) {
-      throw new McodeUpdateAdmissionError(
+      throw new RigUpdateAdmissionError(
         admission.reason ?? 'Finish active Rig work before updating.',
       );
     }

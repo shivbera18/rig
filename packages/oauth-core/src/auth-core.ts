@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { watchFile, unwatchFile } from 'node:fs';
 
 import {
-  MCODE_OAUTH_AUDIENCE,
-  MCODE_OAUTH_CLIENT_ID,
-  MCODE_OAUTH_SCOPES,
+  RIG_OAUTH_AUDIENCE,
+  RIG_OAUTH_CLIENT_ID,
+  RIG_OAUTH_SCOPES,
   type AccessTokenLease,
   type UnauthorizedContext,
 } from './contracts.js';
@@ -102,7 +102,7 @@ export class AuthDomainConflictError extends Error {
   }
 }
 
-export interface MCodeOAuthCoreOptions {
+export interface RigOAuthCoreOptions {
   namespace: AuthNamespace;
   credentialStore: CredentialStore;
   oauthClient: OAuthClient;
@@ -149,7 +149,7 @@ export interface AuthStatusSnapshot {
   expiresAtMs?: number;
 }
 
-export class MCodeOAuthCore {
+export class RigOAuthCore {
   private readonly stateStore: AuthStateStore;
   private readonly lock: CrossProcessAuthLock;
   private readonly now: () => number;
@@ -161,7 +161,7 @@ export class MCodeOAuthCore {
   private loginAbortController: AbortController | undefined;
   private initializePromise: Promise<void> | undefined;
 
-  constructor(private readonly options: MCodeOAuthCoreOptions) {
+  constructor(private readonly options: RigOAuthCoreOptions) {
     this.stateStore = new AuthStateStore(options.namespace.statePath);
     this.lock = new CrossProcessAuthLock(options.namespace.lockPath);
     this.now = options.now ?? Date.now;
@@ -188,7 +188,7 @@ export class MCodeOAuthCore {
         return toStatusSnapshot({ ...state, status: 'error' });
       }
       try {
-        assertCredentialContract(credential, [...MCODE_OAUTH_SCOPES]);
+        assertCredentialContract(credential, [...RIG_OAUTH_SCOPES]);
       } catch (error) {
         if (error instanceof AuthScopeUpgradeRequiredError) {
           return toStatusSnapshot({
@@ -286,7 +286,7 @@ export class MCodeOAuthCore {
     await this.initialize();
     try {
       return await this.lock.withLock(async () => {
-        const current = await this.readUsableCredential([...MCODE_OAUTH_SCOPES]);
+        const current = await this.readUsableCredential([...RIG_OAUTH_SCOPES]);
         if (context.loginEpoch !== undefined) {
           assertSameLoginEpoch(context.loginEpoch, current.credential.loginEpoch);
         } else if (current.credential.generation > context.generation) {
@@ -401,7 +401,7 @@ export class MCodeOAuthCore {
             state.status === 'refreshing')
         ) {
           try {
-            assertCredentialContract(credential, [...MCODE_OAUTH_SCOPES]);
+            assertCredentialContract(credential, [...RIG_OAUTH_SCOPES]);
             if (state.status === 'authenticated' && credential.expiresAtMs > this.now()) {
               return { kind: 'authenticated' as const, generation: credential.generation };
             }
@@ -446,7 +446,7 @@ export class MCodeOAuthCore {
       if (decision.kind === 'refresh') {
         try {
           await this.lock.withLock(async () => {
-            const current = await this.readUsableCredential([...MCODE_OAUTH_SCOPES]);
+            const current = await this.readUsableCredential([...RIG_OAUTH_SCOPES]);
             if (
               current.credential.generation > decision.generation &&
               this.satisfiesMinValidity(current, 1)
@@ -566,7 +566,7 @@ export class MCodeOAuthCore {
           this.options.namespace.credentialKey,
         );
         if (credential && credential.generation === state.generation) {
-          assertCredentialContract(credential, [...MCODE_OAUTH_SCOPES]);
+          assertCredentialContract(credential, [...RIG_OAUTH_SCOPES]);
           return { status: 'authenticated', generation: state.generation };
         }
       }
@@ -626,7 +626,7 @@ export class MCodeOAuthCore {
     if (!observedCredential || observedCredential.generation <= observedState.generation) {
       return observedState;
     }
-    assertCredentialContract(observedCredential, [...MCODE_OAUTH_SCOPES]);
+    assertCredentialContract(observedCredential, [...RIG_OAUTH_SCOPES]);
     return this.lock.withLock(async () => {
       const state = await this.stateStore.read();
       const credential = await this.options.credentialStore.get(
@@ -640,7 +640,7 @@ export class MCodeOAuthCore {
       ) {
         return state ?? observedState;
       }
-      assertCredentialContract(credential, [...MCODE_OAUTH_SCOPES]);
+      assertCredentialContract(credential, [...RIG_OAUTH_SCOPES]);
       const recovered = authenticatedState(
         credential,
         this.options.credentialStore.kind,
@@ -778,9 +778,9 @@ function baseState(
     schemaVersion: AUTH_STATE_SCHEMA_VERSION,
     status: input.status,
     storeKind: input.storeKind,
-    clientId: MCODE_OAUTH_CLIENT_ID,
-    scopes: [...MCODE_OAUTH_SCOPES],
-    audience: MCODE_OAUTH_AUDIENCE,
+    clientId: RIG_OAUTH_CLIENT_ID,
+    scopes: [...RIG_OAUTH_SCOPES],
+    audience: RIG_OAUTH_AUDIENCE,
     buildEnv: namespace.buildEnv,
     region: namespace.region,
     generation: input.generation,
@@ -813,31 +813,31 @@ function credentialFromGrant(
     accessToken: grant.accessToken,
     refreshToken: grant.refreshToken,
     tokenType: grant.tokenType,
-    clientId: MCODE_OAUTH_CLIENT_ID,
+    clientId: RIG_OAUTH_CLIENT_ID,
     scopes: grant.scopes,
-    audience: MCODE_OAUTH_AUDIENCE,
+    audience: RIG_OAUTH_AUDIENCE,
     expiresAtMs: now + grant.expiresInSec * 1_000,
     generation,
     loginEpoch,
     ...(grant.subject ? { subject: grant.subject } : {}),
     ...(grant.accountId ? { accountId: grant.accountId } : {}),
   };
-  assertCredentialContract(credential, [...MCODE_OAUTH_SCOPES]);
-  if (grant.audience !== MCODE_OAUTH_AUDIENCE) throw new AuthResourceContractMismatchError();
+  assertCredentialContract(credential, [...RIG_OAUTH_SCOPES]);
+  if (grant.audience !== RIG_OAUTH_AUDIENCE) throw new AuthResourceContractMismatchError();
   return credential;
 }
 
 function validateRequestedScopes(requiredScopes: string[]): void {
   const unsupported = requiredScopes.filter(
-    (scope) => !MCODE_OAUTH_SCOPES.includes(scope as 'agent.default'),
+    (scope) => !RIG_OAUTH_SCOPES.includes(scope as 'agent.default'),
   );
   if (unsupported.length > 0) throw new AuthScopeUpgradeRequiredError(unsupported);
 }
 
 function assertCredentialContract(credential: StoredCredential, requiredScopes: string[]): void {
   if (
-    credential.clientId !== MCODE_OAUTH_CLIENT_ID ||
-    credential.audience !== MCODE_OAUTH_AUDIENCE ||
+    credential.clientId !== RIG_OAUTH_CLIENT_ID ||
+    credential.audience !== RIG_OAUTH_AUDIENCE ||
     credential.tokenType !== 'Bearer'
   ) {
     throw new AuthResourceContractMismatchError();
@@ -879,7 +879,7 @@ function toAccessTokenLease(credential: StoredCredential): AccessTokenLease {
     ...(credential.loginEpoch ? { loginEpoch: credential.loginEpoch } : {}),
     expiresAtMs: credential.expiresAtMs,
     generation: credential.generation,
-    scopes: MCODE_OAUTH_SCOPES,
-    audience: MCODE_OAUTH_AUDIENCE,
+    scopes: RIG_OAUTH_SCOPES,
+    audience: RIG_OAUTH_AUDIENCE,
   };
 }

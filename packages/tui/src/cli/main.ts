@@ -6,12 +6,12 @@ import {
 import type { RawTuiExecOptions } from '../headless/invocation.js';
 import type { RigRegion } from '@rig/config';
 import { createTuiProgram, type TuiInteractiveLaunchRequest } from './program.js';
-import type { McodeProviderCliRequest } from './provider-command.js';
-import type { McodePluginCliRequest } from '../plugin/contract.js';
+import type { RigProviderCliRequest } from './provider-command.js';
+import type { RigPluginCliRequest } from '../plugin/contract.js';
 import { tuiErrorDiagnostic } from '../user-facing-failure.js';
 import { configureTuiNetworkProxy } from './network-proxy.js';
 import { consumeLoginRestartHandoff } from '../tui/login-restart-handoff.js';
-import type { McodeTelemetryCliAction } from './telemetry-command.js';
+import type { RigTelemetryCliAction } from './telemetry-command.js';
 
 const OUTPUT_DRAIN_TIMEOUT_MS = 250;
 const RIG_PROCESS_TITLE = 'rig';
@@ -59,17 +59,17 @@ export interface RunTuiCliDependencies {
   readonly runLogout?: (region?: RigRegion) => Promise<string>;
   readonly runUpdate?: (version: string) => Promise<void>;
   readonly runProvider?: (
-    request: McodeProviderCliRequest,
+    request: RigProviderCliRequest,
     version: string,
     lane?: string,
   ) => Promise<string>;
   readonly runPlugin?: (
-    request: McodePluginCliRequest,
+    request: RigPluginCliRequest,
     version: string,
     lane?: string,
   ) => Promise<string>;
   readonly runTelemetry?: (
-    action: McodeTelemetryCliAction,
+    action: RigTelemetryCliAction,
     version: string,
     environment: NodeJS.ProcessEnv,
   ) => Promise<string> | string;
@@ -210,8 +210,8 @@ async function formatTuiCliError(error: unknown): Promise<string> {
     return diagnostic;
   }
 
-  const { buildMcodePackageManagerCommand } = await import('../update/install-source.js');
-  const command = buildMcodePackageManagerCommand('npm-global', RIG_VERSION);
+  const { buildRigPackageManagerCommand } = await import('../update/install-source.js');
+  const command = buildRigPackageManagerCommand('npm-global', RIG_VERSION);
   return [
     'Rig could not load its native SQLite dependency.',
     'If npm reported blocked install scripts, the installation needs explicit script approval.',
@@ -280,33 +280,33 @@ async function defaultRunLogout(region?: RigRegion): Promise<string> {
 }
 
 async function defaultRunUpdate(version: string): Promise<void> {
-  const { runMcodeUpdate } = await import('./update.js');
-  await runMcodeUpdate(version);
+  const { runRigUpdate } = await import('./update.js');
+  await runRigUpdate(version);
 }
 
 async function defaultRunProvider(
-  request: McodeProviderCliRequest,
+  request: RigProviderCliRequest,
   version: string,
   lane?: string,
 ): Promise<string> {
-  const { runMcodeProviderCommand } = await import('./provider-command.js');
-  return runMcodeProviderCommand({ request, version, lane });
+  const { runRigProviderCommand } = await import('./provider-command.js');
+  return runRigProviderCommand({ request, version, lane });
 }
 
 async function defaultRunPlugin(
-  request: McodePluginCliRequest,
+  request: RigPluginCliRequest,
   version: string,
   lane?: string,
 ): Promise<string> {
-  const { runMcodePluginCommand } = await import('./plugin-command.js');
-  return runMcodePluginCommand({ request, version, lane });
+  const { runRigPluginCommand } = await import('./plugin-command.js');
+  return runRigPluginCommand({ request, version, lane });
 }
 
 async function defaultRunTelemetry(
-  action: McodeTelemetryCliAction,
+  action: RigTelemetryCliAction,
   version: string,
   environment: NodeJS.ProcessEnv,
 ): Promise<string> {
-  const { runMcodeTelemetryCommand } = await import('./telemetry-command.js');
-  return runMcodeTelemetryCommand(action, version, { environment });
+  const { runRigTelemetryCommand } = await import('./telemetry-command.js');
+  return runRigTelemetryCommand(action, version, { environment });
 }

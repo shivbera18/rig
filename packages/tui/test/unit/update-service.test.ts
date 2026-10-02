@@ -5,9 +5,9 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { McodeUpdateService, type McodeUpdateDependencies } from '../../src/update/service.js';
-import { resolveMcodeNpmDistribution } from '../../src/update/install-source.js';
-import type { McodeReleaseManifestV1 } from '../../src/update/release.js';
+import { RigUpdateService, type RigUpdateDependencies } from '../../src/update/service.js';
+import { resolveRigNpmDistribution } from '../../src/update/install-source.js';
+import type { RigReleaseManifestV1 } from '../../src/update/release.js';
 
 const temporaryRoots: string[] = [];
 
@@ -19,7 +19,7 @@ function temporaryRoot(): string {
 
 function releaseFixture(version = '1.2.4', artifact = Buffer.from('signed artifact bytes')) {
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');
-  const manifest: McodeReleaseManifestV1 = {
+  const manifest: RigReleaseManifestV1 = {
     schemaVersion: 1,
     product: 'rig',
     channel: 'stable',
@@ -56,7 +56,7 @@ afterEach(() => {
   }
 });
 
-describe('McodeUpdateService', () => {
+describe('RigUpdateService', () => {
   it
     .skipIf(process.platform !== 'win32')
     .each(['standard npm', 'custom npm wrapper', 'custom npm wrapper with adjacent CLI'])(
@@ -68,7 +68,7 @@ describe('McodeUpdateService', () => {
       writeFileSync(
         path.join(fixtureRoot, 'package.json'),
         JSON.stringify({
-          name: resolveMcodeNpmDistribution().packageName,
+          name: resolveRigNpmDistribution().packageName,
           version: '1.2.4',
           bin: { rig: 'cli.cjs' },
         }),
@@ -150,7 +150,7 @@ describe('McodeUpdateService', () => {
       const installRoot = path.join(root, '用户 files & (test)');
       mkdirSync(installRoot);
       writeFileSync(path.join(installRoot, 'current'), '1.2.3\n');
-      const service = new McodeUpdateService({
+      const service = new RigUpdateService({
         currentVersion: '1.2.3',
         installRoot,
         environment,
@@ -184,7 +184,7 @@ describe('McodeUpdateService', () => {
       try {
         const address = proxy.address();
         if (!address || typeof address === 'string') throw new Error('Expected TCP proxy');
-        const service = new McodeUpdateService({
+        const service = new RigUpdateService({
           currentVersion: '1.2.3',
           installRoot: temporaryRoot(),
           releaseBaseUrl: 'https://updates.example.invalid',
@@ -207,7 +207,7 @@ describe('McodeUpdateService', () => {
     const fetchBytes = vi.fn(async (url: string) =>
       url.endsWith('.sig') ? Buffer.from(fixture.signature) : fixture.manifestBytes,
     );
-    const service = new McodeUpdateService({
+    const service = new RigUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -233,12 +233,12 @@ describe('McodeUpdateService', () => {
     async (failure) => {
       const root = temporaryRoot();
       const currentFile = path.join(root, 'current');
-      const dependencies: Partial<McodeUpdateDependencies> = {
+      const dependencies: Partial<RigUpdateDependencies> = {
         fetchBytes: vi.fn(async () => {
           throw failure;
         }),
       };
-      const service = new McodeUpdateService({
+      const service = new RigUpdateService({
         currentVersion: '1.2.3',
         installRoot: root,
         dependencies,
@@ -252,7 +252,7 @@ describe('McodeUpdateService', () => {
   it('keeps the previous current pointer when install validation fails', async () => {
     const root = temporaryRoot();
     const fixture = releaseFixture();
-    const dependencies: Partial<McodeUpdateDependencies> = {
+    const dependencies: Partial<RigUpdateDependencies> = {
       fetchBytes: vi.fn(async (url: string) =>
         url.endsWith('.sig')
           ? Buffer.from(fixture.signature)
@@ -263,7 +263,7 @@ describe('McodeUpdateService', () => {
       installArtifact: vi.fn(async () => undefined),
       validateInstalledVersion: vi.fn(async () => undefined),
     };
-    const service = new McodeUpdateService({
+    const service = new RigUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -280,7 +280,7 @@ describe('McodeUpdateService', () => {
     const fixture = releaseFixture();
     const installArtifact = vi.fn(async () => undefined);
     const validateInstalledVersion = vi.fn(async () => undefined);
-    const service = new McodeUpdateService({
+    const service = new RigUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -312,7 +312,7 @@ describe('McodeUpdateService', () => {
     mkdirSync(root, { recursive: true });
     writeFileSync(path.join(root, 'current'), '1.2.3\n');
     const fixture = releaseFixture();
-    const service = new McodeUpdateService({
+    const service = new RigUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -339,7 +339,7 @@ describe('McodeUpdateService', () => {
   it('requires the explicit --to option before downgrading from a channel', async () => {
     const root = temporaryRoot();
     const fixture = releaseFixture('1.2.2');
-    const service = new McodeUpdateService({
+    const service = new RigUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -360,7 +360,7 @@ describe('McodeUpdateService', () => {
     const fixture = releaseFixture();
     const controller = new AbortController();
     const phases: string[] = [];
-    const service = new McodeUpdateService({
+    const service = new RigUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -397,7 +397,7 @@ describe('McodeUpdateService', () => {
     writeFileSync(path.join(root, 'current'), '1.2.3\n');
     const fixture = releaseFixture();
     const controller = new AbortController();
-    const service = new McodeUpdateService({
+    const service = new RigUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -442,7 +442,7 @@ describe('McodeUpdateService', () => {
           finishInstall = resolve;
         }),
     );
-    const service = new McodeUpdateService({
+    const service = new RigUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,

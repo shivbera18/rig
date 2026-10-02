@@ -1,36 +1,36 @@
 import { createPublicKey, verify } from 'node:crypto';
 
-export type McodeUpdateChannel = 'stable' | 'preview';
-export type McodeReleaseTarget =
+export type RigUpdateChannel = 'stable' | 'preview';
+export type RigReleaseTarget =
   | 'darwin-arm64'
   | 'darwin-x64'
   | 'linux-x64'
   | 'windows-x64'
   | 'windows-arm64';
 
-export interface McodeReleaseArtifact {
+export interface RigReleaseArtifact {
   url: string;
   sha256: string;
   size: number;
 }
 
-type McodeReleaseTargetArtifact = Omit<McodeReleaseArtifact, 'url'>;
-type McodeReleaseManifestV1Targets = Record<
-  Exclude<McodeReleaseTarget, 'windows-arm64'>,
-  McodeReleaseTargetArtifact
+type RigReleaseTargetArtifact = Omit<RigReleaseArtifact, 'url'>;
+type RigReleaseManifestV1Targets = Record<
+  Exclude<RigReleaseTarget, 'windows-arm64'>,
+  RigReleaseTargetArtifact
 > &
-  Partial<Record<'windows-arm64', McodeReleaseTargetArtifact>>;
+  Partial<Record<'windows-arm64', RigReleaseTargetArtifact>>;
 
-export interface McodeReleaseManifestV1 {
+export interface RigReleaseManifestV1 {
   schemaVersion: 1;
   product: 'rig';
-  channel: McodeUpdateChannel | string;
+  channel: RigUpdateChannel | string;
   version: string;
   publishedAt: string;
   minNodeVersion: string;
   registry: string;
-  installArtifact: McodeReleaseArtifact;
-  targets: McodeReleaseManifestV1Targets;
+  installArtifact: RigReleaseArtifact;
+  targets: RigReleaseManifestV1Targets;
 }
 
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$/u;
@@ -41,28 +41,28 @@ const REQUIRED_V1_TARGETS = [
   'darwin-x64',
   'linux-x64',
   'windows-x64',
-] as const satisfies readonly McodeReleaseTarget[];
+] as const satisfies readonly RigReleaseTarget[];
 const TARGETS = [...REQUIRED_V1_TARGETS, 'windows-arm64'] as const;
 
-export function parseMcodeUpdateChannel(value: string): McodeUpdateChannel {
+export function parseRigUpdateChannel(value: string): RigUpdateChannel {
   if (!CHANNEL_PATTERN.test(value)) {
     throw new Error(`Unsupported Rig update channel: ${JSON.stringify(value)}`);
   }
-  return value as McodeUpdateChannel;
+  return value as RigUpdateChannel;
 }
 
-export function parseMcodeVersion(value: string): string {
+export function parseRigVersion(value: string): string {
   if (!VERSION_PATTERN.test(value)) {
     throw new Error(`Invalid Rig version: ${JSON.stringify(value)}`);
   }
   return value;
 }
 
-export function parseAndVerifyMcodeReleaseManifest(
+export function parseAndVerifyRigReleaseManifest(
   manifestBytes: Uint8Array,
   signatureText: string,
   publicKeyPem: string,
-): McodeReleaseManifestV1 {
+): RigReleaseManifestV1 {
   const signature = readBase64Signature(signatureText);
   let authentic = false;
   try {
@@ -81,7 +81,7 @@ export function parseAndVerifyMcodeReleaseManifest(
   return validateManifest(parsed);
 }
 
-function validateManifest(value: unknown): McodeReleaseManifestV1 {
+function validateManifest(value: unknown): RigReleaseManifestV1 {
   if (!isRecord(value)) throw new Error('Rig release manifest must be an object.');
   if (value.schemaVersion !== 1) {
     throw new Error(`Unsupported Rig release schema: ${String(value.schemaVersion)}`);
@@ -94,7 +94,7 @@ function validateManifest(value: unknown): McodeReleaseManifestV1 {
       ? value.channel
       : undefined;
   if (!channel) throw new Error('Rig release channel is invalid.');
-  const version = typeof value.version === 'string' ? parseMcodeVersion(value.version) : undefined;
+  const version = typeof value.version === 'string' ? parseRigVersion(value.version) : undefined;
   if (!version) throw new Error('Rig release version is missing.');
   if (typeof value.publishedAt !== 'string' || !Number.isFinite(Date.parse(value.publishedAt))) {
     throw new Error('Rig release publishedAt is invalid.');
@@ -105,7 +105,7 @@ function validateManifest(value: unknown): McodeReleaseManifestV1 {
   const registry = readHttpsUrl(value.registry, 'registry');
   const installArtifact = readArtifact(value.installArtifact, true, 'installArtifact');
   if (!isRecord(value.targets)) throw new Error('Rig release targets are missing.');
-  const targets: McodeReleaseManifestV1Targets = {
+  const targets: RigReleaseManifestV1Targets = {
     'darwin-arm64': readArtifact(value.targets['darwin-arm64'], false, 'targets.darwin-arm64'),
     'darwin-x64': readArtifact(value.targets['darwin-x64'], false, 'targets.darwin-x64'),
     'linux-x64': readArtifact(value.targets['linux-x64'], false, 'targets.linux-x64'),
@@ -131,17 +131,17 @@ function validateManifest(value: unknown): McodeReleaseManifestV1 {
   };
 }
 
-function readArtifact(value: unknown, includeUrl: true, name: string): McodeReleaseArtifact;
+function readArtifact(value: unknown, includeUrl: true, name: string): RigReleaseArtifact;
 function readArtifact(
   value: unknown,
   includeUrl: false,
   name: string,
-): Omit<McodeReleaseArtifact, 'url'>;
+): Omit<RigReleaseArtifact, 'url'>;
 function readArtifact(
   value: unknown,
   includeUrl: boolean,
   name: string,
-): McodeReleaseArtifact | Omit<McodeReleaseArtifact, 'url'> {
+): RigReleaseArtifact | Omit<RigReleaseArtifact, 'url'> {
   if (!isRecord(value)) throw new Error(`${name} is missing.`);
   if (typeof value.sha256 !== 'string' || !SHA256_PATTERN.test(value.sha256)) {
     throw new Error(`${name}.sha256 is invalid.`);
@@ -177,20 +177,20 @@ function readBase64Signature(value: string): Buffer {
   return signature;
 }
 
-export function resolveMcodeReleaseTarget(
+export function resolveRigReleaseTarget(
   platform = process.platform,
   arch = process.arch,
-): McodeReleaseTarget {
+): RigReleaseTarget {
   const candidate = `${platform === 'win32' ? 'windows' : platform}-${arch}`;
   if ((TARGETS as readonly string[]).includes(candidate)) {
-    return candidate as McodeReleaseTarget;
+    return candidate as RigReleaseTarget;
   }
   throw new Error(`Unsupported Rig update host: ${platform}-${arch}`);
 }
 
-export function assertMcodeReleaseTargetAvailable(
-  manifest: McodeReleaseManifestV1,
-  target: McodeReleaseTarget,
+export function assertRigReleaseTargetAvailable(
+  manifest: RigReleaseManifestV1,
+  target: RigReleaseTarget,
 ): void {
   if (manifest.targets[target]) return;
   throw new Error(`Rig ${manifest.version} does not provide a release for ${target}.`);
@@ -202,7 +202,7 @@ interface ParsedVersion {
 }
 
 function parsedVersion(value: string): ParsedVersion {
-  parseMcodeVersion(value);
+  parseRigVersion(value);
   const [coreText = '', prereleaseText] = value.split('-', 2);
   return {
     core: coreText.split('.').map((part) => Number.parseInt(part, 10)),
@@ -212,7 +212,7 @@ function parsedVersion(value: string): ParsedVersion {
   };
 }
 
-export function compareMcodeVersions(left: string, right: string): number {
+export function compareRigVersions(left: string, right: string): number {
   const leftVersion = parsedVersion(left);
   const rightVersion = parsedVersion(right);
   for (let index = 0; index < 3; index += 1) {

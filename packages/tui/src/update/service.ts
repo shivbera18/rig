@@ -4,52 +4,52 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import spawn from 'cross-spawn';
 import { retryWindowsFileSystemOperation } from '@rig/shared';
-import { resolveMcodeNpmDistribution } from './install-source.js';
-import { readMcodeBinEntry, resolveMcodePrefixPackageRoot } from './prefix-update.js';
+import { resolveRigNpmDistribution } from './install-source.js';
+import { readRigBinEntry, resolveRigPrefixPackageRoot } from './prefix-update.js';
 import {
-  McodeUpdateCancelledError,
-  reportMcodeUpdatePhase,
-  throwIfMcodeUpdateCancelled,
-  type McodeUpdateOperationOptions,
+  RigUpdateCancelledError,
+  reportRigUpdatePhase,
+  throwIfRigUpdateCancelled,
+  type RigUpdateOperationOptions,
 } from './progress.js';
 import {
-  assertMcodeReleaseTargetAvailable,
-  compareMcodeVersions,
-  parseAndVerifyMcodeReleaseManifest,
-  parseMcodeUpdateChannel,
-  parseMcodeVersion,
-  resolveMcodeReleaseTarget,
-  type McodeReleaseManifestV1,
-  type McodeUpdateChannel,
+  assertRigReleaseTargetAvailable,
+  compareRigVersions,
+  parseAndVerifyRigReleaseManifest,
+  parseRigUpdateChannel,
+  parseRigVersion,
+  resolveRigReleaseTarget,
+  type RigReleaseManifestV1,
+  type RigUpdateChannel,
 } from './release.js';
 
-export { isManagedMcodeInstallRoot } from './install-source.js';
+export { isManagedRigInstallRoot } from './install-source.js';
 
 const DEFAULT_RELEASE_BASE_URL =
   'https://algeng-ali-shanghai-agent-02.oss-cn-shanghai.aliyuncs.com/' +
   'rig-dialogue/data/env/.npm-global/rig';
 const DEFAULT_TIMEOUT_MS = 8_000;
 
-export interface McodeUpdateRequest extends McodeUpdateOperationOptions {
+export interface RigUpdateRequest extends RigUpdateOperationOptions {
   channel?: string;
   version?: string;
   timeoutMs?: number;
 }
 
-export interface McodeUpdateCheckResult {
+export interface RigUpdateCheckResult {
   status: 'available' | 'current' | 'ahead';
-  channel: McodeUpdateChannel;
+  channel: RigUpdateChannel;
   currentVersion: string;
   latestVersion: string;
-  manifest: McodeReleaseManifestV1;
+  manifest: RigReleaseManifestV1;
 }
 
-export interface McodeUpdateApplyResult extends McodeUpdateCheckResult {
+export interface RigUpdateApplyResult extends RigUpdateCheckResult {
   applied: boolean;
   installRoot: string;
 }
 
-export interface McodeUpdateDependencies {
+export interface RigUpdateDependencies {
   fetchBytes(
     url: string,
     options?: { signal?: AbortSignal; proxyEnvironment?: NodeJS.ProcessEnv },
@@ -63,26 +63,26 @@ export interface McodeUpdateDependencies {
   validateInstalledVersion(prefix: string, version: string): Promise<void>;
 }
 
-export interface McodeUpdateServiceOptions {
+export interface RigUpdateServiceOptions {
   currentVersion: string;
   installRoot?: string;
   releaseBaseUrl?: string;
   publicKey?: string;
   environment?: NodeJS.ProcessEnv;
-  dependencies?: Partial<McodeUpdateDependencies>;
+  dependencies?: Partial<RigUpdateDependencies>;
 }
 
-export class McodeUpdateService {
+export class RigUpdateService {
   private readonly currentVersion: string;
   private readonly installRoot: string;
   private readonly releaseBaseUrl: string;
   private readonly publicKey?: string;
   private readonly environment: NodeJS.ProcessEnv;
-  private readonly dependencies: McodeUpdateDependencies;
+  private readonly dependencies: RigUpdateDependencies;
 
-  constructor(options: McodeUpdateServiceOptions) {
-    this.currentVersion = parseMcodeVersion(options.currentVersion);
-    this.installRoot = options.installRoot ?? resolveMcodeInstallRoot(options.environment);
+  constructor(options: RigUpdateServiceOptions) {
+    this.currentVersion = parseRigVersion(options.currentVersion);
+    this.installRoot = options.installRoot ?? resolveRigInstallRoot(options.environment);
     this.releaseBaseUrl = (options.releaseBaseUrl ?? DEFAULT_RELEASE_BASE_URL).replace(/\/+$/u, '');
     this.publicKey = options.publicKey;
     this.environment = options.environment ?? process.env;
@@ -94,13 +94,13 @@ export class McodeUpdateService {
     };
   }
 
-  async check(request: McodeUpdateRequest = {}): Promise<McodeUpdateCheckResult> {
-    throwIfMcodeUpdateCancelled(request.signal);
-    reportMcodeUpdatePhase(request, 'checking', true);
+  async check(request: RigUpdateRequest = {}): Promise<RigUpdateCheckResult> {
+    throwIfRigUpdateCancelled(request.signal);
+    reportRigUpdatePhase(request, 'checking', true);
     const channel = request.channel
-      ? parseMcodeUpdateChannel(request.channel)
-      : readMcodeUpdateChannel(this.installRoot);
-    const version = request.version ? parseMcodeVersion(request.version) : undefined;
+      ? parseRigUpdateChannel(request.channel)
+      : readRigUpdateChannel(this.installRoot);
+    const version = request.version ? parseRigVersion(request.version) : undefined;
     const manifestUrl = version
       ? `${this.releaseBaseUrl}/releases/${encodeURIComponent(version)}/manifest.json`
       : `${this.releaseBaseUrl}/channels/${channel}.json`;
@@ -125,7 +125,7 @@ export class McodeUpdateService {
           proxyEnvironment: this.environment,
         }),
       ]);
-      const manifest = parseAndVerifyMcodeReleaseManifest(
+      const manifest = parseAndVerifyRigReleaseManifest(
         manifestBytes,
         signatureBytes.toString('utf8'),
         publicKey,
@@ -140,8 +140,8 @@ export class McodeUpdateService {
           `Signed Rig release version mismatch: expected ${version}, got ${manifest.version}.`,
         );
       }
-      assertMcodeReleaseTargetAvailable(manifest, resolveMcodeReleaseTarget());
-      const comparison = compareMcodeVersions(this.currentVersion, manifest.version);
+      assertRigReleaseTargetAvailable(manifest, resolveRigReleaseTarget());
+      const comparison = compareRigVersions(this.currentVersion, manifest.version);
       return {
         status: comparison < 0 ? 'available' : comparison > 0 ? 'ahead' : 'current',
         channel,
@@ -150,7 +150,7 @@ export class McodeUpdateService {
         manifest,
       };
     } catch (error) {
-      if (request.signal?.aborted) throw new McodeUpdateCancelledError();
+      if (request.signal?.aborted) throw new RigUpdateCancelledError();
       if (timedOut) {
         throw new Error(`Rig update check timed out after ${timeoutMs}ms.`, { cause: error });
       }
@@ -161,7 +161,7 @@ export class McodeUpdateService {
     }
   }
 
-  async apply(request: McodeUpdateRequest = {}): Promise<McodeUpdateApplyResult> {
+  async apply(request: RigUpdateRequest = {}): Promise<RigUpdateApplyResult> {
     const check = await this.check(request);
     if (check.status === 'current') {
       return { ...check, applied: false, installRoot: this.installRoot };
@@ -174,8 +174,8 @@ export class McodeUpdateService {
     }
 
     const artifactTimeoutMs = normalizeTimeout(request.timeoutMs);
-    throwIfMcodeUpdateCancelled(request.signal);
-    reportMcodeUpdatePhase(request, 'downloading', true);
+    throwIfRigUpdateCancelled(request.signal);
+    reportRigUpdatePhase(request, 'downloading', true);
     const artifactController = new AbortController();
     const detachRequestAbort = forwardAbort(request.signal, artifactController);
     let artifactTimedOut = false;
@@ -193,7 +193,7 @@ export class McodeUpdateService {
         proxyEnvironment: this.environment,
       });
     } catch (error) {
-      if (request.signal?.aborted) throw new McodeUpdateCancelledError();
+      if (request.signal?.aborted) throw new RigUpdateCancelledError();
       if (artifactTimedOut) {
         throw new Error(`Rig artifact download timed out after ${artifactTimeoutMs}ms.`, {
           cause: error,
@@ -204,7 +204,7 @@ export class McodeUpdateService {
       clearTimeout(artifactTimeout);
       detachRequestAbort();
     }
-    throwIfMcodeUpdateCancelled(request.signal);
+    throwIfRigUpdateCancelled(request.signal);
     verifyArtifact(artifactBytes, check.manifest);
 
     const versionsRoot = path.join(this.installRoot, 'versions');
@@ -217,23 +217,23 @@ export class McodeUpdateService {
     mkdirSync(stagingPrefix, { recursive: true });
     let createdFinalPrefix = false;
     try {
-      reportMcodeUpdatePhase(request, 'staging', true);
-      throwIfMcodeUpdateCancelled(request.signal);
+      reportRigUpdatePhase(request, 'staging', true);
+      throwIfRigUpdateCancelled(request.signal);
       writeFileSync(artifactFile, artifactBytes, { mode: 0o600 });
-      throwIfMcodeUpdateCancelled(request.signal);
-      reportMcodeUpdatePhase(request, 'installing', false);
+      throwIfRigUpdateCancelled(request.signal);
+      reportRigUpdatePhase(request, 'installing', false);
       await this.dependencies.installArtifact({
         artifact: artifactFile,
         prefix: stagingPrefix,
         registry: check.manifest.registry,
         proxyEnvironment: this.environment,
       });
-      throwIfMcodeUpdateCancelled(request.signal);
+      throwIfRigUpdateCancelled(request.signal);
       retryWindowsFileSystemOperation(() => rmSync(artifactFile, { force: true }));
-      reportMcodeUpdatePhase(request, 'validating', false);
+      reportRigUpdatePhase(request, 'validating', false);
       await this.dependencies.validateInstalledVersion(stagingPrefix, check.latestVersion);
-      throwIfMcodeUpdateCancelled(request.signal);
-      reportMcodeUpdatePhase(request, 'activating', false);
+      throwIfRigUpdateCancelled(request.signal);
+      reportRigUpdatePhase(request, 'activating', false);
       if (existsSync(finalPrefix)) {
         await this.dependencies.validateInstalledVersion(finalPrefix, check.latestVersion);
         removeUpdateTree(stagingPrefix);
@@ -242,15 +242,15 @@ export class McodeUpdateService {
         createdFinalPrefix = true;
       }
       activateVersion(this.installRoot, check.latestVersion);
-      reportMcodeUpdatePhase(request, 'completed', false);
+      reportRigUpdatePhase(request, 'completed', false);
       return { ...check, applied: true, installRoot: this.installRoot };
     } catch (error) {
       removeUpdateTree(stagingPrefix);
       if (createdFinalPrefix && readActiveVersion(this.installRoot) !== check.latestVersion) {
         removeUpdateTree(finalPrefix);
       }
-      if (error instanceof McodeUpdateCancelledError || request.signal?.aborted) {
-        throw new McodeUpdateCancelledError();
+      if (error instanceof RigUpdateCancelledError || request.signal?.aborted) {
+        throw new RigUpdateCancelledError();
       }
       throw new Error(
         `Rig ${check.latestVersion} was not activated; the previous version is unchanged: ${errorMessage(error)}`,
@@ -260,8 +260,8 @@ export class McodeUpdateService {
   }
 }
 
-export function resolveMcodeInstallRoot(environment: NodeJS.ProcessEnv = process.env): string {
-  if (environment.MCODE_INSTALL_ROOT) return path.resolve(environment.MCODE_INSTALL_ROOT);
+export function resolveRigInstallRoot(environment: NodeJS.ProcessEnv = process.env): string {
+  if (environment.RIG_INSTALL_ROOT) return path.resolve(environment.RIG_INSTALL_ROOT);
   if (process.platform === 'win32') {
     const localAppData = environment.LOCALAPPDATA;
     if (!localAppData)
@@ -272,7 +272,7 @@ export function resolveMcodeInstallRoot(environment: NodeJS.ProcessEnv = process
   return path.join(dataHome, 'rig');
 }
 
-export function readMcodeUpdateChannel(installRoot: string): McodeUpdateChannel {
+export function readRigUpdateChannel(installRoot: string): RigUpdateChannel {
   const file = path.join(installRoot, 'update.json');
   if (!existsSync(file)) return 'stable';
   let parsed: unknown;
@@ -289,11 +289,11 @@ export function readMcodeUpdateChannel(installRoot: string): McodeUpdateChannel 
   ) {
     throw new Error('Rig update channel config is missing channel.');
   }
-  return parseMcodeUpdateChannel(parsed.channel);
+  return parseRigUpdateChannel(parsed.channel);
 }
 
 function readInstalledPublicKey(installRoot: string, environment: NodeJS.ProcessEnv): string {
-  const explicitFile = environment.MCODE_RELEASE_PUBLIC_KEY_FILE;
+  const explicitFile = environment.RIG_RELEASE_PUBLIC_KEY_FILE;
   if (explicitFile) return readFileSync(path.resolve(explicitFile), 'utf8');
   const metadataFile = path.join(installRoot, 'install.json');
   if (!existsSync(metadataFile)) {
@@ -347,7 +347,7 @@ async function defaultInstallArtifact(input: {
   proxyEnvironment: NodeJS.ProcessEnv;
 }): Promise<void> {
   const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  await runMcodeUpdateCommand(
+  await runRigUpdateCommand(
     npm,
     [
       'install',
@@ -370,25 +370,25 @@ async function defaultValidateInstalledVersion(prefix: string, version: string):
   let executable = path.join(prefix, 'bin', 'rig');
   let args = ['--version'];
   if (process.platform === 'win32') {
-    const packageRoot = resolveMcodePrefixPackageRoot(
+    const packageRoot = resolveRigPrefixPackageRoot(
       prefix,
-      resolveMcodeNpmDistribution().packageName,
+      resolveRigNpmDistribution().packageName,
     );
     const manifest = JSON.parse(readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
-    const binEntry = readMcodeBinEntry(manifest.bin, 'rig');
+    const binEntry = readRigBinEntry(manifest.bin, 'rig');
     if (!binEntry || !existsSync(path.join(prefix, 'rig.cmd'))) {
       throw new Error(`Installed Rig launcher is missing or invalid at ${prefix}.`);
     }
     executable = process.execPath;
     args = [path.join(packageRoot, binEntry), '--version'];
   }
-  const output = await runMcodeUpdateCommand(executable, args, process.env, true);
+  const output = await runRigUpdateCommand(executable, args, process.env, true);
   if (output.trim() !== version) {
     throw new Error(`Installed Rig version mismatch: expected ${version}, got ${output.trim()}`);
   }
 }
 
-export function runMcodeUpdateCommand(
+export function runRigUpdateCommand(
   command: string,
   args: string[],
   environment: NodeJS.ProcessEnv,
@@ -435,7 +435,7 @@ function forwardAbort(signal: AbortSignal | undefined, controller: AbortControll
   return () => signal.removeEventListener('abort', abort);
 }
 
-function verifyArtifact(bytes: Buffer, manifest: McodeReleaseManifestV1): void {
+function verifyArtifact(bytes: Buffer, manifest: RigReleaseManifestV1): void {
   if (bytes.length !== manifest.installArtifact.size) {
     throw new Error(
       `Rig artifact checksum/size verification failed: expected ` +

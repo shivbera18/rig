@@ -772,7 +772,7 @@ async function resolveChromePath(explicit?: string): Promise<string> {
     if (await isChromeExecutableCandidate(candidate)) return candidate;
   }
   throw new Error(
-    'Chrome executable not found; configure browser.chromePath or set MCODE_CHROME_PATH',
+    'Chrome executable not found; configure browser.chromePath or set RIG_CHROME_PATH',
   );
 }
 

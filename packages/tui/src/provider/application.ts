@@ -1,27 +1,27 @@
 import type {
-  McodeCodexOAuthStartResult,
-  McodeCodexOAuthLoginOptions,
-  McodeCodexOAuthStatus,
-  McodeCreateProviderInput,
-  McodeDiscoverProviderModelsInput,
+  RigCodexOAuthStartResult,
+  RigCodexOAuthLoginOptions,
+  RigCodexOAuthStatus,
+  RigCreateProviderInput,
+  RigDiscoverProviderModelsInput,
   RigModelSource,
-  McodeProviderRuntimePort,
-  McodeSaveProviderCandidateInput,
-  McodeSaveProviderCandidateResult,
-  McodeProviderSnapshot,
-  McodeProviderTestResult,
-  McodeProviderView,
-  McodeRuntimeProviderView,
-  McodeUpdateProviderInput,
+  RigProviderRuntimePort,
+  RigSaveProviderCandidateInput,
+  RigSaveProviderCandidateResult,
+  RigProviderSnapshot,
+  RigProviderTestResult,
+  RigProviderView,
+  RigRuntimeProviderView,
+  RigUpdateProviderInput,
 } from './contract.js';
 import { isModelProviderApiFormat } from './contract.js';
 
 export class RigProviderApplication {
-  constructor(private readonly port: McodeProviderRuntimePort) {}
+  constructor(private readonly port: RigProviderRuntimePort) {}
 
   async snapshot(
     options: { readonly includeCodexOAuth?: boolean } = {},
-  ): Promise<McodeProviderSnapshot> {
+  ): Promise<RigProviderSnapshot> {
     const [customProviders, rigStatus, rigModelSource, codexOAuthStatus] =
       await Promise.all([
         this.port.listUserModelProviders(),
@@ -66,15 +66,15 @@ export class RigProviderApplication {
     return this.port.setRigModelSource(source);
   }
 
-  connectCodexOAuth(options?: McodeCodexOAuthLoginOptions): Promise<McodeCodexOAuthStartResult> {
+  connectCodexOAuth(options?: RigCodexOAuthLoginOptions): Promise<RigCodexOAuthStartResult> {
     return this.port.startCodexOAuthLogin(options);
   }
 
-  getCodexOAuthStatus(): Promise<McodeCodexOAuthStatus> {
+  getCodexOAuthStatus(): Promise<RigCodexOAuthStatus> {
     return this.port.getCodexOAuthStatus();
   }
 
-  cancelCodexOAuthLogin(loginId: string): Promise<McodeCodexOAuthStatus> {
+  cancelCodexOAuthLogin(loginId: string): Promise<RigCodexOAuthStatus> {
     return this.port.cancelCodexOAuthLogin(loginId);
   }
 
@@ -82,19 +82,19 @@ export class RigProviderApplication {
     await this.port.upsertRigApiKey({ apiKey, saveAndUse });
   }
 
-  async create(input: McodeCreateProviderInput): Promise<void> {
+  async create(input: RigCreateProviderInput): Promise<void> {
     await this.port.createUserModelProvider(input);
   }
 
-  saveCandidate(input: McodeSaveProviderCandidateInput): Promise<McodeSaveProviderCandidateResult> {
+  saveCandidate(input: RigSaveProviderCandidateInput): Promise<RigSaveProviderCandidateResult> {
     return this.port.saveUserModelProviderCandidate(input);
   }
 
-  discoverModels(input: McodeDiscoverProviderModelsInput) {
+  discoverModels(input: RigDiscoverProviderModelsInput) {
     return this.port.discoverUserModelsCandidate(input);
   }
 
-  async refreshModels(provider: McodeProviderView): Promise<number> {
+  async refreshModels(provider: RigProviderView): Promise<number> {
     if (
       provider.kind !== 'custom' ||
       provider.readOnly ||
@@ -138,7 +138,7 @@ export class RigProviderApplication {
     return added.length;
   }
 
-  async update(input: McodeUpdateProviderInput): Promise<void> {
+  async update(input: RigUpdateProviderInput): Promise<void> {
     await this.port.updateUserModelProvider(input);
   }
 
@@ -146,14 +146,14 @@ export class RigProviderApplication {
     await this.port.deleteUserModelProvider(providerId);
   }
 
-  test(providerId: string, modelId?: string): Promise<McodeProviderTestResult> {
+  test(providerId: string, modelId?: string): Promise<RigProviderTestResult> {
     return modelId
       ? this.port.testUserModel(providerId, modelId)
       : this.port.testUserModelProvider(providerId);
   }
 }
 
-function normalizeCodexOAuthProvider(status: McodeCodexOAuthStatus): McodeProviderView {
+function normalizeCodexOAuthProvider(status: RigCodexOAuthStatus): RigProviderView {
   return {
     providerId: status.providerId,
     name: 'OpenAI Codex',
@@ -170,7 +170,7 @@ function normalizeCodexOAuthProvider(status: McodeCodexOAuthStatus): McodeProvid
   };
 }
 
-function normalizeCustomProvider(provider: McodeRuntimeProviderView): McodeProviderView {
+function normalizeCustomProvider(provider: RigRuntimeProviderView): RigProviderView {
   const apiFormat = isModelProviderApiFormat(provider.apiFormat) ? provider.apiFormat : undefined;
   return {
     providerId: provider.providerId,
@@ -203,9 +203,9 @@ function normalizeCustomProvider(provider: McodeRuntimeProviderView): McodeProvi
 }
 
 export type {
-  McodeCreateProviderInput,
-  McodeDiscoverProviderModelsInput,
-  McodeProviderRuntimePort,
-  McodeProviderSnapshot,
-  McodeUpdateProviderInput,
+  RigCreateProviderInput,
+  RigDiscoverProviderModelsInput,
+  RigProviderRuntimePort,
+  RigProviderSnapshot,
+  RigUpdateProviderInput,
 } from './contract.js';

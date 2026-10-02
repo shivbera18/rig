@@ -1,12 +1,12 @@
 import type {
-  McodeProviderApiFormat,
-  McodeDiscoverProviderModelsInput,
-  McodeProviderModel,
-  McodeProviderModelInput,
-  McodeProviderView,
-  McodeProviderTemplate,
-  McodeSaveProviderCandidateInput,
-  McodeSaveProviderCandidateResult,
+  RigProviderApiFormat,
+  RigDiscoverProviderModelsInput,
+  RigProviderModel,
+  RigProviderModelInput,
+  RigProviderView,
+  RigProviderTemplate,
+  RigSaveProviderCandidateInput,
+  RigSaveProviderCandidateResult,
 } from '../../../provider/contract.js';
 import { additiveProviderModels, matchesProviderTemplate } from './connections.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
@@ -19,7 +19,7 @@ import { SelectList } from '../../widgets/select-list.js';
 
 const CUSTOM_PROVIDER_VALUE = '\u0000custom-provider';
 const CUSTOM_FORMATS: readonly {
-  readonly value: McodeProviderApiFormat;
+  readonly value: RigProviderApiFormat;
   readonly label: string;
   readonly description: string;
 }[] = [
@@ -56,15 +56,15 @@ export interface TuiProviderOnboardingResult {
 }
 
 export interface TuiProviderOnboardingOptions {
-  readonly templates: readonly McodeProviderTemplate[];
-  readonly providers?: readonly McodeProviderView[];
+  readonly templates: readonly RigProviderTemplate[];
+  readonly providers?: readonly RigProviderView[];
   readonly catalogWarning?: string;
   readonly onDiscover?: (
-    input: McodeDiscoverProviderModelsInput,
-  ) => Promise<readonly McodeProviderModel[]>;
+    input: RigDiscoverProviderModelsInput,
+  ) => Promise<readonly RigProviderModel[]>;
   readonly onSave: (
-    input: McodeSaveProviderCandidateInput,
-  ) => Promise<McodeSaveProviderCandidateResult>;
+    input: RigSaveProviderCandidateInput,
+  ) => Promise<RigSaveProviderCandidateResult>;
   readonly onComplete: (result: TuiProviderOnboardingResult) => void | Promise<void>;
   readonly onCancel: () => void;
   readonly requestRender: () => void;
@@ -76,8 +76,8 @@ export class TuiProviderOnboarding implements Component, Focusable {
   private readonly searchInput = new Input({ prompt: '' });
   private readonly textInput = new Input({ prompt: '' });
   private readonly secretInput = new Input({ prompt: '', mask: '•' });
-  private template?: McodeProviderTemplate;
-  private connection?: McodeProviderView;
+  private template?: RigProviderTemplate;
+  private connection?: RigProviderView;
   private alias = '';
   private selectedModelId = '';
   private modelFocus: ModelFocus = 'models';
@@ -86,10 +86,10 @@ export class TuiProviderOnboarding implements Component, Focusable {
   private presetBaseUrl = '';
   private customName = '';
   private customBaseUrl = '';
-  private customApiFormat: McodeProviderApiFormat = 'openai-completions';
+  private customApiFormat: RigProviderApiFormat = 'openai-completions';
   private customModelId = '';
   private customApiKey = '';
-  private discoveredModels: readonly McodeProviderModelInput[] = [];
+  private discoveredModels: readonly RigProviderModelInput[] = [];
   private discovering = false;
   private busy = false;
   private status = '';
@@ -395,7 +395,7 @@ export class TuiProviderOnboarding implements Component, Focusable {
     return list;
   }
 
-  private filteredModels(): McodeProviderTemplate['models'] {
+  private filteredModels(): RigProviderTemplate['models'] {
     const query = this.searchInput.getValue().trim().toLocaleLowerCase();
     return (this.template?.models ?? []).filter((model) =>
       `${model.modelId} ${model.displayName ?? ''}`.toLocaleLowerCase().includes(query),
@@ -405,7 +405,7 @@ export class TuiProviderOnboarding implements Component, Focusable {
   private createFormatList(): SelectList {
     const list = this.createList([...CUSTOM_FORMATS]);
     list.onSelect = (item) => {
-      this.customApiFormat = item.value as McodeProviderApiFormat;
+      this.customApiFormat = item.value as RigProviderApiFormat;
       this.enterMode('api-key');
     };
     return list;
@@ -522,7 +522,7 @@ export class TuiProviderOnboarding implements Component, Focusable {
     this.enterMode(this.matchingConnections().length ? 'connection' : 'model');
   }
 
-  private matchingConnections(): readonly McodeProviderView[] {
+  private matchingConnections(): readonly RigProviderView[] {
     const template = this.template;
     return template
       ? (this.options.providers ?? []).filter(
@@ -678,7 +678,7 @@ export class TuiProviderOnboarding implements Component, Focusable {
     }
   }
 
-  private saveInput(apiKey: string): McodeSaveProviderCandidateInput | undefined {
+  private saveInput(apiKey: string): RigSaveProviderCandidateInput | undefined {
     if (this.template) {
       if (!this.selectedModelId) return undefined;
       return {
@@ -774,7 +774,7 @@ export class TuiProviderOnboarding implements Component, Focusable {
             : this.createFormatList();
   }
 
-  private selectedModel(): McodeProviderTemplate['models'][number] | undefined {
+  private selectedModel(): RigProviderTemplate['models'][number] | undefined {
     return this.template?.models.find((model) => model.modelId === this.selectedModelId);
   }
 

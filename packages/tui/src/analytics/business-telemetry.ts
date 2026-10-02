@@ -1,42 +1,42 @@
 import { randomUUID } from 'node:crypto';
 import type { RigBuildEnv, RigRegion } from '@rig/config';
 
-export type McodeChatType = 'chat' | 'agent_team' | 'claw' | 'hermes' | 'IM';
-export type McodeLoginSource =
+export type RigChatType = 'chat' | 'agent_team' | 'claw' | 'hermes' | 'IM';
+export type RigLoginSource =
   | 'agent_web'
   | 'agent_desktop'
   | 'openplatform'
-  | 'mcode_tui'
-  | 'mcode_cli';
-export type McodeLoginFailReason = '' | '1' | '2' | '3' | '4' | '5';
-export type McodeSlashCommandType =
+  | 'rig_tui'
+  | 'rig_cli';
+export type RigLoginFailReason = '' | '1' | '2' | '3' | '4' | '5';
+export type RigSlashCommandType =
   | 'skill'
   | 'new_chat'
   | 'summarize'
   | 'plan_mode'
   | 'goal_mode'
   | 'other';
-export type McodeAtCommandType = 'plugins' | 'goal_mode' | 'plan_mode' | 'file' | 'directory';
-export type McodeDurationBucket =
+export type RigAtCommandType = 'plugins' | 'goal_mode' | 'plan_mode' | 'file' | 'directory';
+export type RigDurationBucket =
   'not_applicable' | 'under_1m' | '1m_to_5m' | '5m_to_30m' | 'over_30m';
 
 interface ChatContextProperties {
-  readonly chat_type: McodeChatType;
+  readonly chat_type: RigChatType;
 }
 
-export interface McodeBusinessEventMap {
+export interface RigBusinessEventMap {
   readonly tui_launch: { readonly launch_type: 'cold' | 'hot' };
   readonly login_click: Record<string, never>;
   readonly logout_click: Record<string, never>;
   readonly login_result: {
-    readonly source: McodeLoginSource;
+    readonly source: RigLoginSource;
     readonly result_type: '1' | '2';
-    readonly fail_reason: McodeLoginFailReason;
+    readonly fail_reason: RigLoginFailReason;
     readonly login_type: 'google' | 'mobile' | 'wechat' | 'apple' | 'rig_sso' | 'rig_oauth';
   };
   readonly btw_session_lifecycle: {
     readonly phase: 'opened' | 'closed';
-    readonly duration_bucket: McodeDurationBucket;
+    readonly duration_bucket: RigDurationBucket;
     readonly exit_reason: '' | 'ctrl_c' | 'ctrl_d' | 'navigation' | 'replaced';
   };
   readonly chat_send: ChatContextProperties & {
@@ -45,31 +45,31 @@ export interface McodeBusinessEventMap {
   };
   readonly slash_command_menu_view: ChatContextProperties;
   readonly slash_command_click: ChatContextProperties & {
-    readonly command_type: McodeSlashCommandType;
+    readonly command_type: RigSlashCommandType;
   };
   readonly at_command_menu_view: ChatContextProperties;
   readonly at_command_click: ChatContextProperties & {
-    readonly command_type: McodeAtCommandType;
+    readonly command_type: RigAtCommandType;
   };
 }
 
-export type McodeBusinessEventName = keyof McodeBusinessEventMap;
-export type McodeBusinessEvent = {
-  [Event in McodeBusinessEventName]: {
+export type RigBusinessEventName = keyof RigBusinessEventMap;
+export type RigBusinessEvent = {
+  [Event in RigBusinessEventName]: {
     readonly event: Event;
-    readonly properties: McodeBusinessEventMap[Event];
+    readonly properties: RigBusinessEventMap[Event];
   };
-}[McodeBusinessEventName];
+}[RigBusinessEventName];
 
-export interface McodeBusinessTelemetry {
-  track<Event extends McodeBusinessEventName>(
+export interface RigBusinessTelemetry {
+  track<Event extends RigBusinessEventName>(
     event: Event,
-    properties: McodeBusinessEventMap[Event],
+    properties: RigBusinessEventMap[Event],
   ): void;
   flush(): Promise<void>;
 }
 
-export interface CreateMcodeBusinessTelemetryOptions {
+export interface CreateRigBusinessTelemetryOptions {
   readonly region: RigRegion;
   readonly buildEnv: RigBuildEnv;
   readonly version: string;
@@ -80,13 +80,13 @@ export interface CreateMcodeBusinessTelemetryOptions {
   readonly timeoutMs?: number;
 }
 
-export interface McodeTelemetryPolicy {
+export interface RigTelemetryPolicy {
   readonly enabled: boolean;
   readonly configured: boolean;
-  readonly blockedBy?: 'RIG_DISABLE_TELEMETRY' | 'MCODE_DISABLE_TELEMETRY' | 'DO_NOT_TRACK';
+  readonly blockedBy?: 'RIG_DISABLE_TELEMETRY' | 'DO_NOT_TRACK';
 }
 
-export interface McodeBusinessTelemetryPreview {
+export interface RigBusinessTelemetryPreview {
   readonly endpoint: string;
   readonly method: 'POST';
   readonly contentType: 'application/x-www-form-urlencoded';
@@ -103,7 +103,7 @@ export interface SensorsPayload {
   };
   readonly properties: Record<string, unknown>;
   readonly type: 'track';
-  readonly event: McodeBusinessEventName;
+  readonly event: RigBusinessEventName;
   readonly time: number;
 }
 
@@ -120,20 +120,17 @@ const EVENT_PROPERTY_KEYS = {
   at_command_menu_view: ['chat_type'],
   at_command_click: ['chat_type', 'command_type'],
 } as const satisfies {
-  [Event in McodeBusinessEventName]: readonly Extract<keyof McodeBusinessEventMap[Event], string>[];
+  [Event in RigBusinessEventName]: readonly Extract<keyof RigBusinessEventMap[Event], string>[];
 };
 
-export function resolveMcodeBusinessTelemetryPolicy(options: {
+export function resolveRigBusinessTelemetryPolicy(options: {
   readonly configEnabled?: boolean;
   readonly environment?: NodeJS.ProcessEnv;
-}): McodeTelemetryPolicy {
+}): RigTelemetryPolicy {
   const environment = options.environment ?? process.env;
   const configured = options.configEnabled === true;
   if (isEnabledEnvironmentFlag(environment.RIG_DISABLE_TELEMETRY)) {
     return { enabled: false, configured, blockedBy: 'RIG_DISABLE_TELEMETRY' };
-  }
-  if (isEnabledEnvironmentFlag(environment.MCODE_DISABLE_TELEMETRY)) {
-    return { enabled: false, configured, blockedBy: 'MCODE_DISABLE_TELEMETRY' };
   }
   if (isEnabledEnvironmentFlag(environment.DO_NOT_TRACK)) {
     return { enabled: false, configured, blockedBy: 'DO_NOT_TRACK' };
@@ -141,13 +138,13 @@ export function resolveMcodeBusinessTelemetryPolicy(options: {
   return { enabled: configured, configured };
 }
 
-export function createMcodeBusinessTelemetry(
-  options: CreateMcodeBusinessTelemetryOptions,
-): McodeBusinessTelemetry {
+export function createRigBusinessTelemetry(
+  options: CreateRigBusinessTelemetryOptions,
+): RigBusinessTelemetry {
   const fetchImpl = options.fetch ?? fetch;
-  const endpoint = resolveMcodeBusinessTelemetryEndpoint(options.region, options.buildEnv);
+  const endpoint = resolveRigBusinessTelemetryEndpoint(options.region, options.buildEnv);
   const queueLimit = Math.max(1, options.queueLimit ?? DEFAULT_QUEUE_LIMIT);
-  const queue: McodeBusinessEvent[] = [];
+  const queue: RigBusinessEvent[] = [];
   let drainPromise: Promise<void> | undefined;
   let drainScheduled = false;
 
@@ -185,7 +182,7 @@ export function createMcodeBusinessTelemetry(
   return {
     track(event, properties) {
       if (queue.length >= queueLimit) queue.shift();
-      queue.push({ event, properties } as McodeBusinessEvent);
+      queue.push({ event, properties } as RigBusinessEvent);
       scheduleDrain();
     },
     async flush() {
@@ -196,20 +193,20 @@ export function createMcodeBusinessTelemetry(
   };
 }
 
-export function createMcodeBusinessTelemetryPreview<Event extends McodeBusinessEventName>(
+export function createRigBusinessTelemetryPreview<Event extends RigBusinessEventName>(
   event: Event,
-  properties: McodeBusinessEventMap[Event],
-  options: CreateMcodeBusinessTelemetryOptions,
-): McodeBusinessTelemetryPreview {
+  properties: RigBusinessEventMap[Event],
+  options: CreateRigBusinessTelemetryOptions,
+): RigBusinessTelemetryPreview {
   return {
-    endpoint: resolveMcodeBusinessTelemetryEndpoint(options.region, options.buildEnv),
+    endpoint: resolveRigBusinessTelemetryEndpoint(options.region, options.buildEnv),
     method: 'POST',
     contentType: 'application/x-www-form-urlencoded',
-    payload: createSensorsPayload({ event, properties } as McodeBusinessEvent, options),
+    payload: createSensorsPayload({ event, properties } as RigBusinessEvent, options),
   };
 }
 
-export function bucketMcodeDuration(durationMs: number): McodeDurationBucket {
+export function bucketRigDuration(durationMs: number): RigDurationBucket {
   if (durationMs < 60_000) return 'under_1m';
   if (durationMs < 5 * 60_000) return '1m_to_5m';
   if (durationMs < 30 * 60_000) return '5m_to_30m';
@@ -217,8 +214,8 @@ export function bucketMcodeDuration(durationMs: number): McodeDurationBucket {
 }
 
 function createSensorsPayload(
-  item: McodeBusinessEvent,
-  options: CreateMcodeBusinessTelemetryOptions,
+  item: RigBusinessEvent,
+  options: CreateRigBusinessTelemetryOptions,
 ): SensorsPayload {
   const eventProperties = selectEventProperties(item);
   // A fresh ID satisfies the receiver's envelope without linking separate events.
@@ -241,14 +238,14 @@ function createSensorsPayload(
   };
 }
 
-function selectEventProperties(item: McodeBusinessEvent): Record<string, string | number> {
+function selectEventProperties(item: RigBusinessEvent): Record<string, string | number> {
   const selected: Record<string, string | number> = {};
   const properties = item.properties as Record<string, string | number>;
   for (const key of EVENT_PROPERTY_KEYS[item.event]) selected[key] = properties[key]!;
   return selected;
 }
 
-export function resolveMcodeBusinessTelemetryEndpoint(
+export function resolveRigBusinessTelemetryEndpoint(
   region: RigRegion,
   buildEnv: RigBuildEnv,
 ): string {

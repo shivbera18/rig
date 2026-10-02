@@ -1,16 +1,16 @@
 import { RigProviderApplication } from '../provider/application.js';
-import type { McodeProviderApiFormat, McodeProviderSnapshot } from '../provider/contract.js';
+import type { RigProviderApiFormat, RigProviderSnapshot } from '../provider/contract.js';
 import { prepareTuiDataDir } from '../runtime/data-dir.js';
 import { createTuiRuntime, shutdownTuiRuntime } from '../runtime/lifecycle.js';
 import { formatTuiActionFailure } from '../user-facing-failure.js';
 
-export type McodeProviderCliRequest =
+export type RigProviderCliRequest =
   | { readonly action: 'list'; readonly json?: boolean }
   | {
       readonly action: 'add';
       readonly name: string;
       readonly baseUrl: string;
-      readonly apiFormat: McodeProviderApiFormat;
+      readonly apiFormat: RigProviderApiFormat;
       readonly models: readonly string[];
       readonly contextLimit?: number;
       readonly outputLimit?: number;
@@ -28,22 +28,22 @@ export type McodeProviderCliRequest =
   | { readonly action: 'set-rig-key'; readonly apiKeyEnv?: string }
   | { readonly action: 'use'; readonly source: 'token_plan' | 'rig_api_key' };
 
-interface McodeProviderCommandContext {
+interface RigProviderCommandContext {
   readonly application: RigProviderApplication;
   shutdown(): Promise<void>;
 }
 
-export interface RunMcodeProviderCommandOptions {
+export interface RunRigProviderCommandOptions {
   readonly version: string;
-  readonly request: McodeProviderCliRequest;
+  readonly request: RigProviderCliRequest;
   readonly environment?: Readonly<Record<string, string | undefined>>;
   readonly workspaceDir?: string;
   readonly lane?: string;
-  readonly createContext?: (lane?: string) => Promise<McodeProviderCommandContext>;
+  readonly createContext?: (lane?: string) => Promise<RigProviderCommandContext>;
 }
 
-export async function runMcodeProviderCommand(
-  options: RunMcodeProviderCommandOptions,
+export async function runRigProviderCommand(
+  options: RunRigProviderCommandOptions,
 ): Promise<string> {
   const context = options.createContext
     ? await options.createContext(options.lane)
@@ -158,7 +158,7 @@ async function createProviderCommandContext(
   version: string,
   workspaceDir = process.cwd(),
   lane?: string,
-): Promise<McodeProviderCommandContext> {
+): Promise<RigProviderCommandContext> {
   const runtime = await createTuiRuntime({
     dataDir: await prepareTuiDataDir(),
     workspaceDir,
@@ -174,7 +174,7 @@ async function createProviderCommandContext(
   };
 }
 
-function formatSnapshot(snapshot: McodeProviderSnapshot, json: boolean): string {
+function formatSnapshot(snapshot: RigProviderSnapshot, json: boolean): string {
   if (json) return JSON.stringify(snapshot, null, 2);
   const lines = snapshot.providers.map((provider) => {
     const state = provider.active ? 'active' : provider.enabled ? 'enabled' : 'disabled';

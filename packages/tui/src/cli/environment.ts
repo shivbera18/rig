@@ -7,10 +7,10 @@ import {
 } from '@rig/config';
 
 import {
-  resolveMcodeAuthEnvironment,
-  setMcodeStartupBuildEnvironment,
-  type McodeAuthEnvironment,
-  type ResolveMcodeAuthEnvironmentOptions,
+  resolveRigAuthEnvironment,
+  setRigStartupBuildEnvironment,
+  type RigAuthEnvironment,
+  type ResolveRigAuthEnvironmentOptions,
   type TuiBuildEnvironment,
 } from '../auth/environment.js';
 import { readTuiRegionPreference } from '../auth/region-preference.js';
@@ -31,7 +31,7 @@ const STARTUP_ENVIRONMENT_ALIASES: Readonly<Record<string, TuiBuildEnvironment>>
   prod: 'prod',
 });
 
-export interface ConfigureTuiRuntimeEnvironmentOptions extends ResolveMcodeAuthEnvironmentOptions {
+export interface ConfigureTuiRuntimeEnvironmentOptions extends ResolveRigAuthEnvironmentOptions {
   readonly target?: Record<string, string | undefined>;
   readonly dataDir?: string;
   readonly startupBuildEnvironment?: TuiBuildEnvironment;
@@ -39,12 +39,12 @@ export interface ConfigureTuiRuntimeEnvironmentOptions extends ResolveMcodeAuthE
 
 export function configureTuiRuntimeEnvironment(
   options: ConfigureTuiRuntimeEnvironmentOptions = {},
-): McodeAuthEnvironment {
+): RigAuthEnvironment {
   setLegacyByokProviderMigrationEnabled(false);
   setManagedPresetBaseUrlSyncEnabled(false);
   const { target = process.env, dataDir, startupBuildEnvironment, ...environmentOptions } = options;
-  if (startupBuildEnvironment) setMcodeStartupBuildEnvironment(startupBuildEnvironment);
-  const buildEnvironment = resolveMcodeAuthEnvironment(environmentOptions);
+  if (startupBuildEnvironment) setRigStartupBuildEnvironment(startupBuildEnvironment);
+  const buildEnvironment = resolveRigAuthEnvironment(environmentOptions);
   const preferredRegion = dataDir
     ? readTuiRegionPreference(dataDir, buildEnvironment.buildEnv)
     : undefined;
@@ -52,7 +52,7 @@ export function configureTuiRuntimeEnvironment(
     ? readSharedAuthScope(dataDir, buildEnvironment.buildEnv)
     : undefined;
   const inheritedRegion = readRuntimeRegion(target.RIG_REGION);
-  const environment = resolveMcodeAuthEnvironment({
+  const environment = resolveRigAuthEnvironment({
     ...environmentOptions,
     runtimeRegion:
       environmentOptions.runtimeRegion ??
@@ -119,7 +119,7 @@ export function resolveTuiStartupEnvironmentOption(
 
 export function resolveTuiManagedBackendLane(
   value: string | undefined,
-  buildEnv: McodeAuthEnvironment['buildEnv'] = resolveMcodeAuthEnvironment().buildEnv,
+  buildEnv: RigAuthEnvironment['buildEnv'] = resolveRigAuthEnvironment().buildEnv,
 ): string | undefined {
   if (value === undefined) return undefined;
   if (buildEnv !== 'test' && buildEnv !== 'staging') {
@@ -134,8 +134,8 @@ export function resolveTuiManagedBackendLane(
 
 function readSharedAuthScope(
   dataDir: string,
-  buildEnv: McodeAuthEnvironment['buildEnv'],
-): McodeAuthEnvironment | undefined {
+  buildEnv: RigAuthEnvironment['buildEnv'],
+): RigAuthEnvironment | undefined {
   const authenticatedRegions = (['cn', 'en'] as const).filter((region) => {
     try {
       const namespace = createAuthNamespace({ dataDir, buildEnv, region });
@@ -164,6 +164,6 @@ function isReusableAuthStatus(value: unknown): value is AuthStatus {
   );
 }
 
-function readRuntimeRegion(value: string | undefined): McodeAuthEnvironment['region'] | undefined {
+function readRuntimeRegion(value: string | undefined): RigAuthEnvironment['region'] | undefined {
   return value === 'cn' || value === 'en' ? value : undefined;
 }

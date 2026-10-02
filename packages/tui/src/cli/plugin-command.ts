@@ -1,41 +1,41 @@
 import path from 'node:path';
 
-import { McodePluginApplication } from '../plugin/application.js';
+import { RigPluginApplication } from '../plugin/application.js';
 import type {
-  McodePluginCatalog,
-  McodePluginCliRequest,
-  McodePluginMarketplace,
-  McodePluginView,
+  RigPluginCatalog,
+  RigPluginCliRequest,
+  RigPluginMarketplace,
+  RigPluginView,
 } from '../plugin/contract.js';
 import { prepareTuiDataDir } from '../runtime/data-dir.js';
 import { createTuiRuntime, shutdownTuiRuntime } from '../runtime/lifecycle.js';
 
-interface McodePluginCommandApplication {
+interface RigPluginCommandApplication {
   catalog(input: {
     readonly includeAvailable: boolean;
-    readonly marketplace?: McodePluginMarketplace;
-  }): Promise<McodePluginCatalog>;
-  install(plugin: McodePluginView): Promise<McodePluginView>;
-  remove(plugin: McodePluginView): Promise<McodePluginView>;
-  setEnabled(plugin: McodePluginView, enabled: boolean): Promise<McodePluginView>;
+    readonly marketplace?: RigPluginMarketplace;
+  }): Promise<RigPluginCatalog>;
+  install(plugin: RigPluginView): Promise<RigPluginView>;
+  remove(plugin: RigPluginView): Promise<RigPluginView>;
+  setEnabled(plugin: RigPluginView, enabled: boolean): Promise<RigPluginView>;
   refresh(): Promise<void>;
 }
 
-interface McodePluginCommandContext {
-  readonly application: McodePluginCommandApplication;
+interface RigPluginCommandContext {
+  readonly application: RigPluginCommandApplication;
   readonly dataDir: string;
   shutdown(): Promise<void>;
 }
 
-export interface RunMcodePluginCommandOptions {
+export interface RunRigPluginCommandOptions {
   readonly version: string;
-  readonly request: McodePluginCliRequest;
+  readonly request: RigPluginCliRequest;
   readonly lane?: string;
-  readonly createContext?: (lane?: string) => Promise<McodePluginCommandContext>;
+  readonly createContext?: (lane?: string) => Promise<RigPluginCommandContext>;
 }
 
-export async function runMcodePluginCommand(
-  options: RunMcodePluginCommandOptions,
+export async function runRigPluginCommand(
+  options: RunRigPluginCommandOptions,
 ): Promise<string> {
   const context = options.createContext
     ? await options.createContext(options.lane)
@@ -99,7 +99,7 @@ export async function runMcodePluginCommand(
   }
 }
 
-function toCliPlugin(plugin: McodePluginView) {
+function toCliPlugin(plugin: RigPluginView) {
   return {
     pluginId: plugin.pluginId,
     name: plugin.name,
@@ -114,7 +114,7 @@ function toCliPlugin(plugin: McodePluginView) {
   };
 }
 
-function formatPluginRows(catalog: McodePluginCatalog): string {
+function formatPluginRows(catalog: RigPluginCatalog): string {
   return [...catalog.installed, ...catalog.available]
     .map((plugin) => {
       const marker = plugin.enabled ? '[*]' : plugin.installed ? '[-]' : '[ ]';
@@ -124,7 +124,7 @@ function formatPluginRows(catalog: McodePluginCatalog): string {
     .join('\n');
 }
 
-function formatPlugin(plugin: McodePluginView): string {
+function formatPlugin(plugin: RigPluginView): string {
   return formatPluginRows({
     installed: plugin.installed ? [plugin] : [],
     available: plugin.installed ? [] : [plugin],
@@ -133,11 +133,11 @@ function formatPlugin(plugin: McodePluginView): string {
 
 function parseSelector(
   selector: string,
-  explicitMarketplace?: McodePluginMarketplace,
-): { readonly name: string; readonly marketplace?: McodePluginMarketplace } {
+  explicitMarketplace?: RigPluginMarketplace,
+): { readonly name: string; readonly marketplace?: RigPluginMarketplace } {
   const match = /^([^@]+?)(?:@(official|local))?$/.exec(selector.trim());
   if (!match?.[1]) throw new Error(`Invalid Plugin selector: ${selector}`);
-  const marketplace = match[2] as McodePluginMarketplace | undefined;
+  const marketplace = match[2] as RigPluginMarketplace | undefined;
   if (marketplace && explicitMarketplace && marketplace !== explicitMarketplace) {
     throw new Error(
       `Plugin selector marketplace conflicts with --marketplace ${explicitMarketplace}.`,
@@ -147,10 +147,10 @@ function parseSelector(
 }
 
 function selectPlugin(
-  plugins: readonly McodePluginView[],
+  plugins: readonly RigPluginView[],
   name: string,
-  marketplace?: McodePluginMarketplace,
-): McodePluginView {
+  marketplace?: RigPluginMarketplace,
+): RigPluginView {
   const matches = plugins.filter(
     (plugin) =>
       plugin.name === name && (marketplace === undefined || plugin.marketplace === marketplace),
@@ -162,13 +162,13 @@ function selectPlugin(
       `Plugin ${name} matches multiple marketplaces; use ${name}@official or ${name}@local.`,
     );
   }
-  return matches[0] as McodePluginView;
+  return matches[0] as RigPluginView;
 }
 
 async function createPluginCommandContext(
   version: string = 'unknown',
   lane?: string,
-): Promise<McodePluginCommandContext> {
+): Promise<RigPluginCommandContext> {
   const dataDir = await prepareTuiDataDir();
   const runtime = await createTuiRuntime({
     dataDir,
@@ -178,7 +178,7 @@ async function createPluginCommandContext(
     ...(lane ? { lane } : {}),
   });
   return {
-    application: new McodePluginApplication(runtime.adapter),
+    application: new RigPluginApplication(runtime.adapter),
     dataDir,
     shutdown: async () => {
       await shutdownTuiRuntime(runtime);

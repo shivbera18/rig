@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { stripAnsi } from "../../src/tui/rendering/text.js";
 import { TuiProviderManager } from "../../src/tui/features/provider/manager.js";
-import type { McodeProviderSnapshot } from "../../src/provider/contract.js";
+import type { RigProviderSnapshot } from "../../src/provider/contract.js";
 
-const snapshot: McodeProviderSnapshot = {
+const snapshot: RigProviderSnapshot = {
   rigModelSource: "token_plan",
   providers: [
     {
@@ -43,7 +43,7 @@ const snapshot: McodeProviderSnapshot = {
   ],
 };
 
-const snapshotWithCodex: McodeProviderSnapshot = {
+const snapshotWithCodex: RigProviderSnapshot = {
   ...snapshot,
   providers: [
     {
@@ -63,7 +63,7 @@ const snapshotWithCodex: McodeProviderSnapshot = {
 
 function withSource(
   source: "token_plan" | "rig_api_key",
-): McodeProviderSnapshot {
+): RigProviderSnapshot {
   return {
     ...snapshot,
     rigModelSource: source,
@@ -126,7 +126,7 @@ describe("TuiProviderManager", () => {
       providerId: "openai-codex" as const,
       authUrl: "https://auth.openai.example/authorize",
     }));
-    const pendingSnapshot: McodeProviderSnapshot = {
+    const pendingSnapshot: RigProviderSnapshot = {
       ...snapshotWithCodex,
       providers: snapshotWithCodex.providers.map((provider) =>
         provider.kind === "codex-oauth"
@@ -337,7 +337,7 @@ describe("TuiProviderManager", () => {
     // Regression caught in review: `active` means "current Rig credential
     // source" for Rig rows but "owns the selected model" for custom rows.
     // Rendering both as ● made two rows look selected at once.
-    const withSelectedCustomModel: McodeProviderSnapshot = {
+    const withSelectedCustomModel: RigProviderSnapshot = {
       ...withSource("rig_api_key"),
       providers: withSource("rig_api_key").providers.map((provider) =>
         provider.providerId === "custom_provider:openai"
@@ -371,7 +371,7 @@ describe("TuiProviderManager", () => {
   });
 
   it("redacts credentials and URL parameters from a custom provider", () => {
-    const credentialed: McodeProviderSnapshot = {
+    const credentialed: RigProviderSnapshot = {
       ...snapshot,
       providers: snapshot.providers.map((provider) =>
         provider.providerId === "custom_provider:openai"
@@ -430,7 +430,7 @@ describe("TuiProviderManager", () => {
   it("renders a disabled custom provider without the in-use marker", () => {
     // Regression caught: a leftover selected model rendered `● … Disabled`,
     // claiming a provider Runtime no longer resolves is the active source.
-    const disabled: McodeProviderSnapshot = {
+    const disabled: RigProviderSnapshot = {
       ...snapshot,
       providers: snapshot.providers.map((provider) =>
         provider.providerId === "custom_provider:openai"

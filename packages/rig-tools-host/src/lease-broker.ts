@@ -15,42 +15,42 @@ import {
 } from '@rig/oauth-lease-protocol';
 
 import type {
-  McodeToolsAccessTokenLease,
-  McodeToolsAuthStatusSnapshot,
-  McodeToolsHostAuthSession,
-  McodeToolsHostLogger,
+  RigToolsAccessTokenLease,
+  RigToolsAuthStatusSnapshot,
+  RigToolsHostAuthSession,
+  RigToolsHostLogger,
 } from './contracts.js';
 
-const NOOP_LOGGER: McodeToolsHostLogger = {
+const NOOP_LOGGER: RigToolsHostLogger = {
   info: () => undefined,
   warn: () => undefined,
 };
 
-export interface McodeToolsAuthLeaseBroker {
+export interface RigToolsAuthLeaseBroker {
   endpoint: string;
   capabilityFile: string;
   dispose(): Promise<void>;
 }
 
-export interface StartMcodeToolsAuthLeaseBrokerOptions {
+export interface StartRigToolsAuthLeaseBrokerOptions {
   dataDir: string;
-  session: McodeToolsHostAuthSession;
+  session: RigToolsHostAuthSession;
   now?: () => number;
-  logger?: McodeToolsHostLogger;
+  logger?: RigToolsHostLogger;
 }
 
-export async function startMcodeToolsAuthLeaseBroker(
-  options: StartMcodeToolsAuthLeaseBrokerOptions,
-): Promise<McodeToolsAuthLeaseBroker> {
+export async function startRigToolsAuthLeaseBroker(
+  options: StartRigToolsAuthLeaseBrokerOptions,
+): Promise<RigToolsAuthLeaseBroker> {
   const endpoint = resolveAuthLeaseEndpoint(options.dataDir);
   const capability = randomBytes(32).toString('base64url');
   const now = options.now ?? Date.now;
   const brokerLogger = options.logger ?? NOOP_LOGGER;
-  let cachedLease: McodeToolsAccessTokenLease | undefined;
+  let cachedLease: RigToolsAccessTokenLease | undefined;
   let inFlight:
     | {
         epoch: number;
-        promise: Promise<McodeToolsAccessTokenLease>;
+        promise: Promise<RigToolsAccessTokenLease>;
       }
     | undefined;
   let epoch = 0;
@@ -68,7 +68,7 @@ export async function startMcodeToolsAuthLeaseBroker(
   async function loadValidatedLease(
     minValidityMs: number,
     requestEpoch: number,
-  ): Promise<McodeToolsAccessTokenLease> {
+  ): Promise<RigToolsAccessTokenLease> {
     const lease = await loadLease(options.session, minValidityMs);
     assertFixedLease(lease);
     if (disposed) throw new AuthLeaseProtocolError('BROKER_UNAVAILABLE');
@@ -79,7 +79,7 @@ export async function startMcodeToolsAuthLeaseBroker(
     return lease;
   }
 
-  async function acquireLease(minValidityMs: number): Promise<McodeToolsAccessTokenLease> {
+  async function acquireLease(minValidityMs: number): Promise<RigToolsAccessTokenLease> {
     if (disposed) throw new AuthLeaseProtocolError('BROKER_UNAVAILABLE');
     if (!admissionOpen) throw new AuthLeaseProtocolError('AUTH_REQUIRED');
     if (
@@ -189,7 +189,7 @@ export async function startMcodeToolsAuthLeaseBroker(
 }
 
 async function getCredentialFreeStatus(
-  session: McodeToolsHostAuthSession,
+  session: RigToolsHostAuthSession,
 ): Promise<AuthLeaseSuccessResult> {
   const status = await session.getStatus();
   return {
@@ -201,9 +201,9 @@ async function getCredentialFreeStatus(
 }
 
 async function loadLease(
-  session: McodeToolsHostAuthSession,
+  session: RigToolsHostAuthSession,
   minValidityMs: number,
-): Promise<McodeToolsAccessTokenLease> {
+): Promise<RigToolsAccessTokenLease> {
   try {
     return await session.getAccessToken(minValidityMs);
   } catch (error) {
@@ -216,8 +216,8 @@ async function loadLease(
 }
 
 async function readStatusAfterLeaseFailure(
-  session: McodeToolsHostAuthSession,
-): Promise<McodeToolsAuthStatusSnapshot | undefined> {
+  session: RigToolsHostAuthSession,
+): Promise<RigToolsAuthStatusSnapshot | undefined> {
   try {
     return await session.getStatus();
   } catch {
@@ -226,14 +226,14 @@ async function readStatusAfterLeaseFailure(
 }
 
 function isUsableLease(
-  lease: McodeToolsAccessTokenLease,
+  lease: RigToolsAccessTokenLease,
   minValidityMs: number,
   nowMs: number,
 ): boolean {
   return lease.expiresAtMs - nowMs >= minValidityMs;
 }
 
-function assertFixedLease(lease: McodeToolsAccessTokenLease): void {
+function assertFixedLease(lease: RigToolsAccessTokenLease): void {
   if (
     lease.audience !== AUTH_LEASE_AUDIENCE ||
     lease.scopes.length !== 1 ||

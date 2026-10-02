@@ -126,7 +126,7 @@ describe('TUI automatic incident HTTP privacy boundary', () => {
     expect(files.some((name) => name.startsWith('pending-'))).toBe(false);
   });
 
-  it.each(['RIG_DISABLE_TELEMETRY', 'MCODE_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('%s overrides the diagnostics opt-in', async (key) => {
+  it.each(['RIG_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('%s overrides the diagnostics opt-in', async (key) => {
     vi.stubEnv(key, '1');
     try {
       const { reporter, requests } = fixture(undefined, true, () => true);
@@ -138,7 +138,7 @@ describe('TUI automatic incident HTTP privacy boundary', () => {
     }
   });
 
-  it.each(['config', 'RIG_DISABLE_TELEMETRY', 'MCODE_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('does not upload when %s revokes consent during authentication', async (source) => {
+  it.each(['config', 'RIG_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('does not upload when %s revokes consent during authentication', async (source) => {
     let enabled = true;
     let resolveAuth!: (auth: { accessToken: string; realUserID: string }) => void;
     const auth = new Promise<{ accessToken: string; realUserID: string }>((resolve) => {

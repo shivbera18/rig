@@ -6,7 +6,7 @@ const RIG_TOOLS_MASTER_REMINDER = [
   '</rig-tools-master-reminder>',
 ].join('\n');
 
-export function withMcodeToolsMasterReminder(input: {
+export function withRigToolsMasterReminder(input: {
   reminderText: string | undefined;
   modelID: string | undefined;
   enabled: boolean;

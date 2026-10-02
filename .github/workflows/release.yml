@@ -4,13 +4,33 @@ on:
   push:
     tags:
       - "v*"
+    branches:
+      - main
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
+  auto-tag:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag version bump
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          if git ls-remote --exit-code origin "refs/tags/v$version" >/dev/null 2>&1; then
+            echo "Tag v$version already exists, nothing to do."
+          else
+            git tag "v$version" && git push origin "v$version"
+          fi
   publish-npm:
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -9,8 +9,8 @@ import {
 const providerEnv = {
   RIG_PROVIDER_API_KEY: 'synthetic-provider-value',
   INPUT_RIG_PROVIDER_API_KEY: 'synthetic-input-value',
-  MCODE_PROVIDER_BASE_URL: 'https://provider.example.invalid',
-  MCODE_PROVIDER_MODEL: 'synthetic-model',
+  RIG_PROVIDER_BASE_URL: 'https://provider.example.invalid',
+  RIG_PROVIDER_MODEL: 'synthetic-model',
   CUSTOM_PROVIDER_API_KEY: 'synthetic-custom-value',
   GH_TOKEN: 'synthetic-gh-value',
   GITHUB_TOKEN: 'synthetic-github-value',
@@ -56,8 +56,8 @@ describe('bash subprocess default provider credentials', () => {
     expect(env).not.toHaveProperty('INPUT_RIG_PROVIDER_API_KEY');
     expect(removed).toContain('RIG_PROVIDER_API_KEY');
     expect(removed).toContain('INPUT_RIG_PROVIDER_API_KEY');
-    expect(env.MCODE_PROVIDER_MODEL).toBe(providerEnv.MCODE_PROVIDER_MODEL);
-    expect(env.MCODE_PROVIDER_BASE_URL).toBe(providerEnv.MCODE_PROVIDER_BASE_URL);
+    expect(env.RIG_PROVIDER_MODEL).toBe(providerEnv.RIG_PROVIDER_MODEL);
+    expect(env.RIG_PROVIDER_BASE_URL).toBe(providerEnv.RIG_PROVIDER_BASE_URL);
   });
 
   it('retains the explicit strict allowlist escape hatch', () => {

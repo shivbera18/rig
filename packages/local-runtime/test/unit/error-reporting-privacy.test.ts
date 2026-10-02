@@ -49,7 +49,7 @@ describe('automatic error upload privacy boundary', () => {
     expect(requests).toEqual([]);
   });
 
-  it.each(['RIG_DISABLE_TELEMETRY', 'MCODE_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('%s overrides the diagnostics opt-in', async (key) => {
+  it.each(['RIG_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('%s overrides the diagnostics opt-in', async (key) => {
     vi.stubEnv(key, '1');
     try {
       const { reporter, requests } = reporterFixture(() => true);
@@ -61,7 +61,7 @@ describe('automatic error upload privacy boundary', () => {
     }
   });
 
-  it.each(['config', 'RIG_DISABLE_TELEMETRY', 'MCODE_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('drops buffered diagnostics when %s revokes consent before flushing', async (source) => {
+  it.each(['config', 'RIG_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('drops buffered diagnostics when %s revokes consent before flushing', async (source) => {
     let enabled = true;
     const { reporter, requests } = reporterFixture(() => enabled);
     try {

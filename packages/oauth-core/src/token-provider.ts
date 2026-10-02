@@ -1,5 +1,5 @@
 import {
-  MCODE_OAUTH_SCOPES,
+  RIG_OAUTH_SCOPES,
   type AccessTokenLease,
   type UnauthorizedContext,
 } from './contracts.js';
@@ -9,35 +9,35 @@ import type {
   LoginOptions,
   LoginResult,
   LogoutResult,
-  MCodeOAuthCore,
+  RigOAuthCore,
 } from './auth-core.js';
 
-export interface MCodeTokenProvider {
+export interface RigTokenProvider {
   getStatus(): Promise<AuthStatusSnapshot>;
   getAccessToken(options: { minValidityMs: number }): Promise<AccessTokenLease>;
   handleUnauthorized(context: UnauthorizedContext): Promise<'retry' | 'logout'>;
 }
 
-export interface MCodeAuthManager extends MCodeTokenProvider {
+export interface RigAuthManager extends RigTokenProvider {
   login(options?: LoginOptions): Promise<LoginResult>;
   cancelLogin(): Promise<void>;
   logout(options: { revoke: boolean }): Promise<LogoutResult>;
   watch(listener: (status: AuthStatusSnapshot) => void): () => void;
 }
 
-export function createTokenProvider(core: MCodeOAuthCore): MCodeTokenProvider {
+export function createTokenProvider(core: RigOAuthCore): RigTokenProvider {
   return Object.freeze({
     getStatus: () => core.getStatus(),
     getAccessToken: (options: { minValidityMs: number }) =>
       core.getAccessToken({
-        requiredScopes: [...MCODE_OAUTH_SCOPES],
+        requiredScopes: [...RIG_OAUTH_SCOPES],
         minValidityMs: options.minValidityMs,
       }),
     handleUnauthorized: (context: UnauthorizedContext) => core.handleUnauthorized(context),
   });
 }
 
-export function createAuthManager(core: MCodeOAuthCore): MCodeAuthManager {
+export function createAuthManager(core: RigOAuthCore): RigAuthManager {
   const provider = createTokenProvider(core);
   return Object.freeze({
     ...provider,

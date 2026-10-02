@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const moduleRequire = createRequire(import.meta.url);
-const MCODE_PACKAGE_JSON = '@shivcdhry/rig/package.json';
+const RIG_PACKAGE_JSON = '@shivcdhry/rig/package.json';
 
 export interface NativeModuleCandidateOptions {
   moduleUrl?: string;
@@ -19,7 +19,7 @@ export function getNativeModuleCandidates(
   const candidates: string[] = [];
 
   try {
-    const packageJson = (options.resolvePackage ?? moduleRequire.resolve)(MCODE_PACKAGE_JSON);
+    const packageJson = (options.resolvePackage ?? moduleRequire.resolve)(RIG_PACKAGE_JSON);
     candidates.push(join(dirname(packageJson), nativePath));
   } catch {
     // Standalone binaries do not have an installed @shivcdhry/rig package.

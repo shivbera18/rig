@@ -199,13 +199,13 @@ function isShellAssignment(word: string): boolean {
 }
 
 function uniquePlaceholder(command: string, index: number): string {
-  let attempt = `MCODECOMMANDTOKEN${String(index)}X`;
+  let attempt = `RIGCOMMANDTOKEN${String(index)}X`;
   while (command.includes(attempt)) attempt += 'X';
   return attempt;
 }
 
 function foregroundPrefix(color: string): string {
-  const marker = 'MCODECOLOR';
+  const marker = 'RIGCOLOR';
   const styled = chalk.hex(color)(marker);
   const markerIndex = styled.indexOf(marker);
   return markerIndex < 0 ? '' : styled.slice(0, markerIndex);

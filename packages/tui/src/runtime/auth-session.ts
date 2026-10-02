@@ -4,12 +4,12 @@ import {
   createCredentialStore,
   HttpOAuthClient,
   migrateLegacyAuthNamespace,
-  MCodeOAuthCore,
+  RigOAuthCore,
   type HttpOAuthClientOptions,
   type OAuthClient,
 } from '@rig/oauth-core';
 
-export interface CreateMcodeSharedAuthSessionOptions {
+export interface CreateRigSharedAuthSessionOptions {
   dataDir: string;
   region: RigRegion;
   buildEnv: RigBuildEnv;
@@ -20,9 +20,9 @@ export interface CreateMcodeSharedAuthSessionOptions {
   >;
 }
 
-export function createMcodeSharedAuthSession(
-  options: CreateMcodeSharedAuthSessionOptions,
-): MCodeOAuthCore {
+export function createRigSharedAuthSession(
+  options: CreateRigSharedAuthSessionOptions,
+): RigOAuthCore {
   const namespace = createAuthNamespace({
     dataDir: options.dataDir,
     buildEnv: options.buildEnv,
@@ -30,7 +30,7 @@ export function createMcodeSharedAuthSession(
   });
   const oauthClient = options.oauthClient ?? createHttpOAuthClient(options.oauthEndpoints);
   const credentialStore = createCredentialStore({ authHome: namespace.namespaceHome });
-  return new MCodeOAuthCore({
+  return new RigOAuthCore({
     namespace,
     oauthClient,
     credentialStore,
@@ -39,7 +39,7 @@ export function createMcodeSharedAuthSession(
 }
 
 function createHttpOAuthClient(
-  endpoints: CreateMcodeSharedAuthSessionOptions['oauthEndpoints'],
+  endpoints: CreateRigSharedAuthSessionOptions['oauthEndpoints'],
 ): HttpOAuthClient {
   if (!endpoints) {
     throw new TypeError(

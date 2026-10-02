@@ -32,7 +32,7 @@ import {
 } from "../../src/runtime/event-normalizer.js";
 import type { SendMessageReq } from "@rig/local-runtime-v2/cli-service";
 import type { TuiObservability } from "../../src/observability/local-observability.js";
-import type { McodeAuthProgress } from "../../src/auth/application.js";
+import type { RigAuthProgress } from "../../src/auth/application.js";
 import { formatTuiShortcut } from "../../src/tui/shell/shortcut-labels.js";
 import { createTuiHostKeybindings } from "../../src/tui/shell/keybindings.js";
 import { stripAnsi } from "../../src/tui/rendering/text.js";
@@ -42,8 +42,8 @@ import {
 } from "../../src/tui/features/composer/draft-recovery.js";
 import { composerText } from "../../src/tui/features/composer/copy.js";
 import type {
-  McodeBusinessEvent,
-  McodeBusinessTelemetry,
+  RigBusinessEvent,
+  RigBusinessTelemetry,
 } from "../../src/analytics/business-telemetry.js";
 import { VirtualTerminalScreen } from "../helpers/virtual-terminal.js";
 import { VirtualTerminal } from "../pi-084-upstream/virtual-terminal.js";
@@ -1321,10 +1321,10 @@ describe("createTuiApp", () => {
   });
 
   it("wires complete chat and autocomplete business events into the TUI surface", async () => {
-    const events: McodeBusinessEvent[] = [];
-    const businessTelemetry: McodeBusinessTelemetry = {
+    const events: RigBusinessEvent[] = [];
+    const businessTelemetry: RigBusinessTelemetry = {
       track: (event, properties) =>
-        events.push({ event, properties } as McodeBusinessEvent),
+        events.push({ event, properties } as RigBusinessEvent),
       flush: async () => undefined,
     };
     const app = createTuiApp({
@@ -5690,7 +5690,7 @@ describe("createTuiApp", () => {
     const auth = {
       login: vi.fn(
         async (
-          onProgress?: (progress: McodeAuthProgress) => void,
+          onProgress?: (progress: RigAuthProgress) => void,
           _region?: "cn" | "en",
         ) => {
           authenticated = true;

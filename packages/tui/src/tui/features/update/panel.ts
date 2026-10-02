@@ -13,14 +13,14 @@ import {
   renderDecisionHeading,
 } from '../interaction/decision-frame.js';
 import type {
-  McodeUpdateApplyOptions,
-  McodeUpdateOutcome,
-  McodeUpdatePlan,
+  RigUpdateApplyOptions,
+  RigUpdateOutcome,
+  RigUpdatePlan,
 } from '../../../update/application.js';
 import {
-  isMcodeUpdateAdmissionError,
-  isMcodeUpdateCancelledError,
-  type McodeUpdatePhase,
+  isRigUpdateAdmissionError,
+  isRigUpdateCancelledError,
+  type RigUpdatePhase,
 } from '../../../update/progress.js';
 import { redactTuiCredentials } from '../../transcript/export.js';
 import { presentTuiFailure } from '../../../user-facing-failure.js';
@@ -29,32 +29,32 @@ const UPDATE_ANIMATION_INTERVAL_MS = 80;
 const UPDATE_SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'] as const;
 const UPDATE_RECENT_OUTPUT_LINES = 4;
 
-type ActionableMcodeUpdatePlan = Extract<
-  McodeUpdatePlan,
+type ActionableRigUpdatePlan = Extract<
+  RigUpdatePlan,
   { kind: 'available' | 'package-manager' }
 >;
 
-type McodeUpdatePanelState =
+type RigUpdatePanelState =
   | { status: 'review' }
   | {
       status: 'applying';
       startedAtMs: number;
-      phase: McodeUpdatePhase;
+      phase: RigUpdatePhase;
       cancellable: boolean;
       cancelRequested: boolean;
     }
   | { status: 'paused'; reason: string }
   | { status: 'cancelled' }
   | { status: 'failed'; message: string; diagnostic?: string }
-  | { status: 'succeeded'; outcome: McodeUpdateOutcome };
+  | { status: 'succeeded'; outcome: RigUpdateOutcome };
 
 export interface TuiUpdatePanelOptions {
-  readonly plan: ActionableMcodeUpdatePlan;
+  readonly plan: ActionableRigUpdatePlan;
   readonly maxRows: number | (() => number);
   readonly apply: (
-    plan: ActionableMcodeUpdatePlan,
-    options?: McodeUpdateApplyOptions,
-  ) => Promise<McodeUpdateOutcome>;
+    plan: ActionableRigUpdatePlan,
+    options?: RigUpdateApplyOptions,
+  ) => Promise<RigUpdateOutcome>;
   readonly requestRender: () => void;
   readonly onClose: () => void;
   readonly onRestart: () => Promise<void>;
@@ -63,7 +63,7 @@ export interface TuiUpdatePanelOptions {
 }
 
 export class TuiUpdatePanel implements Component, Focusable {
-  private state: McodeUpdatePanelState = { status: 'review' };
+  private state: RigUpdatePanelState = { status: 'review' };
   private selectedAction = 0;
   private detailsExpanded = false;
   private frameIndex = 0;
@@ -176,8 +176,8 @@ export class TuiUpdatePanel implements Component, Focusable {
       this.setState({ status: 'succeeded', outcome });
     } catch (error) {
       if (this.disposed) return;
-      if (isMcodeUpdateCancelledError(error)) this.setState({ status: 'cancelled' });
-      else if (isMcodeUpdateAdmissionError(error)) {
+      if (isRigUpdateCancelledError(error)) this.setState({ status: 'cancelled' });
+      else if (isRigUpdateAdmissionError(error)) {
         this.setState({ status: 'paused', reason: sanitizeTerminalText(error.message) });
       } else {
         const presentation = presentTuiFailure(error, {
@@ -362,12 +362,12 @@ export class TuiUpdatePanel implements Component, Focusable {
     this.options.requestRender();
   }
 
-  private acceptPhase(phase: McodeUpdatePhase, cancellable: boolean): void {
+  private acceptPhase(phase: RigUpdatePhase, cancellable: boolean): void {
     if (this.disposed || this.state.status !== 'applying') return;
     this.setState({ ...this.state, phase, cancellable });
   }
 
-  private setState(state: McodeUpdatePanelState): void {
+  private setState(state: RigUpdatePanelState): void {
     this.state = state;
     if (state.status === 'applying') this.startAnimation();
     else this.stopAnimation();
@@ -409,7 +409,7 @@ export class TuiUpdatePanel implements Component, Focusable {
   }
 }
 
-function phaseLabel(phase: McodeUpdatePhase): string {
+function phaseLabel(phase: RigUpdatePhase): string {
   if (phase === 'checking') return 'Checking';
   if (phase === 'downloading') return 'Downloading';
   if (phase === 'staging') return 'Staging';
@@ -419,7 +419,7 @@ function phaseLabel(phase: McodeUpdatePhase): string {
   return 'Installing';
 }
 
-function sourceLabel(plan: ActionableMcodeUpdatePlan): string {
+function sourceLabel(plan: ActionableRigUpdatePlan): string {
   return plan.source === 'managed-installer'
     ? 'Official installer'
     : plan.source.replace('-global', '');

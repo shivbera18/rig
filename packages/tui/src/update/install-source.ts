@@ -1,77 +1,77 @@
 import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import path from 'node:path';
 import spawn from 'cross-spawn';
-import { parseMcodeVersion } from './release.js';
-import type { McodeUpdateOperationOptions } from './progress.js';
+import { parseRigVersion } from './release.js';
+import type { RigUpdateOperationOptions } from './progress.js';
 
-export const MCODE_INTERNAL_NPM_REGISTRY = 'https://npmmirror.example.invalid/';
-export const MCODE_PUBLIC_NPM_REGISTRY = 'https://registry.npmjs.org/';
-export const MCODE_PUBLIC_NPM_MIRROR_REGISTRY = 'https://registry.npmmirror.com/';
+export const RIG_INTERNAL_NPM_REGISTRY = 'https://npmmirror.example.invalid/';
+export const RIG_PUBLIC_NPM_REGISTRY = 'https://registry.npmjs.org/';
+export const RIG_PUBLIC_NPM_MIRROR_REGISTRY = 'https://registry.npmmirror.com/';
 const REGISTRY_FETCH_TIMEOUT_MS = 30_000;
-const MCODE_PACKAGE_BASENAME = 'rig';
-const MCODE_INTERNAL_SCOPE = '@rig';
-const MCODE_PUBLIC_SCOPE = '@shivcdhry';
+const RIG_PACKAGE_BASENAME = 'rig';
+const RIG_INTERNAL_SCOPE = '@rig';
+const RIG_PUBLIC_SCOPE = '@shivcdhry';
 // Public packaging rewrites this marker together with the bundled package identity.
-const MCODE_EMBEDDED_PACKAGE_NAME = '@shivcdhry/rig' as McodeNpmPackageName;
+const RIG_EMBEDDED_PACKAGE_NAME = '@shivcdhry/rig' as RigNpmPackageName;
 
-export type McodeNpmDistTag = 'latest' | 'test' | 'preview';
-export type McodeNpmPackageName = '@shivcdhry/rig' | '@rig-ai/code';
+export type RigNpmDistTag = 'latest' | 'test' | 'preview';
+export type RigNpmPackageName = '@shivcdhry/rig' | '@rig-ai/code';
 type TuiBuildEnvironment = 'test' | 'staging' | 'prod';
 
 declare const __TUI_BUILD_ENV__: TuiBuildEnvironment | undefined;
-declare const __TUI_NPM_DIST_TAG__: McodeNpmDistTag | undefined;
+declare const __TUI_NPM_DIST_TAG__: RigNpmDistTag | undefined;
 
-export type McodePackageManagerInstallSource =
+export type RigPackageManagerInstallSource =
   | 'npm-global'
   | 'npm-prefix'
   | 'pnpm-global'
   | 'yarn-global'
   | 'bun-global';
 
-export type McodeInstallSource =
+export type RigInstallSource =
   | 'managed-installer'
-  | McodePackageManagerInstallSource
+  | RigPackageManagerInstallSource
   | 'unsupported';
 
-export interface McodePackageManagerCommand {
+export interface RigPackageManagerCommand {
   readonly executable: string;
   readonly args: readonly string[];
   readonly display: string;
 }
 
-export interface McodeNpmPrefixInstall {
+export interface RigNpmPrefixInstall {
   readonly executable: string;
-  readonly packageName: McodeNpmPackageName;
+  readonly packageName: RigNpmPackageName;
   readonly prefix: string;
   readonly registry: string;
 }
 
-export type McodePackageManagerRunOptions = McodeUpdateOperationOptions;
+export type RigPackageManagerRunOptions = RigUpdateOperationOptions;
 
-export interface McodeNpmDistribution {
-  readonly packageName: McodeNpmPackageName;
+export interface RigNpmDistribution {
+  readonly packageName: RigNpmPackageName;
   readonly registry: string;
 }
 
-export interface ResolveLatestMcodeRegistryVersionDependencies {
+export interface ResolveLatestRigRegistryVersionDependencies {
   readonly platform: NodeJS.Platform;
   readonly run: (command: string, args: readonly string[]) => Promise<string>;
-  readonly distribution: McodeNpmDistribution;
+  readonly distribution: RigNpmDistribution;
   readonly npmExecutable: string;
   readonly environment: NodeJS.ProcessEnv;
   readonly runtimeExecutable: string;
 }
 
-export interface DetectMcodeInstallSourceDependencies {
+export interface DetectRigInstallSourceDependencies {
   readonly installRoot: string;
   readonly platform: NodeJS.Platform;
   readonly packageRoot: () => string | undefined;
   readonly npmGlobalPrefix: () => Promise<string>;
   readonly managedInstall: (installRoot: string) => boolean;
-  readonly prefixInstall: () => McodeNpmPrefixInstall | undefined;
+  readonly prefixInstall: () => RigNpmPrefixInstall | undefined;
 }
 
-export function isManagedMcodeInstallRoot(installRoot: string): boolean {
+export function isManagedRigInstallRoot(installRoot: string): boolean {
   const metadataFile = path.join(installRoot, 'install.json');
   try {
     const metadata = JSON.parse(readFileSync(metadataFile, 'utf8')) as Record<string, unknown>;
@@ -81,19 +81,19 @@ export function isManagedMcodeInstallRoot(installRoot: string): boolean {
   }
 }
 
-export async function detectMcodeInstallSource(
-  dependencies: Partial<DetectMcodeInstallSourceDependencies> & { installRoot: string },
-): Promise<McodeInstallSource> {
+export async function detectRigInstallSource(
+  dependencies: Partial<DetectRigInstallSourceDependencies> & { installRoot: string },
+): Promise<RigInstallSource> {
   const platform = dependencies.platform ?? process.platform;
-  const resolved: DetectMcodeInstallSourceDependencies = {
+  const resolved: DetectRigInstallSourceDependencies = {
     installRoot: dependencies.installRoot,
     platform,
-    packageRoot: dependencies.packageRoot ?? resolveMcodePackageRoot,
+    packageRoot: dependencies.packageRoot ?? resolveRigPackageRoot,
     npmGlobalPrefix:
       dependencies.npmGlobalPrefix ??
       (() => runText(platform === 'win32' ? 'npm.cmd' : 'npm', ['prefix', '--global'])),
-    managedInstall: dependencies.managedInstall ?? isManagedMcodeInstallRoot,
-    prefixInstall: dependencies.prefixInstall ?? resolveMcodeNpmPrefixInstall,
+    managedInstall: dependencies.managedInstall ?? isManagedRigInstallRoot,
+    prefixInstall: dependencies.prefixInstall ?? resolveRigNpmPrefixInstall,
   };
 
   if (resolved.managedInstall(resolved.installRoot)) return 'managed-installer';
@@ -101,7 +101,7 @@ export async function detectMcodeInstallSource(
 
   const packageRoot = resolved.packageRoot();
   if (!packageRoot) return 'unsupported';
-  const heuristic = classifyMcodeInstallPath(packageRoot);
+  const heuristic = classifyRigInstallPath(packageRoot);
   if (heuristic) return heuristic;
 
   try {
@@ -111,9 +111,9 @@ export async function detectMcodeInstallSource(
   }
 }
 
-export function classifyMcodeInstallPath(
+export function classifyRigInstallPath(
   packageRoot: string,
-): McodePackageManagerInstallSource | undefined {
+): RigPackageManagerInstallSource | undefined {
   const normalized = packageRoot.replaceAll('\\', '/').toLocaleLowerCase();
   // Match the published layout (@shivcdhry/rig) plus legacy upstream layouts.
   const pkg = String.raw`(?:@shivcdhry\/rig|@rig(?:-ai)?\/code)`;
@@ -135,26 +135,26 @@ export function classifyMcodeInstallPath(
   return undefined;
 }
 
-export function resolveMcodeNpmDistribution(
-  packageName: McodeNpmPackageName = resolveMcodePackageName() ?? MCODE_EMBEDDED_PACKAGE_NAME,
+export function resolveRigNpmDistribution(
+  packageName: RigNpmPackageName = resolveRigPackageName() ?? RIG_EMBEDDED_PACKAGE_NAME,
   registry?: string,
-): McodeNpmDistribution {
+): RigNpmDistribution {
   // Legacy upstream identities resolve to the published package: the
   // tarball/install paths still reference @rig-ai/code in tests and caches.
   const normalizedName =
-    packageName === ('@rig-ai/code' as McodeNpmPackageName) ? MCODE_EMBEDDED_PACKAGE_NAME : packageName;
-  if (normalizedName === mcodePackageName(MCODE_INTERNAL_SCOPE)) {
-    const resolvedRegistry = registry ? new URL(registry).href : MCODE_INTERNAL_NPM_REGISTRY;
-    if (resolvedRegistry === MCODE_INTERNAL_NPM_REGISTRY) {
+    packageName === ('@rig-ai/code' as RigNpmPackageName) ? RIG_EMBEDDED_PACKAGE_NAME : packageName;
+  if (normalizedName === rigPackageName(RIG_INTERNAL_SCOPE)) {
+    const resolvedRegistry = registry ? new URL(registry).href : RIG_INTERNAL_NPM_REGISTRY;
+    if (resolvedRegistry === RIG_INTERNAL_NPM_REGISTRY) {
       return { packageName: normalizedName, registry: resolvedRegistry };
     }
     throw new Error(`Unsupported Rig npm registry: ${resolvedRegistry}`);
   }
-  if (normalizedName === mcodePackageName(MCODE_PUBLIC_SCOPE)) {
-    const resolvedRegistry = registry ? new URL(registry).href : MCODE_PUBLIC_NPM_REGISTRY;
+  if (normalizedName === rigPackageName(RIG_PUBLIC_SCOPE)) {
+    const resolvedRegistry = registry ? new URL(registry).href : RIG_PUBLIC_NPM_REGISTRY;
     if (
-      resolvedRegistry === MCODE_PUBLIC_NPM_REGISTRY ||
-      resolvedRegistry === MCODE_PUBLIC_NPM_MIRROR_REGISTRY
+      resolvedRegistry === RIG_PUBLIC_NPM_REGISTRY ||
+      resolvedRegistry === RIG_PUBLIC_NPM_MIRROR_REGISTRY
     ) {
       return { packageName: normalizedName, registry: resolvedRegistry };
     }
@@ -163,10 +163,10 @@ export function resolveMcodeNpmDistribution(
   throw new Error(`Unsupported Rig npm package: ${String(packageName)}`);
 }
 
-export function resolveMcodeNpmDistTag(
+export function resolveRigNpmDistTag(
   environment: TuiBuildEnvironment | undefined = readEmbeddedTuiBuildEnvironment(),
-  embeddedTag: McodeNpmDistTag | undefined = readEmbeddedTuiNpmDistTag(),
-): McodeNpmDistTag {
+  embeddedTag: RigNpmDistTag | undefined = readEmbeddedTuiNpmDistTag(),
+): RigNpmDistTag {
   if (embeddedTag) return embeddedTag;
   if (environment === 'test') return 'test';
   if (environment === 'staging') return 'preview';
@@ -177,11 +177,11 @@ export function classifyNpmGlobalInstall(
   packageRoot: string,
   globalPrefix: string,
   platform: NodeJS.Platform = process.platform,
-): McodeInstallSource {
+): RigInstallSource {
   const normalizedRoot = normalizeResolvedPath(packageRoot, platform);
   const platformPath = platform === 'win32' ? path.win32 : path.posix;
   const packageName =
-    mcodePackageNameFromPath(packageRoot) ?? mcodePackageName(MCODE_INTERNAL_SCOPE);
+    rigPackageNameFromPath(packageRoot) ?? rigPackageName(RIG_INTERNAL_SCOPE);
   const candidates =
     platform === 'win32'
       ? [platformPath.join(globalPrefix, 'node_modules', packageName)]
@@ -196,16 +196,16 @@ export function classifyNpmGlobalInstall(
     : 'unsupported';
 }
 
-export function buildMcodePackageManagerCommand(
-  source: McodePackageManagerInstallSource,
+export function buildRigPackageManagerCommand(
+  source: RigPackageManagerInstallSource,
   version: string,
   platform: NodeJS.Platform = process.platform,
-  distribution: McodeNpmDistribution = resolveMcodeNpmDistribution(),
-  prefixInstall?: McodeNpmPrefixInstall,
-): McodePackageManagerCommand {
+  distribution: RigNpmDistribution = resolveRigNpmDistribution(),
+  prefixInstall?: RigNpmPrefixInstall,
+): RigPackageManagerCommand {
   const targetVersion = ['latest', 'preview', 'test'].includes(version)
     ? version
-    : parseMcodeVersion(version);
+    : parseRigVersion(version);
   const target = `${distribution.packageName}@${targetVersion}`;
   const registryArgs = ['--registry', distribution.registry] as const;
   const registryDisplay = `--registry ${distribution.registry}`;
@@ -267,18 +267,18 @@ export function buildMcodePackageManagerCommand(
   }
 }
 
-export async function resolveLatestMcodeRegistryVersion(
-  tag: McodeNpmDistTag,
-  dependencies: Partial<ResolveLatestMcodeRegistryVersionDependencies> = {},
+export async function resolveLatestRigRegistryVersion(
+  tag: RigNpmDistTag,
+  dependencies: Partial<ResolveLatestRigRegistryVersionDependencies> = {},
 ): Promise<string> {
   const platform = dependencies.platform ?? process.platform;
-  const distribution = dependencies.distribution ?? resolveMcodeNpmDistribution();
+  const distribution = dependencies.distribution ?? resolveRigNpmDistribution();
   const run =
     dependencies.run ??
     ((executable, args) => {
       const command = { executable, args, display: executable };
       const bound = dependencies.runtimeExecutable
-        ? bindMcodeNpmCommandToRuntime(command, dependencies.runtimeExecutable)
+        ? bindRigNpmCommandToRuntime(command, dependencies.runtimeExecutable)
         : command;
       return runText(bound.executable, bound.args, dependencies.environment);
     });
@@ -308,7 +308,7 @@ export async function resolveLatestMcodeRegistryVersion(
   if (typeof version !== 'string') {
     throw new Error('Rig registry returned an invalid latest version.');
   }
-  const parsed = parseMcodeVersion(version);
+  const parsed = parseRigVersion(version);
   if (tag === 'latest' && parsed.includes('-')) {
     throw new Error('Rig latest must resolve to a stable semantic version.');
   }
@@ -320,15 +320,15 @@ function readEmbeddedTuiBuildEnvironment(): TuiBuildEnvironment | undefined {
   return __TUI_BUILD_ENV__;
 }
 
-function readEmbeddedTuiNpmDistTag(): McodeNpmDistTag | undefined {
+function readEmbeddedTuiNpmDistTag(): RigNpmDistTag | undefined {
   if (typeof __TUI_NPM_DIST_TAG__ === 'undefined') return undefined;
   return __TUI_NPM_DIST_TAG__;
 }
 
-export function bindMcodeNpmCommandToRuntime(
-  command: McodePackageManagerCommand,
+export function bindRigNpmCommandToRuntime(
+  command: RigPackageManagerCommand,
   runtimeExecutable: string,
-): McodePackageManagerCommand {
+): RigPackageManagerCommand {
   const npmExecutable = realpathSync(command.executable);
   const npmDirectory = path.dirname(npmExecutable);
   // Unix npm is normally a symlink to npm-cli.js. Windows npm.cmd prefers its
@@ -372,7 +372,7 @@ function resolvePnpmNpmShim(npmExecutable: string): string | undefined {
   }
 }
 
-export function createMcodeNpmRuntimeEnvironment(
+export function createRigNpmRuntimeEnvironment(
   environment: NodeJS.ProcessEnv,
   runtimeExecutable: string,
   platform: NodeJS.Platform = process.platform,
@@ -392,10 +392,10 @@ export function createMcodeNpmRuntimeEnvironment(
   return result;
 }
 
-export function runMcodePackageManagerCommand(
-  command: McodePackageManagerCommand,
+export function runRigPackageManagerCommand(
+  command: RigPackageManagerCommand,
   environment: NodeJS.ProcessEnv = process.env,
-  options: McodePackageManagerRunOptions = {},
+  options: RigPackageManagerRunOptions = {},
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     let settled = false;
@@ -441,7 +441,7 @@ export function runMcodePackageManagerCommand(
   });
 }
 
-function notifyPackageManagerOutput(options: McodePackageManagerRunOptions, chunk: Buffer): void {
+function notifyPackageManagerOutput(options: RigPackageManagerRunOptions, chunk: Buffer): void {
   try {
     options.onOutput?.(chunk.toString('utf8'));
   } catch {
@@ -449,28 +449,28 @@ function notifyPackageManagerOutput(options: McodePackageManagerRunOptions, chun
   }
 }
 
-export function resolveMcodePackageName(
+export function resolveRigPackageName(
   entryFile = process.argv[1],
-): McodeNpmPackageName | undefined {
-  return resolveMcodePackageIdentity(entryFile)?.packageName;
+): RigNpmPackageName | undefined {
+  return resolveRigPackageIdentity(entryFile)?.packageName;
 }
 
-export function isInternalMcodePackageName(packageName: string | undefined): boolean {
-  return packageName === mcodePackageName(MCODE_INTERNAL_SCOPE);
+export function isInternalRigPackageName(packageName: string | undefined): boolean {
+  return packageName === rigPackageName(RIG_INTERNAL_SCOPE);
 }
 
-export function resolveInstalledMcodePackageVersion(
+export function resolveInstalledRigPackageVersion(
   entryFile = process.argv[1],
 ): string | undefined {
-  return resolveMcodePackageIdentity(entryFile)?.version;
+  return resolveRigPackageIdentity(entryFile)?.version;
 }
 
-export function resolveMcodeNpmPrefixInstall(
+export function resolveRigNpmPrefixInstall(
   entryFile = process.argv[1],
   platform: NodeJS.Platform = process.platform,
   nodeExecutable = process.execPath,
-): McodeNpmPrefixInstall | undefined {
-  const identity = resolveMcodePackageIdentity(entryFile);
+): RigNpmPrefixInstall | undefined {
+  const identity = resolveRigPackageIdentity(entryFile);
   if (!identity) return undefined;
   const platformPath = platform === 'win32' ? path.win32 : path.posix;
   const nodeModules = platformPath.dirname(platformPath.dirname(identity.packageRoot));
@@ -493,7 +493,7 @@ export function resolveMcodeNpmPrefixInstall(
     platform === 'win32' ? 'npm.cmd' : 'npm',
   );
   if (!existsSync(adjacentNpm)) return undefined;
-  const distribution = resolveMcodeNpmDistribution(identity.packageName);
+  const distribution = resolveRigNpmDistribution(identity.packageName);
   return {
     executable: adjacentNpm,
     packageName: identity.packageName,
@@ -502,13 +502,13 @@ export function resolveMcodeNpmPrefixInstall(
   };
 }
 
-function resolveMcodePackageRoot(entryFile = process.argv[1]): string | undefined {
-  return resolveMcodePackageIdentity(entryFile)?.packageRoot;
+function resolveRigPackageRoot(entryFile = process.argv[1]): string | undefined {
+  return resolveRigPackageIdentity(entryFile)?.packageRoot;
 }
 
-function resolveMcodePackageIdentity(
+function resolveRigPackageIdentity(
   entryFile: string | undefined,
-): { packageName: McodeNpmPackageName; packageRoot: string; version?: string } | undefined {
+): { packageName: RigNpmPackageName; packageRoot: string; version?: string } | undefined {
   if (!entryFile) return undefined;
   let current: string;
   try {
@@ -526,7 +526,7 @@ function resolveMcodePackageIdentity(
           name?: unknown;
           version?: unknown;
         };
-        const packageName = parseMcodePackageName(manifest.name);
+        const packageName = parseRigPackageName(manifest.name);
         if (packageName) {
           // dist/ ships its own stamped package.json; it is not the install root.
           // Keep walking so packageRoot is the .../node_modules/<pkg> dir the
@@ -554,7 +554,7 @@ function findNpmPrefixReceipt(
   packageRoot: string,
   platform: NodeJS.Platform,
   platformPath: typeof path.posix | typeof path.win32,
-): McodeNpmPrefixInstall | undefined {
+): RigNpmPrefixInstall | undefined {
   let candidate = packagePrefix;
   for (let depth = 0; depth < 3; depth += 1) {
     const receipt = readNpmPrefixReceipt(
@@ -578,7 +578,7 @@ function readNpmPrefixReceipt(
   packageRoot: string,
   platform: NodeJS.Platform,
   platformPath: typeof path.posix | typeof path.win32,
-): McodeNpmPrefixInstall | undefined {
+): RigNpmPrefixInstall | undefined {
   try {
     const raw = readFileSync(platformPath.join(prefix, 'install.json'), 'utf8').replace(
       /^\uFEFF/u,
@@ -598,7 +598,7 @@ function readNpmPrefixReceipt(
       releasesDirectory?: unknown;
       currentFile?: unknown;
     };
-    const packageName = parseMcodePackageName(value.packageName);
+    const packageName = parseRigPackageName(value.packageName);
     const legacyLayout = value.schemaVersion === 1 && value.layoutVersion === undefined;
     const versionedLayout =
       value.schemaVersion === 2 &&
@@ -618,7 +618,7 @@ function readNpmPrefixReceipt(
     ) {
       return undefined;
     }
-    const distribution = resolveMcodeNpmDistribution(packageName, value.registry);
+    const distribution = resolveRigNpmDistribution(packageName, value.registry);
     if (
       normalizeResolvedPath(value.prefix, platform) !== normalizeResolvedPath(prefix, platform) ||
       new URL(value.registry).href !== distribution.registry ||
@@ -669,21 +669,21 @@ function isResolvedPathInside(
   return relative !== '' && !relative.startsWith('..') && !platformPath.isAbsolute(relative);
 }
 
-function parseMcodePackageName(value: unknown): McodeNpmPackageName | undefined {
-  if (value === mcodePackageName(MCODE_INTERNAL_SCOPE)) return value as McodeNpmPackageName;
-  if (value === mcodePackageName(MCODE_PUBLIC_SCOPE)) return value as McodeNpmPackageName;
+function parseRigPackageName(value: unknown): RigNpmPackageName | undefined {
+  if (value === rigPackageName(RIG_INTERNAL_SCOPE)) return value as RigNpmPackageName;
+  if (value === rigPackageName(RIG_PUBLIC_SCOPE)) return value as RigNpmPackageName;
   return undefined;
 }
 
-function mcodePackageName(scope: string): McodeNpmPackageName {
-  return `${scope}/${MCODE_PACKAGE_BASENAME}` as McodeNpmPackageName;
+function rigPackageName(scope: string): RigNpmPackageName {
+  return `${scope}/${RIG_PACKAGE_BASENAME}` as RigNpmPackageName;
 }
 
-function mcodePackageNameFromPath(packageRoot: string): McodeNpmPackageName | undefined {
+function rigPackageNameFromPath(packageRoot: string): RigNpmPackageName | undefined {
   const normalized = packageRoot.replaceAll('\\', '/');
   const segments = normalized.split('/');
-  if (segments.at(-1) !== MCODE_PACKAGE_BASENAME) return undefined;
-  return parseMcodePackageName(`${segments.at(-2)}/${MCODE_PACKAGE_BASENAME}`);
+  if (segments.at(-1) !== RIG_PACKAGE_BASENAME) return undefined;
+  return parseRigPackageName(`${segments.at(-2)}/${RIG_PACKAGE_BASENAME}`);
 }
 
 function normalizeResolvedPath(value: string, platform: NodeJS.Platform): string {

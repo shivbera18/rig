@@ -1,30 +1,30 @@
 import { getConfig, getConfigPath, type Config } from '@rig/config';
 import {
-  createMcodeBusinessTelemetryPreview,
-  resolveMcodeBusinessTelemetryPolicy,
+  createRigBusinessTelemetryPreview,
+  resolveRigBusinessTelemetryPolicy,
 } from '../analytics/business-telemetry.js';
-import { resolveMcodeAuthEnvironment, type McodeAuthEnvironment } from '../auth/environment.js';
+import { resolveRigAuthEnvironment, type RigAuthEnvironment } from '../auth/environment.js';
 
-export type McodeTelemetryCliAction = 'status' | 'preview';
+export type RigTelemetryCliAction = 'status' | 'preview';
 
-export interface RunMcodeTelemetryCommandDependencies {
+export interface RunRigTelemetryCommandDependencies {
   readonly environment?: NodeJS.ProcessEnv;
   readonly readConfig?: () => Pick<Config, 'telemetry'>;
   readonly readConfigPath?: () => string;
-  readonly resolveEnvironment?: (environment: NodeJS.ProcessEnv) => McodeAuthEnvironment;
+  readonly resolveEnvironment?: (environment: NodeJS.ProcessEnv) => RigAuthEnvironment;
   readonly now?: () => number;
   readonly randomId?: () => string;
 }
 
-export function runMcodeTelemetryCommand(
-  action: McodeTelemetryCliAction,
+export function runRigTelemetryCommand(
+  action: RigTelemetryCliAction,
   version: string,
-  dependencies: RunMcodeTelemetryCommandDependencies = {},
+  dependencies: RunRigTelemetryCommandDependencies = {},
 ): string {
   const environment = dependencies.environment ?? process.env;
   const config = (dependencies.readConfig ?? getConfig)();
   const channel = (configEnabled: boolean | undefined) =>
-    resolveMcodeBusinessTelemetryPolicy({ configEnabled, environment });
+    resolveRigBusinessTelemetryPolicy({ configEnabled, environment });
   const policy = channel(config.telemetry.enabled);
   const status = {
     enabled: policy.enabled,
@@ -37,7 +37,7 @@ export function runMcodeTelemetryCommand(
       diagnostics: channel(config.telemetry.diagnostics),
     },
     optInSetting: { telemetry: { enabled: true, metrics: true, diagnostics: true } },
-    optOutEnvironment: ['RIG_DISABLE_TELEMETRY=1', 'MCODE_DISABLE_TELEMETRY=1', 'DO_NOT_TRACK=1'],
+    optOutEnvironment: ['RIG_DISABLE_TELEMETRY=1', 'DO_NOT_TRACK=1'],
   };
   if (action === 'status') return `${JSON.stringify(status, null, 2)}\n`;
   if (!policy.enabled) {
@@ -56,7 +56,7 @@ export function runMcodeTelemetryCommand(
   return `${JSON.stringify(
     {
       ...status,
-      request: createMcodeBusinessTelemetryPreview(
+      request: createRigBusinessTelemetryPreview(
         'tui_launch',
         { launch_type: 'cold' },
         {
@@ -72,8 +72,8 @@ export function runMcodeTelemetryCommand(
   )}\n`;
 }
 
-function defaultResolveEnvironment(environment: NodeJS.ProcessEnv): McodeAuthEnvironment {
-  return resolveMcodeAuthEnvironment({
+function defaultResolveEnvironment(environment: NodeJS.ProcessEnv): RigAuthEnvironment {
+  return resolveRigAuthEnvironment({
     runtimeRegion: environment.RIG_REGION === 'en' ? 'en' : 'cn',
   });
 }

@@ -1,37 +1,37 @@
 import type { ModelConfig } from '@rig/config';
 
-export const MCODE_PROVIDER_API_FORMATS = [
+export const RIG_PROVIDER_API_FORMATS = [
   'anthropic-messages',
   'openai-completions',
   'openai-responses',
 ] as const;
-export type McodeProviderApiFormat = (typeof MCODE_PROVIDER_API_FORMATS)[number];
+export type RigProviderApiFormat = (typeof RIG_PROVIDER_API_FORMATS)[number];
 
-const MCODE_PROVIDER_API_FORMAT_SET = new Set<string>(MCODE_PROVIDER_API_FORMATS);
+const RIG_PROVIDER_API_FORMAT_SET = new Set<string>(RIG_PROVIDER_API_FORMATS);
 
-export function isModelProviderApiFormat(value: unknown): value is McodeProviderApiFormat {
-  return typeof value === 'string' && MCODE_PROVIDER_API_FORMAT_SET.has(value);
+export function isModelProviderApiFormat(value: unknown): value is RigProviderApiFormat {
+  return typeof value === 'string' && RIG_PROVIDER_API_FORMAT_SET.has(value);
 }
 export type RigModelSource = 'token_plan' | 'rig_api_key';
 export type RigProviderKind = 'codex-oauth' | 'rig-oauth' | 'rig-api-key' | 'custom';
 
-export interface McodeProviderStatus {
+export interface RigProviderStatus {
   readonly state: string;
   readonly lastTestedAt?: number;
   readonly lastErrorCode?: string;
   readonly lastErrorMessage?: string;
 }
 
-export interface McodeProviderModel {
+export interface RigProviderModel {
   readonly modelId: string;
   readonly displayName?: string;
   readonly selected?: boolean;
   readonly contextLimit?: number;
   readonly maxOutputTokens?: number;
-  readonly status?: McodeProviderStatus;
+  readonly status?: RigProviderStatus;
 }
 
-export interface McodeRuntimeProviderView {
+export interface RigRuntimeProviderView {
   readonly providerId: string;
   readonly name?: string;
   readonly kind?: string;
@@ -42,11 +42,11 @@ export interface McodeRuntimeProviderView {
   readonly maskedApiKey?: string;
   readonly rawApiKey?: string;
   readonly configRevision?: string;
-  readonly models?: readonly McodeProviderModel[];
-  readonly status?: McodeProviderStatus;
+  readonly models?: readonly RigProviderModel[];
+  readonly status?: RigProviderStatus;
 }
 
-export interface McodeProviderView {
+export interface RigProviderView {
   readonly providerId: string;
   readonly name: string;
   readonly kind: RigProviderKind;
@@ -54,20 +54,20 @@ export interface McodeProviderView {
   readonly enabled: boolean;
   readonly readOnly: boolean;
   readonly configRevision?: string;
-  readonly apiFormat?: McodeProviderApiFormat;
+  readonly apiFormat?: RigProviderApiFormat;
   readonly baseUrl?: string;
   readonly hasApiKey: boolean;
   readonly maskedApiKey?: string;
-  readonly models: readonly McodeProviderModel[];
-  readonly status?: McodeProviderStatus;
+  readonly models: readonly RigProviderModel[];
+  readonly status?: RigProviderStatus;
 }
 
-export interface McodeProviderSnapshot {
+export interface RigProviderSnapshot {
   readonly rigModelSource: RigModelSource;
-  readonly providers: readonly McodeProviderView[];
+  readonly providers: readonly RigProviderView[];
 }
 
-export interface McodeProviderModelInput {
+export interface RigProviderModelInput {
   readonly modelId: string;
   readonly displayName?: string;
   readonly configurationSource?: 'manual' | 'discovered';
@@ -81,26 +81,26 @@ export interface McodeProviderModelInput {
   readonly limit?: { readonly context?: number; readonly output?: number };
 }
 
-export interface McodeProviderTemplate {
+export interface RigProviderTemplate {
   readonly providerId: string;
   readonly name: string;
   readonly baseUrl: string;
-  readonly apiFormat: McodeProviderApiFormat;
-  readonly models: readonly McodeProviderModelInput[];
+  readonly apiFormat: RigProviderApiFormat;
+  readonly models: readonly RigProviderModelInput[];
 }
 
-export type McodeCodexOAuthState = 'hidden' | 'disconnected' | 'pending' | 'connected' | 'failed';
+export type RigCodexOAuthState = 'hidden' | 'disconnected' | 'pending' | 'connected' | 'failed';
 
-export type McodeCodexOAuthLoginMethod = 'browser' | 'device_code';
-export interface McodeCodexOAuthLoginOptions {
-  readonly method?: McodeCodexOAuthLoginMethod;
+export type RigCodexOAuthLoginMethod = 'browser' | 'device_code';
+export interface RigCodexOAuthLoginOptions {
+  readonly method?: RigCodexOAuthLoginMethod;
 }
-export interface McodeCodexOAuthStatus {
-  readonly state: McodeCodexOAuthState;
+export interface RigCodexOAuthStatus {
+  readonly state: RigCodexOAuthState;
   readonly providerId: 'openai-codex';
   readonly error?: string;
   readonly loginId?: string;
-  readonly method?: McodeCodexOAuthLoginMethod;
+  readonly method?: RigCodexOAuthLoginMethod;
   readonly authUrl?: string;
   readonly deviceCode?: {
     readonly userCode: string;
@@ -109,75 +109,75 @@ export interface McodeCodexOAuthStatus {
   };
 }
 
-export interface McodeCodexOAuthStartResult extends McodeCodexOAuthStatus {
+export interface RigCodexOAuthStartResult extends RigCodexOAuthStatus {
   readonly authUrl?: string;
 }
 
-export interface McodeCreateProviderInput {
+export interface RigCreateProviderInput {
   readonly name?: string;
   readonly baseUrl: string;
   readonly apiKey: string;
-  readonly apiFormat: McodeProviderApiFormat;
-  readonly models: readonly McodeProviderModelInput[];
+  readonly apiFormat: RigProviderApiFormat;
+  readonly models: readonly RigProviderModelInput[];
   readonly saveAndUse?: boolean;
 }
 
-export interface McodeUpdateProviderInput {
+export interface RigUpdateProviderInput {
   readonly providerId: string;
   readonly name?: string;
   readonly baseUrl?: string;
   readonly apiKey?: string;
-  readonly apiFormat?: McodeProviderApiFormat;
+  readonly apiFormat?: RigProviderApiFormat;
   readonly enabled?: boolean;
-  readonly models?: readonly McodeProviderModelInput[];
+  readonly models?: readonly RigProviderModelInput[];
   readonly saveAndUse?: boolean;
 }
 
-export interface McodeSaveProviderCandidateInput extends Omit<
-  McodeCreateProviderInput,
+export interface RigSaveProviderCandidateInput extends Omit<
+  RigCreateProviderInput,
   'apiKey' | 'apiFormat' | 'models'
 > {
   readonly providerId?: string;
   readonly expectedRevision?: string;
   readonly apiKey?: string;
-  readonly apiFormat?: McodeProviderApiFormat;
-  readonly models?: readonly McodeProviderModelInput[];
+  readonly apiFormat?: RigProviderApiFormat;
+  readonly models?: readonly RigProviderModelInput[];
   readonly modelId: string;
   readonly skipConnectionTest?: boolean;
 }
 
-export type McodeDiscoverProviderModelsInput = {
+export type RigDiscoverProviderModelsInput = {
   readonly baseUrl: string;
 } & (
   | { readonly providerId: string; readonly expectedRevision: string }
-  | { readonly name: string; readonly apiKey: string; readonly apiFormat: McodeProviderApiFormat }
+  | { readonly name: string; readonly apiKey: string; readonly apiFormat: RigProviderApiFormat }
 );
 
-export interface McodeSaveProviderCandidateResult {
+export interface RigSaveProviderCandidateResult {
   readonly success: boolean;
-  readonly status?: McodeProviderStatus;
-  readonly provider?: McodeRuntimeProviderView;
+  readonly status?: RigProviderStatus;
+  readonly provider?: RigRuntimeProviderView;
 }
 
-export interface McodeProviderTestResult {
+export interface RigProviderTestResult {
   readonly success: boolean;
-  readonly status: McodeProviderStatus;
+  readonly status: RigProviderStatus;
 }
 
-export interface McodeProviderRuntimePort {
+export interface RigProviderRuntimePort {
   discoverUserModelsCandidate(
-    input: McodeDiscoverProviderModelsInput,
-  ): Promise<readonly McodeProviderModel[]>;
-  listProviderPresets(): Promise<readonly McodeProviderTemplate[]>;
-  getCodexOAuthStatus(): Promise<McodeCodexOAuthStatus>;
-  startCodexOAuthLogin(options?: McodeCodexOAuthLoginOptions): Promise<McodeCodexOAuthStartResult>;
-  cancelCodexOAuthLogin(loginId: string): Promise<McodeCodexOAuthStatus>;
-  listUserModelProviders(): Promise<readonly McodeRuntimeProviderView[]>;
+    input: RigDiscoverProviderModelsInput,
+  ): Promise<readonly RigProviderModel[]>;
+  listProviderPresets(): Promise<readonly RigProviderTemplate[]>;
+  getCodexOAuthStatus(): Promise<RigCodexOAuthStatus>;
+  startCodexOAuthLogin(options?: RigCodexOAuthLoginOptions): Promise<RigCodexOAuthStartResult>;
+  cancelCodexOAuthLogin(loginId: string): Promise<RigCodexOAuthStatus>;
+  listUserModelProviders(): Promise<readonly RigRuntimeProviderView[]>;
   getRigApiKeyStatus(): Promise<{
     readonly hasApiKey: boolean;
     readonly maskedApiKey?: string;
     readonly rawApiKey?: string;
-    readonly cachedStatus?: McodeProviderStatus;
+    readonly cachedStatus?: RigProviderStatus;
   }>;
   getRigModelSource(): Promise<RigModelSource>;
   setRigModelSource(source: RigModelSource): Promise<RigModelSource>;
@@ -185,12 +185,12 @@ export interface McodeProviderRuntimePort {
     readonly apiKey: string;
     readonly saveAndUse?: boolean;
   }): Promise<void>;
-  createUserModelProvider(input: McodeCreateProviderInput): Promise<void>;
+  createUserModelProvider(input: RigCreateProviderInput): Promise<void>;
   saveUserModelProviderCandidate(
-    input: McodeSaveProviderCandidateInput,
-  ): Promise<McodeSaveProviderCandidateResult>;
-  updateUserModelProvider(input: McodeUpdateProviderInput): Promise<void>;
+    input: RigSaveProviderCandidateInput,
+  ): Promise<RigSaveProviderCandidateResult>;
+  updateUserModelProvider(input: RigUpdateProviderInput): Promise<void>;
   deleteUserModelProvider(providerId: string): Promise<void>;
-  testUserModelProvider(providerId: string): Promise<McodeProviderTestResult>;
-  testUserModel(providerId: string, modelId: string): Promise<McodeProviderTestResult>;
+  testUserModelProvider(providerId: string): Promise<RigProviderTestResult>;
+  testUserModel(providerId: string, modelId: string): Promise<RigProviderTestResult>;
 }

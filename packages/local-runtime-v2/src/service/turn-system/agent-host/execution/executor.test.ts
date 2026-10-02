@@ -1624,7 +1624,7 @@ describe("LocalRuntimeTurnExecutor structured output", () => {
           response_format: {
             type: "json_schema",
             json_schema: {
-              name: "mcode_output",
+              name: "rig_output",
               strict: true,
               schema: outputSchema,
             },

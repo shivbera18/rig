@@ -159,7 +159,7 @@ export class TuiTerminalNotifications {
   }
 }
 
-export function shouldNotifyMcodeTurnComplete(input: {
+export function shouldNotifyRigTurnComplete(input: {
   readonly queuedCount: number;
   readonly hasActiveRun: boolean;
 }): boolean {

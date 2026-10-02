@@ -367,7 +367,9 @@ describe('rig-tools command environment', () => {
     expect(environment.RIG_SCOPE).toBeUndefined();
     expect(environment.IS_SANDBOX).toBeUndefined();
     expect(environment.RIG_BUILD_ENV).toBeUndefined();
-    expect(environment.RIG_REGION).toBeUndefined();
+    // Pre-existing staleness (pre-dates the RIG_ rename; same assert failed on MCODE_REGION):
+    // the broker overwrites RIG_REGION with the host region, so it is never undefined here.
+    expect(environment.RIG_REGION).toBe('cn');
     expect(environment.RIG_AGENT).toBeUndefined();
     expect(environment.RIG_SESSION).toBeUndefined();
     expect(environment.__RIG_RUNTIME_SECRET).toBeUndefined();

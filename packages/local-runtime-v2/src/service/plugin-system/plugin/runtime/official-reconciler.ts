@@ -9,7 +9,7 @@ import {
 
 import { materializeOfficialPluginArchive } from '../package/archive-cache.js';
 import { pluginDigestCacheKey } from '../package/package-contract.js';
-import { readMiniMaxPlugin } from '../package/package-readers.js';
+import { readRigPlugin } from '../package/package-readers.js';
 import type {
   CachedPluginPackage,
   OfficialPluginRepositoryState,
@@ -576,7 +576,7 @@ async function isUsableCachedPackage(
 ): Promise<boolean> {
   try {
     await access(packageRoot);
-    const plugin = await readMiniMaxPlugin(packageRoot, { source: 'OFFICIAL' });
+    const plugin = await readRigPlugin(packageRoot, { source: 'OFFICIAL' });
     return plugin.name === expected.name && plugin.version === expected.version;
   } catch {
     return false;

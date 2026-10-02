@@ -1,4 +1,4 @@
-import { isLegacyManagedMinimaxProvider } from "@rig/config";
+import { isLegacyManagedRigProvider } from "@rig/config";
 import {
   normalizeTuiPermissionMode,
   type TuiPermissionMode,
@@ -25,7 +25,7 @@ import type {
   McodeCodexOAuthStartResult,
   McodeCodexOAuthLoginOptions,
   McodeCodexOAuthStatus,
-  McodeMiniMaxModelSource,
+  RigModelSource,
   McodeProviderTemplate,
   McodeProviderTestResult,
   McodeRuntimeProviderView,
@@ -136,7 +136,7 @@ export class TuiProductAccess {
       .listUserModelProviders()) as unknown as readonly McodeRuntimeProviderView[];
     return providers.filter(
       (provider) =>
-        !isLegacyManagedMinimaxProvider(provider.providerId, provider.baseUrl),
+        !isLegacyManagedRigProvider(provider.providerId, provider.baseUrl),
     );
   }
 
@@ -166,41 +166,41 @@ export class TuiProductAccess {
       .cancelCodexOAuthLogin(loginId)) as McodeCodexOAuthStatus;
   }
 
-  async getMiniMaxApiKeyStatus(): Promise<{
+  async getRigApiKeyStatus(): Promise<{
     readonly hasApiKey: boolean;
     readonly maskedApiKey?: string;
     readonly cachedStatus?: McodeProviderTestResult["status"];
   }> {
     return (await this.context
       .service("provider.rig.status")
-      .getMiniMaxApiKeyStatus()) as {
+      .getRigApiKeyStatus()) as {
       hasApiKey: boolean;
       maskedApiKey?: string;
       cachedStatus?: McodeProviderTestResult["status"];
     };
   }
 
-  getMiniMaxModelSource(): Promise<McodeMiniMaxModelSource> {
+  getRigModelSource(): Promise<RigModelSource> {
     return this.context
       .service("provider.rig.source")
-      .getMiniMaxModelSource();
+      .getRigModelSource();
   }
 
-  setMiniMaxModelSource(
-    source: McodeMiniMaxModelSource,
-  ): Promise<McodeMiniMaxModelSource> {
+  setRigModelSource(
+    source: RigModelSource,
+  ): Promise<RigModelSource> {
     return this.context
       .service("provider.rig.source")
-      .setMiniMaxModelSource({ source });
+      .setRigModelSource({ source });
   }
 
-  async upsertMiniMaxApiKey(input: {
+  async upsertRigApiKey(input: {
     readonly apiKey: string;
     readonly saveAndUse?: boolean;
   }): Promise<void> {
     await this.context
       .service("provider.rig.upsert")
-      .upsertMiniMaxApiKey(input);
+      .upsertRigApiKey(input);
   }
 
   async createUserModelProvider(

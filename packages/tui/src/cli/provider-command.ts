@@ -144,10 +144,10 @@ export async function runMcodeProviderCommand(
       if (!apiKey) {
         throw new Error(`Rig API key is missing. Set ${envName} or pass --api-key-env <name>.`);
       }
-      await context.application.setMiniMaxApiKey(apiKey);
+      await context.application.setRigApiKey(apiKey);
       return 'Rig API Key saved and selected.';
     }
-    await context.application.setMiniMaxSource(request.source);
+    await context.application.setRigSource(request.source);
     return request.source === 'token_plan' ? 'Using Rig Token Plan.' : 'Using Rig API Key.';
   } finally {
     await context.shutdown();

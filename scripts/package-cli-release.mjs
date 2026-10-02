@@ -62,11 +62,11 @@ export function releaseManifest(importers, version) {
     target[name] = [...versions][0];
   }
   return {
-    name: '@rig-ai/code', version, private: true, type: 'module', license: 'MIT',
+    name: '@shivcdhry/rig', version, private: true, type: 'module', license: 'MIT',
     description: 'Rig CLI built from the tagged public source.',
     bin: { rig: 'cli.js' },
     engines: json(path.join(root, 'package.json')).engines,
-    repository: { type: 'git', url: 'https://github.com/Rig-AI/rig.git' },
+    repository: { type: 'git', url: 'https://github.com/shivcdhry/rig.git' },
     dependencies, optionalDependencies,
   };
 }

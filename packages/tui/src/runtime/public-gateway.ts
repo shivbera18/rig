@@ -14,7 +14,7 @@ const PUBLIC_GATEWAY_ORIGINS: Readonly<
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
     staging: 'https://matrix-pre.example.invalid',
-    prod: 'https://agent.minimaxi.com',
+    prod: 'https://agent.rig.cn',
   },
   en: {
     dev: 'https://matrix-overseas-test.example.invalid',
@@ -81,7 +81,7 @@ export function createPublicGatewayRequest(input: {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'User-Agent': 'MiniMaxCode',
+      'User-Agent': 'Rig',
       Authorization: `Bearer ${input.token}`,
       yy: md5(`${encodeURIComponent(pathWithSearch)}_${yyBody}${md5(String(input.nowMs))}ooui`),
       'x-timestamp': String(second),

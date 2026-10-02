@@ -1,10 +1,8 @@
 ---
 name: init
 description: Bootstrap a coding project for AI agents — generate the root `AGENTS.md` (per agents.md spec, consumed by OpenCode/Codex/Cursor/Aider/Devin/Gemini CLI/…). Auto-loaded when the system prompt contains `<bootstrap_check>` (cold-start in a git workspace with no root AGENTS.md); users can also invoke via `/init` or natural language like "init agents.md" / "bootstrap project" / "set up agents for this repo". Coding-specific. For adding standalone agents, use `create-agent`.
-descriptions:
-  zh-Hans: "为代码项目初始化 AI Agent 配置，生成根目录 AGENTS.md。"
-displayNames:
-  zh-Hans: "初始化"
+
+
 ---
 
 # Init

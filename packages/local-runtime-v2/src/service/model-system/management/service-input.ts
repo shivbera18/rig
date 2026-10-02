@@ -2,7 +2,7 @@ import type { LocalModelConfig, ModelProviderTestApi, UserModelInputView } from 
 import { LocalModelProviderError } from '../contracts.js';
 import { isModelProviderApi } from '../identity.js';
 import {
-  isMiniMaxM3ModelId,
+  isRigM3ModelId,
   normalizeModelThinkingEffortOptions,
 } from '../resolution/model-ref.js';
 
@@ -260,7 +260,7 @@ function applyThinkingCleanup(
   input: UserModelInputView,
 ): void {
   if (input.reasoning === false && !input.thinkingConfig?.mode) delete merged.thinking_config;
-  if (!isMiniMaxM3ModelId(modelId)) return;
+  if (!isRigM3ModelId(modelId)) return;
   delete merged.thinking_config;
   delete merged.variants;
 }

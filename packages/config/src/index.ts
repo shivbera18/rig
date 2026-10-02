@@ -22,7 +22,7 @@ export {
   RUNTIME_ENV_PREFIX,
   getRuntimeRegion,
   getRuntimeBuildEnv,
-  allowsManagedMinimaxProviderOverride,
+  allowsManagedRigProviderOverride,
   isBetaFeatureProdReady,
   resolveBetaFeature,
   isInternalBuild,
@@ -53,7 +53,7 @@ export {
   CUSTOM_PROVIDER_ID_PREFIX,
   MANAGED_RIG_PROVIDER_ID,
   RIG_API_PROVIDER_ID,
-  isFirstPartyMinimaxMessagesRoute,
+  isFirstPartyRigMessagesRoute,
   listRouteModelIds,
   resolveModelAvailability,
   resolveModelCallRoute,
@@ -79,20 +79,20 @@ export {
 } from './data-dir.js';
 export type { DataDirMigrationLogger, ResolveDataDirOptions } from './data-dir.js';
 export {
-  isLegacyManagedMinimaxProvider,
+  isLegacyManagedRigProvider,
   isManagedProviderBaseUrl,
   resolveProviderAuthMode,
 } from './provider-auth-mode.js';
 export {
   compareAndSetLocalModelContext,
   removeLocalProviderConfig,
-  replaceLocalManagedMinimaxProvider,
+  replaceLocalManagedRigProvider,
   updateLocalByokConfig,
   updateLocalModelSelection,
 } from './local-model-provider-write.js';
 export type {
   LocalByokConfigDraft,
-  ManagedMinimaxProviderSnapshot,
+  ManagedRigProviderSnapshot,
   LocalModelContextCompareAndSetResult,
   LocalModelSelectionWriteInput,
 } from './local-model-provider-write.js';

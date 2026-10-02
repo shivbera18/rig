@@ -79,10 +79,10 @@ function srcToFilename(src: string | undefined): string | undefined {
  */
 function mediaTagPlaceholder(tagOpen: string): string {
   const caption = readAttr(tagOpen, 'caption')?.trim();
-  if (caption) return `[媒体: ${caption}]`;
+  if (caption) return `[Media: ${caption}]`;
   const filename = srcToFilename(readAttr(tagOpen, 'src'))?.trim();
-  if (filename) return `[媒体: ${filename}]`;
-  return '[媒体]';
+  if (filename) return `[Media: ${filename}]`;
+  return '[Media]';
 }
 
 /**
@@ -137,7 +137,7 @@ export function placeholderMediaTags(text: string): string {
       .replace(/^<deliver-assets(?:\s+[^>]*)?>/iu, '')
       .replace(/<\/deliver-assets>\s*$/iu, '');
     const n = countDeliverChildren(inner);
-    return n > 0 ? `[${n} 个交付资产]` : '[交付资产]';
+    return n > 0 ? `[${n} delivered assets]` : '[Delivered assets]';
   });
 
   // 2. Standalone <media …/> tags → per-tag placeholder.

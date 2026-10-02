@@ -57,7 +57,7 @@ export async function callLocalSafetyCheckV2(input: {
     const result = await postSafetyCheckV2({
       url,
       headers: {
-        'User-Agent': 'MiniMaxAgent',
+        'User-Agent': 'RigAgent',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...managedBackendRoutingHeaders(
           input.routingContext,

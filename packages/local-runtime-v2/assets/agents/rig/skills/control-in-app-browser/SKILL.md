@@ -9,12 +9,9 @@ description: >-
   without explicit Browser intent, prefer a purpose-built connector, API, or CLI when available.
 requiresBeta: browserUseTooling
 descriptions:
-  zh-Hans:
-    '控制当前会话的内置 Browser provider；Electron 可显示在右侧，headless provider
-    没有可见面板。用户明确要求查看或操作内置浏览器、右侧浏览器、当前浏览器或 browser use
-    时必须加载；只有裸链接而没有明确 Browser 意图时，优先匹配专用 Skill、Connector、 API 或 CLI。'
+  en: Control the current chat's session-scoped Browser provider.
 displayNames:
-  zh-Hans: '控制内置浏览器'
+  en: Control In-App Browser
 ---
 
 # Control In-App Browser
@@ -162,7 +159,7 @@ Omitting that flag on a loaded tab fails closed; never add it merely to recover 
 `navigate` incorrectly. With native headless Chrome, use fully qualified absolute HTTP(S) URLs and
 use `navigate` to replace the current headless working page by default; use `open_tab` only when the
 user explicitly requests another tab or the task requires preserving the current page. Explicit
-new-tab requests and Chinese cues such as `继续打开`、`再打开`、`另开` and `新开` always carry
+new-tab requests always carry
 new-tab intent. Do not call `inspect` solely to choose between `navigate` and `open_tab`; use
 Browser state already present in the conversation or tool result. Inspect-first applies only when
 the user refers to a page that is already or currently open in this Browser.

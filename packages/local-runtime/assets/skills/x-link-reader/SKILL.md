@@ -1,8 +1,7 @@
 ---
 name: x-link-reader
 description: "Read X/Twitter content from x.com or twitter.com URLs. Use when the user shares an X or Twitter link (tweet or profile) and asks about its content. Also use when webfetch fails on x.com with anti-bot errors. Bypasses X's anti-scraping via the FxTwitter API — no API key needed."
-descriptions:
-  zh-Hans: "读取 x.com 或 Twitter 链接内容，在网页抓取失败或遇到反爬时通过 FxTwitter API 获取信息。"
+
 ---
 
 # X/Twitter Link Reader

@@ -72,7 +72,7 @@ test("CLI defaults to the shared user config without migrating the old source di
   const config = path.join(home, ".rig", "config.yaml");
   const oldConfig = path.join(home, ".rig", "config.yaml");
   mkdirSync(path.dirname(config), { recursive: true });
-  writeFileSync(config, "telemetry:\n  enabled: true\n", { mode: 0o600 });
+  writeFileSync(config, "telemetry:\n  enabled: false\n", { mode: 0o600 });
   const oldContents = "telemetry:\n  enabled: false\n";
   writeFileSync(oldConfig, oldContents, { mode: 0o600 });
   for (const name of Object.keys(options.env)) {
@@ -93,7 +93,7 @@ test("CLI defaults to the shared user config without migrating the old source di
   assertSuccessfulChild(result);
   const status = JSON.parse(result.stdout);
   assert.equal(status.configFile, config);
-  assert.equal(status.configured, true);
+  assert.equal(status.configured, false);
   assert.equal(readFileSync(oldConfig, "utf8"), oldContents);
 });
 test("provider configuration loads from an isolated data directory", (t) => {

@@ -18,8 +18,7 @@ description: >-
   simply says "check my schedule", "send a message to someone", "find a doc about X", "read this
   feishu doc", or "look up who Zhang San is", this skill applies. Also use it when encountering 401
   / LARK_USER_AUTH_REQUIRED errors — this skill handles the auth flow.
-descriptions:
-  zh-Hans: '通过官方 lark-cli 使用飞书/Lark 全能力，包括日程、任务、消息、通讯录、文档和多维表格；读取/打开任何 feishu.cn / larksuite.com 链接（即使只粘贴裸链接）请按类型路由、不要用 webfetch（飞书反爬会返回广告页）：文档/docx/wiki 用 docs +fetch，表格用 sheets +read，Base 用 base +record-list。'
+
 ---
 
 # Feishu / Lark Tools

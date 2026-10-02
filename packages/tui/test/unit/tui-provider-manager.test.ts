@@ -7,7 +7,7 @@ const snapshot: McodeProviderSnapshot = {
   rigModelSource: "token_plan",
   providers: [
     {
-      providerId: "minimax_oauth",
+      providerId: "rig_oauth",
       name: "Rig OAuth",
       kind: "rig-oauth",
       active: true,
@@ -68,7 +68,7 @@ function withSource(
     ...snapshot,
     rigModelSource: source,
     providers: snapshot.providers.map((provider) =>
-      provider.providerId === "minimax_oauth"
+      provider.providerId === "rig_oauth"
         ? { ...provider, active: source === "token_plan" }
         : provider.providerId === "rig_api"
           ? {
@@ -91,8 +91,8 @@ function createManager(
       success: true,
       status: { state: "available" },
     })),
-    onSetMiniMaxApiKey: vi.fn(async () => undefined),
-    onSetMiniMaxSource: vi.fn(async () => undefined),
+    onSetRigApiKey: vi.fn(async () => undefined),
+    onSetRigSource: vi.fn(async () => undefined),
     onCancel: vi.fn(),
     requestRender: vi.fn(),
     ...overrides,
@@ -172,19 +172,19 @@ describe("TuiProviderManager", () => {
   });
 
   it("switches from Rig API Key back to Rig OAuth with space", async () => {
-    const onSetMiniMaxSource = vi.fn(async () => undefined);
+    const onSetRigSource = vi.fn(async () => undefined);
     const onRefresh = vi.fn(async () => withSource("token_plan"));
     const manager = createManager({
       snapshot: withSource("rig_api_key"),
       onRefresh,
-      onSetMiniMaxSource,
+      onSetRigSource,
     });
 
     manager.handleInput("\u001b[A");
     manager.handleInput(" ");
 
     await vi.waitFor(() =>
-      expect(onSetMiniMaxSource).toHaveBeenCalledWith("token_plan"),
+      expect(onSetRigSource).toHaveBeenCalledWith("token_plan"),
     );
     await vi.waitFor(() => {
       const rendered = stripAnsi(manager.render(84).join("\n"));
@@ -195,12 +195,12 @@ describe("TuiProviderManager", () => {
   });
 
   it("selects OAuth with enter and never sends it to the test API", async () => {
-    const onSetMiniMaxSource = vi.fn(async () => undefined);
+    const onSetRigSource = vi.fn(async () => undefined);
     const onTest = vi.fn(async () => ({
       success: true,
       status: { state: "available" },
     }));
-    const manager = createManager({ onSetMiniMaxSource, onTest });
+    const manager = createManager({ onSetRigSource, onTest });
 
     manager.handleInput("\r");
 
@@ -209,7 +209,7 @@ describe("TuiProviderManager", () => {
         "Using Rig Token Plan.",
       ),
     );
-    expect(onSetMiniMaxSource).toHaveBeenCalledWith("token_plan");
+    expect(onSetRigSource).toHaveBeenCalledWith("token_plan");
     expect(stripAnsi(manager.render(84).join("\n"))).not.toContain(
       "Configure Rig API Key",
     );
@@ -222,9 +222,9 @@ describe("TuiProviderManager", () => {
   });
 
   it("captures the Rig API key when the row has none yet", async () => {
-    const onSetMiniMaxApiKey = vi.fn(async () => undefined);
+    const onSetRigApiKey = vi.fn(async () => undefined);
     const onRefresh = vi.fn(async () => withSource("rig_api_key"));
-    const manager = createManager({ onSetMiniMaxApiKey, onRefresh });
+    const manager = createManager({ onSetRigApiKey, onRefresh });
 
     manager.handleInput("\u001b[B");
     manager.handleInput(" ");
@@ -239,7 +239,7 @@ describe("TuiProviderManager", () => {
     manager.handleInput("\r");
 
     await vi.waitFor(() =>
-      expect(onSetMiniMaxApiKey).toHaveBeenCalledWith("sk-live-key"),
+      expect(onSetRigApiKey).toHaveBeenCalledWith("sk-live-key"),
     );
     await vi.waitFor(() =>
       expect(stripAnsi(manager.render(84).join("\n"))).toContain(
@@ -262,11 +262,11 @@ describe("TuiProviderManager", () => {
   });
 
   it("replaces a saved Rig API key with e", async () => {
-    const onSetMiniMaxApiKey = vi.fn(async () => undefined);
+    const onSetRigApiKey = vi.fn(async () => undefined);
     const onRefresh = vi.fn(async () => withSource("rig_api_key"));
     const manager = createManager({
       snapshot: withSource("rig_api_key"),
-      onSetMiniMaxApiKey,
+      onSetRigApiKey,
       onRefresh,
     });
 
@@ -286,7 +286,7 @@ describe("TuiProviderManager", () => {
     manager.handleInput("\r");
 
     await vi.waitFor(() =>
-      expect(onSetMiniMaxApiKey).toHaveBeenCalledWith("sk-rotated"),
+      expect(onSetRigApiKey).toHaveBeenCalledWith("sk-rotated"),
     );
     await vi.waitFor(() =>
       expect(stripAnsi(manager.render(84).join("\n"))).toContain(
@@ -297,14 +297,14 @@ describe("TuiProviderManager", () => {
 
   it("starts a fresh sign-in from the OAuth row with e", () => {
     const onReLogin = vi.fn();
-    const onSetMiniMaxSource = vi.fn(async () => undefined);
-    const manager = createManager({ onReLogin, onSetMiniMaxSource });
+    const onSetRigSource = vi.fn(async () => undefined);
+    const manager = createManager({ onReLogin, onSetRigSource });
 
     manager.handleInput("e");
 
     expect(onReLogin).toHaveBeenCalledOnce();
     // Sign-in is not a source switch; the panel must not write the source too.
-    expect(onSetMiniMaxSource).not.toHaveBeenCalled();
+    expect(onSetRigSource).not.toHaveBeenCalled();
   });
 
   it("reports a host without auth instead of silently dropping e", () => {
@@ -319,15 +319,15 @@ describe("TuiProviderManager", () => {
 
   it("explains when a host does not support editing a custom row", () => {
     const onReLogin = vi.fn();
-    const onSetMiniMaxApiKey = vi.fn(async () => undefined);
-    const manager = createManager({ onReLogin, onSetMiniMaxApiKey });
+    const onSetRigApiKey = vi.fn(async () => undefined);
+    const manager = createManager({ onReLogin, onSetRigApiKey });
 
     manager.handleInput("\u001b[B");
     manager.handleInput("\u001b[B");
     manager.handleInput("e");
 
     expect(onReLogin).not.toHaveBeenCalled();
-    expect(onSetMiniMaxApiKey).not.toHaveBeenCalled();
+    expect(onSetRigApiKey).not.toHaveBeenCalled();
     expect(stripAnsi(manager.render(84).join("\n"))).toContain(
       "This connection cannot be edited in this host.",
     );
@@ -459,7 +459,7 @@ describe("TuiProviderManager", () => {
     const onRefresh = vi.fn(async () => withSource("token_plan"));
     const manager = createManager({
       snapshot: withSource("rig_api_key"),
-      onSetMiniMaxSource: vi.fn(() => sourceChange),
+      onSetRigSource: vi.fn(() => sourceChange),
       onRefresh,
       requestRender,
     });

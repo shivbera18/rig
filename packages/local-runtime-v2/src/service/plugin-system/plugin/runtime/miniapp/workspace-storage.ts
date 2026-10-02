@@ -24,7 +24,7 @@ import {
   validatePluginPortablePath,
 } from '../../package/package-contract.js';
 import { isMiniAppRuntimePayloadExcludedPath } from '../../package/miniapp/path.js';
-import { readLocalMiniMaxPluginPackage } from '../../package/package-readers.js';
+import { readLocalRigPluginPackage } from '../../package/package-readers.js';
 import type { ScannedLocalPluginPackage } from '../../package/types.js';
 import { writeWorkspaceMiniAppScaffold } from './workspace-scaffold.js';
 
@@ -72,7 +72,7 @@ export class WorkspaceMiniAppStorage {
   ) {}
 
   async readPackageRoot(packageRoot: string): Promise<ScannedLocalPluginPackage> {
-    return readLocalMiniMaxPluginPackage(packageRoot, { rejectHardlinks: true });
+    return readLocalRigPluginPackage(packageRoot, { rejectHardlinks: true });
   }
 
   async materializeRuntimePackage(input: {
@@ -193,7 +193,7 @@ async function initializeWorkspacePackage(input: {
   let committed = false;
   try {
     await writeWorkspaceMiniAppScaffold(stagingRoot, input.pluginId);
-    const staged = await readLocalMiniMaxPluginPackage(await realpath(stagingRoot), {
+    const staged = await readLocalRigPluginPackage(await realpath(stagingRoot), {
       rejectHardlinks: true,
       requireMiniApp: true,
     });
@@ -233,7 +233,7 @@ async function assertWorkspaceTargetIdentity(
   pluginName: string,
 ): Promise<void> {
   try {
-    const installed = await readLocalMiniMaxPluginPackage(canonicalRoot, {
+    const installed = await readLocalRigPluginPackage(canonicalRoot, {
       rejectHardlinks: true,
     });
     if (
@@ -257,7 +257,7 @@ async function assertInstalledWorkspaceCandidate(
   rootPath: string,
   expected: ScannedLocalPluginPackage,
 ): Promise<void> {
-  const observed = await readLocalMiniMaxPluginPackage(rootPath, { rejectHardlinks: true });
+  const observed = await readLocalRigPluginPackage(rootPath, { rejectHardlinks: true });
   if (
     observed.plugin.name === expected.plugin.name &&
     observed.plugin.miniapp &&
@@ -565,7 +565,7 @@ async function resolveWorkspaceCandidate(input: {
   ) {
     throw new Error('unsafe workspace MiniApp candidate root');
   }
-  const packageRead = await readLocalMiniMaxPluginPackage(source, {
+  const packageRead = await readLocalRigPluginPackage(source, {
     rejectHardlinks: true,
     requireMiniApp: true,
   });
@@ -605,7 +605,7 @@ async function stageStableDirectoryCandidate(
   try {
     await copyRuntimePayload(source.source, stagingRoot);
     throwIfAborted(input.signal);
-    const stagedPackage = await readLocalMiniMaxPluginPackage(await realpath(stagingRoot), {
+    const stagedPackage = await readLocalRigPluginPackage(await realpath(stagingRoot), {
       rejectHardlinks: true,
       requireMiniApp: true,
     });
@@ -650,7 +650,7 @@ async function resolveSuppliedCandidate(
   }
   await assertSourceOutsideInstallation(source, path.join(dataDir, 'plugins', input.pluginId));
   try {
-    const sourcePackage = await readLocalMiniMaxPluginPackage(source, {
+    const sourcePackage = await readLocalRigPluginPackage(source, {
       rejectHardlinks: true,
       requireMiniApp: true,
     });

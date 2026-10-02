@@ -63,18 +63,18 @@ export {
 } from './resolution/local-model-resolver.js';
 export {
   capabilitiesFromModelConfig,
-  isMiniMaxM3ModelId,
-  isMiniMaxM3ThinkingMode,
-  MINIMAX_M3_MODEL_ID,
+  isRigM3ModelId,
+  isRigM3ThinkingMode,
+  RIG_M3_MODEL_ID,
   modelLimitsFromConfig,
   modelRefForModel,
   normalizeModelThinkingEffort,
   normalizeModelThinkingEffortOptions,
-  resolveMiniMaxM3ThinkingProtocol,
+  resolveRigM3ThinkingProtocol,
   resolveModelThinkingMiddleEffort,
   resolveModelThinkingProtocol,
   resolveThinkingLevel,
-  type MiniMaxM3ThinkingMode,
+  type RigM3ThinkingMode,
   type ModelThinkingProtocolConfig,
 } from './resolution/model-ref.js';
 export {

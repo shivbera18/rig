@@ -135,7 +135,7 @@ export interface TuiFeatureFlowOptions {
   readonly onArchivedCurrentSession: (sessionId: string) => Promise<void>;
   readonly refreshAutocomplete: () => void;
   /** Starts the `/login` sign-in flow; absent when the host has no auth. */
-  readonly onStartMiniMaxLogin?: () => void;
+  readonly onStartRigLogin?: () => void;
   readonly loadProviderTemplates?: () => Promise<readonly McodeProviderTemplate[]>;
   readonly isStopped?: () => boolean;
   readonly hasLiveRun?: () => boolean;
@@ -942,16 +942,16 @@ export class TuiFeatureFlow {
       },
       onRefreshModels: (provider) => this.providerApplication.refreshModels(provider),
       onSaveCustom: (input) => this.providerApplication.saveCandidate(input),
-      onSetMiniMaxApiKey: (apiKey) => this.providerApplication.setMiniMaxApiKey(apiKey),
-      onSetMiniMaxSource: (source) =>
-        this.providerApplication.setMiniMaxSource(source).then(() => undefined),
-      ...(this.options.onStartMiniMaxLogin
+      onSetRigApiKey: (apiKey) => this.providerApplication.setRigApiKey(apiKey),
+      onSetRigSource: (source) =>
+        this.providerApplication.setRigSource(source).then(() => undefined),
+      ...(this.options.onStartRigLogin
         ? {
             // Sign-in takes over the surface, so the panel closes first and the
             // user reopens `/provider` once the browser round-trip finishes.
             onReLogin: () => {
               this.closeProviderManager();
-              this.options.onStartMiniMaxLogin?.();
+              this.options.onStartRigLogin?.();
             },
           }
         : {}),

@@ -77,7 +77,7 @@ export class HttpCloudGatewayClient implements CloudGatewayClient {
       const resp = await fetch(url, {
         method: 'POST',
         headers: {
-          'User-Agent': 'MiniMaxAgent',
+          'User-Agent': 'RigAgent',
           'Content-Type': 'application/json',
           Authorization: `Bearer ${this.authTokenProvider() ?? ''}`,
         },

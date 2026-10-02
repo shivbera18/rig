@@ -266,7 +266,7 @@ export function resolveMcodeInstallRoot(environment: NodeJS.ProcessEnv = process
     const localAppData = environment.LOCALAPPDATA;
     if (!localAppData)
       throw new Error('LOCALAPPDATA is required to resolve the Rig install root.');
-    return path.join(localAppData, 'MinimaxCode');
+    return path.join(localAppData, 'rig');
   }
   const dataHome = environment.XDG_DATA_HOME || path.join(homedir(), '.local', 'share');
   return path.join(dataHome, 'rig');

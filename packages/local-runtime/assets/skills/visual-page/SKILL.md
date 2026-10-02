@@ -5,12 +5,8 @@ description: >
   Use this skill when: the content involves diagrams (flowcharts, architecture, sequence diagrams),
   data comparisons (tables, charts), timelines, interactive demos, visual layouts, or any scenario
   where a simple webpage would communicate more clearly than markdown text.
-  Also use when the user explicitly asks for a visual page, a webpage, or says "show me" / "画个图" / "做个页面" / "可视化".
+  Also use when the user explicitly asks for a visual page, a webpage, or says "show me" / "draw a diagram" / "make a page" / "visualize".
   This skill should be used proactively by the model — do not wait for the user to ask.
-descriptions:
-  zh-Hans: "在纯文本难以表达时主动创建可视化 HTML 页面，适用于图表、流程、时间线、交互演示和布局说明。"
-displayNames:
-  zh-Hans: "可视化页面"
 ---
 
 # Visual Page Skill
@@ -35,7 +31,7 @@ When the user asks to revise or update a page, edit the existing HTML file direc
 
 **Aesthetics is the goal, not decoration.** A page that "works" but looks cheap is a failure. The reader's eyes judge in 2 seconds before reading a single word. Treat beauty as a non-negotiable requirement equal to data correctness.
 
-**图表先行，文字辅助。** Charts, diagrams, and illustrations are the PRIMARY communication tool — they let readers grasp the point in seconds. Text exists to annotate details that visuals can't convey alone. When building a page, start from "what chart/diagram tells this story?" not "what paragraphs explain this?" If a section has 3+ paragraphs without a visual, you're doing it wrong — find the chart, flow, or illustration that replaces most of that text.
+**Visuals first, text second.** Charts, diagrams, and illustrations are the PRIMARY communication tool — they let readers grasp the point in seconds. Text only provides context, annotations, and takeaways. If a paragraph can be replaced by a chart, diagram, or timeline, replace it.
 
 **Design for the reader.** You are guiding a human eye, not displaying your work. One H1, one core conclusion, F-pattern scanning. Empty space is a feature. Charts and inline SVG beat dense paragraphs for any structured comparison or hierarchy.
 

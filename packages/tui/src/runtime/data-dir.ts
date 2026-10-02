@@ -28,8 +28,8 @@ function getDefaultTuiDataDir(): string {
 }
 
 function readDataDirOverride(environment: TuiDataDirEnvironment): string | undefined {
-  const minimaxDataDir = environment.RIG_DATA_DIR?.trim();
-  if (minimaxDataDir) return minimaxDataDir;
+  const rigDataDir = environment.RIG_DATA_DIR?.trim();
+  if (rigDataDir) return rigDataDir;
 
   const mavisDataDir = environment.RIG_DATA_DIR?.trim();
   return mavisDataDir || undefined;

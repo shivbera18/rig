@@ -118,7 +118,7 @@ describe('business telemetry privacy', () => {
     );
 
     expect(preview).toMatchObject({
-      endpoint: 'https://data.hailuoai.com/meerkat-reporter/api/report?project=MiniMaxAgent',
+      endpoint: 'https://data.hailuoai.com/meerkat-reporter/api/report?project=RigAgent',
       method: 'POST',
       payload: {
         distinct_id: 'single-event',
@@ -211,7 +211,7 @@ describe('business telemetry privacy', () => {
     expect(JSON.parse(enabledOutput)).toMatchObject({
       enabled: true,
       request: {
-        endpoint: 'https://data.hailuo.ai/meerkat-reporter/api/report?project=MiniMaxAgent',
+        endpoint: 'https://data.hailuo.ai/meerkat-reporter/api/report?project=RigAgent',
         payload: {
           identities: { $identity_cookie_id: 'preview-event' },
           distinct_id: 'preview-event',

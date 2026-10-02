@@ -2,8 +2,7 @@
 name: cu-desktop
 description: "Computer Use desktop operation guide. Auto-injected when CU mode is enabled."
 requiresBeta: cuMode
-descriptions:
-  zh-Hans: "Computer Use 桌面操作专家指南。CU mode 开启时自动注入，提供高效的桌面 GUI 操作策略。"
+
 ---
 
 # Computer Use — Desktop Operation Guide
@@ -183,7 +182,7 @@ Use `desktop_type text="your text"` directly.
 Chinese, Japanese, Korean, and other non-ASCII characters may fail with
 `desktop_type`. If direct input does not work:
 
-1. `desktop_clipboard_write text="中文内容"` to write to clipboard
+1. `desktop_clipboard_write text="text content"` to write to clipboard
 2. `desktop_key combo="ctrl+v"` (Windows) or `desktop_key combo="cmd+v"` (macOS) to paste
 
 ### Long Text

@@ -2,7 +2,7 @@ import type { TuiThemeColors } from '../../src/tui/theme/contracts.js';
 
 type TuiThemeColorRole = keyof TuiThemeColors;
 
-export const MINIMAX_CODE_THEME_CONTRAST_POLICY = Object.freeze({
+export const RIG_THEME_CONTRAST_POLICY = Object.freeze({
   backgrounds: Object.freeze({
     dark: '#000000',
     light: '#FFFFFF',

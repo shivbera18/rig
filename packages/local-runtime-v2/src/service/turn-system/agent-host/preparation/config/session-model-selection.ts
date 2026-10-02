@@ -25,7 +25,7 @@ import {
 
 import type { SessionModelSnapshot, SessionRecord } from '../../../../session-system/index.js';
 import {
-  resolveLegacyMinimaxModel,
+  resolveLegacyRigModel,
   type ManagedModelParameterSnapshot,
   type LocalConversationRuntimeConfig,
 } from '../../../../model-system/index.js';
@@ -91,7 +91,7 @@ export async function resolveTurnModelSelection(
   input: ResolveTurnModelSelectionInput,
 ): Promise<TurnModelSelection> {
   let selection = selectRequestedModel(input);
-  const replacement = resolveLegacyMinimaxModel(input.config, selection);
+  const replacement = resolveLegacyRigModel(input.config, selection);
   if (replacement) {
     // Repair only the current Session selection. An explicit queued override
     // must not overwrite a newer model the user selected for the Session.

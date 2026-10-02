@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  MINIMAX_CODE_HEADLESS_LOGIN_REQUIRED_MESSAGE,
+  RIG_HEADLESS_LOGIN_REQUIRED_MESSAGE,
   TuiLoginRequiredError,
   requireTuiAccountLogin,
   requireTuiAgentAccess,
@@ -62,7 +62,7 @@ describe('Rig login gate', () => {
       category: 'config',
       code: 'auth.login_required',
       retryable: false,
-      message: MINIMAX_CODE_HEADLESS_LOGIN_REQUIRED_MESSAGE,
+      message: RIG_HEADLESS_LOGIN_REQUIRED_MESSAGE,
       account,
     } satisfies Partial<TuiLoginRequiredError>);
   });

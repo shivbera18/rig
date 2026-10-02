@@ -15,20 +15,20 @@ import {
 import { type ModelCacheData, type ModelCacheStatusEntry } from './model-cache.js';
 import { byokModelTestStatus } from './config-fingerprint.js';
 import {
-  MINIMAX_API_DEFAULT_BASE_URL,
-  MINIMAX_API_FORMAT,
-  MINIMAX_API_PROVIDER_NAME,
-  minimaxApiBaseUrl,
-  minimaxApiModels,
+  RIG_API_DEFAULT_BASE_URL,
+  RIG_API_FORMAT,
+  RIG_API_PROVIDER_NAME,
+  rigApiBaseUrl,
+  rigApiModels,
 } from './rig-api.js';
 import { normalizeModelThinkingEffortOptions } from './thinking.js';
 
 export {
-  MINIMAX_API_DEFAULT_BASE_URL,
-  MINIMAX_API_FORMAT,
-  MINIMAX_API_PROVIDER_NAME,
-  minimaxApiBaseUrl,
-  minimaxApiModels,
+  RIG_API_DEFAULT_BASE_URL,
+  RIG_API_FORMAT,
+  RIG_API_PROVIDER_NAME,
+  rigApiBaseUrl,
+  rigApiModels,
 };
 
 export type ModelProviderKind = 'rig-managed' | 'rig-api-key' | 'oauth' | 'custom';
@@ -53,7 +53,7 @@ export function builtinProviderKind(
     : 'rig-api-key';
 }
 
-export function hasMinimaxApiKey(config: LocalRuntimeConfig): boolean {
+export function hasRigApiKey(config: LocalRuntimeConfig): boolean {
   return Boolean(config.rig_api?.apiKey?.trim());
 }
 
@@ -63,11 +63,11 @@ export function routeModelEntries(
   providerId: string,
   provider: LocalProviderConfig,
 ): Array<[string, LocalModelConfig]> {
-  const usesMinimaxApiCatalog =
+  const usesRigApiCatalog =
     providerId === RIG_API_PROVIDER_ID ||
     (providerId === 'rig' && config.rigModelSource === 'rig_api_key');
-  const configured = usesMinimaxApiCatalog ? minimaxApiModels(config) : (provider.models ?? {});
-  const fallback = providerId === 'rig' ? minimaxApiModels(config) : {};
+  const configured = usesRigApiCatalog ? rigApiModels(config) : (provider.models ?? {});
+  const fallback = providerId === 'rig' ? rigApiModels(config) : {};
   return listRouteModelIds(config, providerId, getRuntimePresetKey()).flatMap((modelId) => {
     const model = configured[modelId] ?? fallback[modelId];
     return model ? [[modelId, model] as [string, LocalModelConfig]] : [];
@@ -84,7 +84,7 @@ export function modelConfigForRef(
     parsed?.source === 'rig_api' ||
     (provider === 'rig' && config.rigModelSource === 'rig_api_key')
   ) {
-    return minimaxApiModels(config)[modelId];
+    return rigApiModels(config)[modelId];
   }
   if (parsed?.source === 'custom-provider') {
     return config.custom_provider?.[parsed.providerKey]?.models?.[modelId];

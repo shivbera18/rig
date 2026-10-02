@@ -35,15 +35,15 @@ Keep verification details, investigation history, repeated target locations, ste
 walkthroughs, full call chains, multiple alternative fixes, and complete implementation plans out of
 `title` and `content`.
 
-When `responseLanguage` is `zh-CN`, use Simplified Chinese for every user-facing field:
+When user-facing fields are populated:
 
 <review-candidates version="2" verdict="needs-changes">
-  <summary>发现一个需要处理的问题。</summary>
+  <summary>Found an issue that requires changes.</summary>
   <findings>
     <finding priority="P1">
       <target type="line-range" path="packages/example.ts" side="new" start-line="42" end-line="42" />
-      <title>缺少空值保护</title>
-      <content>当 `value &lt; 0 &amp;&amp; config.enabled` 时，本地改动会移除必需的空值保护并直接抛出异常。</content>
+      <title>Missing null check</title>
+      <content>When `value &lt; 0 &amp;&amp; config.enabled`, the change removes required null protection and throws an unhandled error.</content>
     </finding>
   </findings>
 </review-candidates>

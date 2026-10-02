@@ -5,10 +5,10 @@ import { basename, extname, isAbsolute, join } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import type { TuiAttachment } from '../application/invocation.js';
-import { MINIMAX_CODE_MAX_TOTAL_ATTACHMENT_BYTES } from '../application/attachment-policy.js';
+import { RIG_MAX_TOTAL_ATTACHMENT_BYTES } from '../application/attachment-policy.js';
 import { inferTuiNativeVideoMimeType } from '../application/video-mime.js';
 
-export const MINIMAX_CODE_CLIPBOARD_IMAGE_MAX_BYTES = MINIMAX_CODE_MAX_TOTAL_ATTACHMENT_BYTES;
+export const RIG_CLIPBOARD_IMAGE_MAX_BYTES = RIG_MAX_TOTAL_ATTACHMENT_BYTES;
 
 const SUPPORTED_CLIPBOARD_IMAGE_MIME_TYPES = [
   'image/png',
@@ -669,7 +669,7 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
 
 function normalizeMaximumBytes(value: number | undefined): number {
   if (value === undefined || !Number.isFinite(value)) {
-    return MINIMAX_CODE_CLIPBOARD_IMAGE_MAX_BYTES;
+    return RIG_CLIPBOARD_IMAGE_MAX_BYTES;
   }
   return Math.max(0, Math.floor(value));
 }

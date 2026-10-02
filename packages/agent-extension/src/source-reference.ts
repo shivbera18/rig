@@ -1122,9 +1122,8 @@ function appendMissingWebSourceSummary(
   );
   if (citations.length === 0) return text;
 
-  const isChinese = /\p{Script=Han}/u.test(text);
-  const separator = isChinese ? '、' : ', ';
-  const label = isChinese ? '来源：' : 'Sources: ';
+  const separator = ', ';
+  const label = 'Sources: ';
   return `${text.trimEnd()}\n\n${label}${citations.join(separator)}`;
 }
 
@@ -1628,7 +1627,7 @@ function fileExtension(path: string): string | undefined {
 function fileTypeMentionLabels(extension: string): string[] {
   const lower = extension.toLocaleLowerCase();
   const upper = extension.toLocaleUpperCase();
-  return [`${upper} 文件`, `${upper} 文档`, `${lower} 文件`, `${lower} 文档`];
+  return [`${upper} file`, `${upper} document`, `${lower} file`, `${lower} document`];
 }
 
 function matchesSemanticFileMention(value: string, candidates: readonly string[]): boolean {
@@ -2312,7 +2311,7 @@ function cleanRemovedCitationLine(line: string): string {
 }
 
 function normalizeBareToolSourceLines(text: string): string {
-  const label = /[\u3400-\u9fff]/u.test(text) ? '来源：' : 'Source: ';
+  const label = 'Source: ';
   return text
     .replace(
       /^([ \t]*)[（(]\s*(\[[^\]\n]+\]\(#rig-source=[^)\n]+\))\s*[）)][ \t]*$/gmu,

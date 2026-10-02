@@ -25,7 +25,7 @@ const MANAGED_MATRIX_BASE_URLS: Record<
   },
 };
 
-const LEGACY_MANAGED_MATRIX_BASE_URLS = new Set(['https://agent.minimaxi.com']);
+const LEGACY_MANAGED_MATRIX_BASE_URLS = new Set(['https://agent.rig.cn']);
 
 export function normalizeMatrixBaseUrl(value: string): string {
   return value.trim().replace(/\/+$/u, '');

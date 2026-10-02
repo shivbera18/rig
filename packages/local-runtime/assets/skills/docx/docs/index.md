@@ -30,7 +30,7 @@ visual system:
 - `references/typography_guide.md`
 - `references/design_principles.md`
 - `references/cjk_typography.md`
-- `scripts/dotnet/MiniMaxAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
+- `scripts/dotnet/RigAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
 
 Then choose backend and execute.
 

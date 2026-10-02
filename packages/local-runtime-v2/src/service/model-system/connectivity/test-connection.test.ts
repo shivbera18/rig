@@ -6,8 +6,8 @@ const API_KEY = 'test-key';
 const MESSAGES_API = 'anthropic-messages';
 const MESSAGES_PATH = MESSAGES_API.split('-')[0];
 const MESSAGES_VERSION_HEADER = MESSAGES_API.replace('-messages', '-version');
-const GLOBAL_MINIMAX_MESSAGES_URL = `https://api.rig.io/${MESSAGES_PATH}`;
-const CN_MINIMAX_MESSAGES_URL = `https://api.minimaxi.com/${MESSAGES_PATH}`;
+const GLOBAL_RIG_MESSAGES_URL = `https://api.rig.io/${MESSAGES_PATH}`;
+const CN_RIG_MESSAGES_URL = `https://api.rig.cn/${MESSAGES_PATH}`;
 
 function messagesOkResponse(): Response {
   return new Response(
@@ -58,7 +58,7 @@ describe('ModelConnectionTester requests', () => {
 
     const result = await tester.test('p1', {
       api: 'anthropic-messages',
-      baseUrl: `${GLOBAL_MINIMAX_MESSAGES_URL}/`,
+      baseUrl: `${GLOBAL_RIG_MESSAGES_URL}/`,
       apiKey: API_KEY,
       modelId: 'Rig-M3',
     });
@@ -66,7 +66,7 @@ describe('ModelConnectionTester requests', () => {
     expect(result.ok).toBe(true);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe(`${GLOBAL_MINIMAX_MESSAGES_URL}/v1/messages`);
+    expect(url).toBe(`${GLOBAL_RIG_MESSAGES_URL}/v1/messages`);
     expect(init.method).toBe('POST');
     const headers = new Headers(init.headers);
     expect(headers.get('x-api-key')).toBe(API_KEY);
@@ -279,11 +279,11 @@ describe('ModelConnectionTester output budget', () => {
       await expect(
         tester.test(`rig-m3-provider-${mode}`, {
           api: 'anthropic-messages',
-          baseUrl: CN_MINIMAX_MESSAGES_URL,
+          baseUrl: CN_RIG_MESSAGES_URL,
           apiKey: API_KEY,
           modelId: 'Rig-M3',
           outputLimit: 1_024,
-          minimaxM3ThinkingMode: mode,
+          rigM3ThinkingMode: mode,
         }),
       ).resolves.toEqual({ ok: true });
 
@@ -312,11 +312,11 @@ describe('ModelConnectionTester output budget', () => {
     await expect(
       tester.test('rig-m3-provider-thinking-on-output-floor', {
         api: 'anthropic-messages',
-        baseUrl: GLOBAL_MINIMAX_MESSAGES_URL,
+        baseUrl: GLOBAL_RIG_MESSAGES_URL,
         apiKey: API_KEY,
         modelId: 'Rig-M3',
         outputLimit: 1_024,
-        minimaxM3ThinkingMode: 'on',
+        rigM3ThinkingMode: 'on',
       }),
     ).resolves.toEqual({ ok: true });
 
@@ -780,7 +780,7 @@ describe('OpenCode Go connection identity', () => {
     const headers = fetchImpl.mock.calls.map((call) => new Headers(call[1]?.headers));
     for (const header of headers) {
       expect(header.get('x-opencode-session')).toMatch(/^[0-9a-f-]{36}$/u);
-      expect(header.get('user-agent')).toBe('MiniMaxCode');
+      expect(header.get('user-agent')).toBe('Rig');
     }
     expect(headers[0]?.get('x-opencode-session')).not.toBe(headers[1]?.get('x-opencode-session'));
   });

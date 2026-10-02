@@ -14,13 +14,10 @@ description: >-
   installation, configuration, behavior, or documentation. Do not use it for an
   unrelated coding task merely because the task is performed in this workspace.
 descriptions:
-  zh-Hans: >-
-    这是所有 Rig 或 Rig 产品问题的首层总路由 Skill。凡是询问产品身份、归属、
-    Desktop/Web/CLI/TUI、版本、发布、下载、安装、平台支持、升级、官方文档、工作流、
-    Agent、Session、Memory、Team、Skill、Plugin、MCP、账户、Token Plan、订阅、积分、 Credit、API
-    Key、BYOK、模型、价格、额度，或图片/音频/音乐/视频能力时，都应先加载本
-    Skill；再按正文路由并加载对应专项 Skill。遇到动态产品事实时，不要因为直接搜索看似足够
-    就跳过产品路由。
+  en: >-
+    Use this skill to route questions about the Rig product itself:
+    product identity, surfaces, installation, releases, workflows,
+    and capabilities.
 ---
 
 # Rig product identity and routing
@@ -56,7 +53,7 @@ These are the four authoritative discovery roots:
 
 | Runtime region | Rig product/workflow/Agent/extension docs | Open Platform account/model/API/billing docs  |
 | -------------- | -------------------------------------------------- | --------------------------------------------- |
-| `cn`           | `https://agent.rig.cn/docs/llms.txt`           | `https://platform.minimaxi.com/docs/llms.txt` |
+| `cn`           | `https://agent.rig.cn/docs/llms.txt`           | `https://platform.rig.io/docs/llms.txt` |
 | `en`           | `https://agent.rig.io/docs/llms.txt`           | `https://platform.rig.io/docs/llms.txt`   |
 
 Select the column by the question domain:

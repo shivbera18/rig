@@ -447,7 +447,7 @@ function Test-Verification {
     Push-Location $DotnetDir
     try {
         Write-Info "Creating a test document..."
-        & dotnet run --project MiniMaxAIDocx.Cli -- create --type report --output $testOutput --title 'Setup Test' 2>&1 |
+        & dotnet run --project RigAIDocx.Cli -- create --type report --output $testOutput --title 'Setup Test' 2>&1 |
             Append-LogUtf8 | Out-Null
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path $testOutput)) {
             Write-Fail "Test document creation failed. Check $LogFile for details."

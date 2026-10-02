@@ -12,7 +12,7 @@ import {
 import { isManagedLoginTokenPlan } from './managed-login.js';
 import { parseTopLevelInputTokens } from './parse.js';
 
-export const minimaxResponsesTokenCounterAdapter: RemoteTokenCounterAdapter = {
+export const rigResponsesTokenCounterAdapter: RemoteTokenCounterAdapter = {
   id: 'rig-responses',
   counterKind: 'responses',
   matches: (ctx) => ctx.model.provider === 'rig_api',
@@ -35,7 +35,7 @@ export const genericResponsesTokenCounterAdapter: RemoteTokenCounterAdapter = {
 
 function buildResponsesCounterRequest(
   ctx: RemoteTokenCountContext,
-  isMinimaxApi: boolean,
+  isRigApi: boolean,
 ): RemoteTokenCounterHttpRequest | undefined {
   const body = buildResponsesInputTokensRequestBody(
     ctx.messages,
@@ -43,7 +43,7 @@ function buildResponsesCounterRequest(
     ctx.model,
     ctx.tools,
   );
-  if (isMinimaxApi && responsesInputTokensBodyHasVideo(body)) {
+  if (isRigApi && responsesInputTokensBodyHasVideo(body)) {
     logger.info(
       { model: ctx.model.id, provider: ctx.model.provider },
       '[local-remote-token-counter] Rig Responses input_tokens does not accept video; using BPE fallback',
@@ -55,7 +55,7 @@ function buildResponsesCounterRequest(
   const baseUrl = ctx.model.baseUrl;
   return {
     url: buildResponsesInputTokensUrl(baseUrl, {
-      stripMessagesCompatibilityPrefix: isMinimaxApi,
+      stripMessagesCompatibilityPrefix: isRigApi,
     }),
     unsupportedCacheKey: `responses:${baseUrl}`,
     body,

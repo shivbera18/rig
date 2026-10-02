@@ -37,7 +37,7 @@ describe("createProcessLocalApplication account and usage", () => {
             },
           ],
         } as never,
-        providers: { getMinimaxModelSource: () => "token_plan" } as never,
+        providers: { getRigModelSource: () => "token_plan" } as never,
         listProviderPresets: vi.fn(async () => []),
         oauth: { getStatus: vi.fn(), startLogin: vi.fn() } as never,
       },
@@ -70,7 +70,7 @@ describe("createProcessLocalApplication account and usage", () => {
       peripherals: { account: { getStatus: vi.fn() } } as never,
       modelProvider: {
         application: {} as never,
-        providers: { getMinimaxModelSource: vi.fn() } as never,
+        providers: { getRigModelSource: vi.fn() } as never,
       } as never,
     });
 
@@ -91,7 +91,7 @@ describe("createProcessLocalApplication account and usage", () => {
       provider: { id: "rig", authMode: "managed-login" },
       auth: { tokenPresent: false },
     }));
-    const getMinimaxModelSource = vi.fn(() => "rig_api_key" as const);
+    const getRigModelSource = vi.fn(() => "rig_api_key" as const);
     const application = createProcessLocalApplication({
       eventBus: { subscribe: vi.fn(() => () => undefined) },
       skills: {} as never,
@@ -101,7 +101,7 @@ describe("createProcessLocalApplication account and usage", () => {
       peripherals: { account: { getStatus } } as never,
       modelProvider: {
         application: {} as never,
-        providers: { getMinimaxModelSource } as never,
+        providers: { getRigModelSource } as never,
         listProviderPresets: vi.fn(async () => []),
         oauth: { getStatus: vi.fn(), startLogin: vi.fn() } as never,
       },
@@ -153,10 +153,10 @@ describe("createProcessLocalApplication capabilities", () => {
     };
     const modelProviders = {
       listUserProviders: vi.fn(() => []),
-      getMinimaxApiKeyStatus: vi.fn(() => ({ hasApiKey: false })),
-      getMinimaxModelSource: vi.fn(() => "token_plan" as const),
-      setMinimaxModelSource: vi.fn(async () => "rig_api_key" as const),
-      upsertMinimaxApiKey: vi.fn(),
+      getRigApiKeyStatus: vi.fn(() => ({ hasApiKey: false })),
+      getRigModelSource: vi.fn(() => "token_plan" as const),
+      setRigModelSource: vi.fn(async () => "rig_api_key" as const),
+      upsertRigApiKey: vi.fn(),
       createUserProvider: vi.fn(),
       discoverUserModelsCandidate: vi.fn(async () => [{ modelId: "latest" }]),
       saveUserModelProviderCandidate: vi.fn(async () => ({
@@ -229,9 +229,9 @@ describe("createProcessLocalApplication capabilities", () => {
     await expect(application.models?.list()).resolves.toEqual([]);
     expect(modelApplication.list).toHaveBeenCalledOnce();
     await expect(
-      application.modelProviders?.getMiniMaxModelSource(),
+      application.modelProviders?.getRigModelSource(),
     ).resolves.toBe("token_plan");
-    expect(modelProviders.getMinimaxModelSource).toHaveBeenCalledOnce();
+    expect(modelProviders.getRigModelSource).toHaveBeenCalledOnce();
     await expect(
       application.modelProviders?.listProviderPresets(),
     ).resolves.toEqual([

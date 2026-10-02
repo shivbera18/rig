@@ -162,7 +162,7 @@ async function fetchGithubCommitSha(
       )}`,
       {
         method: 'GET',
-        headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'MiniMaxAgent' },
+        headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'RigAgent' },
         signal: AbortSignal.timeout(GITHUB_API_TIMEOUT_MS),
       },
     );
@@ -186,7 +186,7 @@ async function fetchGithubDefaultBranch(
   try {
     response = await fetchImpl(`https://api.github.com/repos/${github.owner}/${github.repo}`, {
       method: 'GET',
-      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'MiniMaxAgent' },
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'RigAgent' },
       signal: AbortSignal.timeout(GITHUB_API_TIMEOUT_MS),
     });
   } catch {

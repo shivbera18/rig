@@ -219,7 +219,7 @@ describe('PluginSystemCloudTransport', () => {
     expect(headers.has('token')).toBe(false);
     expect(headers.get('yy')).toMatch(/^[0-9a-f]{32}$/u);
     expect(headers.get('x-signature')).toMatch(/^[0-9a-f]{32}$/u);
-    expect(headers.get('X-Minimax-Agent-Preview-Secret')).toBe('preview');
+    expect(headers.get('X-Rig-Agent-Preview-Secret')).toBe('preview');
     expect(headers.get('bedrock-lane')).toBe('blue');
   });
 

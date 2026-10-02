@@ -5,7 +5,7 @@ import {
   readLocalModelThinkingSelection,
   readPersistedLocalModelThinkingSelection,
   readSelectedThinkingEffort,
-  resolveLegacyMinimaxModel,
+  resolveLegacyRigModel,
   resolveRequestedSessionModel,
   savedSessionModel,
 } from './model-selection.js';
@@ -90,7 +90,7 @@ describe('legacy Rig compatibility', () => {
         custom_provider: {
           [key]: {
             options: {
-              baseURL: 'https://agent.minimaxi.com/rig/api/v1/llm/v1',
+              baseURL: 'https://agent.rig.cn/rig/api/v1/llm/v1',
               apiKey: 'sk-xxx',
             },
             models: { retired: {} },
@@ -99,7 +99,7 @@ describe('legacy Rig compatibility', () => {
       };
       const before = structuredClone(config);
       expect(
-        resolveLegacyMinimaxModel(config, {
+        resolveLegacyRigModel(config, {
           providerId: `custom_provider:${key}`,
           modelId: 'retired',
         }),
@@ -110,7 +110,7 @@ describe('legacy Rig compatibility', () => {
       expect(config).toEqual(before);
       config.custom_provider![key]!.options!.baseURL = 'https://proxy.example/v1';
       expect(
-        resolveLegacyMinimaxModel(config, {
+        resolveLegacyRigModel(config, {
           providerId: `custom_provider:${key}`,
           modelId: 'retired',
         }),

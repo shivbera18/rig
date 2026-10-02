@@ -7,13 +7,13 @@ import {
   formatModelKey,
   freezeManagedQueueModel,
   savedSessionModel,
-  isLegacyMinimaxProvider,
+  isLegacyRigProvider,
   listLocalRuntimeModels,
   modelConfigForRef,
   modelRefForModel,
   type ManagedModelParameterSnapshot,
   parseSourceQualifiedModelKey,
-  resolveLegacyMinimaxModel,
+  resolveLegacyRigModel,
   type ModelProviderModelEntry,
 } from '../../service/model-system/index.js';
 
@@ -36,7 +36,7 @@ export class ModelProviderApplication {
       cache: this.deps.providers.loadCacheData(),
       ...(this.deps.implicitCustomProviderThinking ? { implicitCustomProviderThinking: true } : {}),
     });
-    const catalog = models.filter((model) => !isLegacyMinimaxProvider(config, model.providerId));
+    const catalog = models.filter((model) => !isLegacyRigProvider(config, model.providerId));
     const stored = input.sessionId
       ? session
       : {
@@ -59,7 +59,7 @@ export class ModelProviderApplication {
     const current = selected ?? parseSourceQualifiedModelKey(config.defaultModel);
     if (!current?.providerId || !current.modelId) return selected;
     try {
-      const replacement = resolveLegacyMinimaxModel(config, {
+      const replacement = resolveLegacyRigModel(config, {
         providerId: current.providerId,
         modelId: current.modelId,
       });
@@ -85,7 +85,7 @@ export class ModelProviderApplication {
   }
 
   async select(input: SelectRuntimeModelInput): Promise<boolean> {
-    const replacement = resolveLegacyMinimaxModel(this.deps.config(), input);
+    const replacement = resolveLegacyRigModel(this.deps.config(), input);
     let selection: SelectRuntimeModelInput = replacement
       ? { ...replacement, sessionId: input.sessionId, thinking: null }
       : input;

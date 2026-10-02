@@ -13,9 +13,9 @@ import {
 import type { LocalModelsConfig, LocalProviderOptions } from '../config/types.js';
 import { parseProviderId } from '../config/model-key.js';
 import {
-  allowsManagedMinimaxProxy,
+  allowsManagedRigProxy,
   buildLocalProviderHeaders,
-  normalizeManagedMinimaxProxyBaseUrl,
+  normalizeManagedRigProxyBaseUrl,
   normalizeMessagesBaseUrlForPi,
   providerRouteForAuthMode,
   readAgentHeaderId,
@@ -24,7 +24,7 @@ import {
 import type { LocalRuntimeRoutingOptions } from './routing-headers.js';
 import {
   planCustomProviderResolution,
-  planMinimaxApiResolution,
+  planRigApiResolution,
   readStringRecord,
   resolveByokResolutionPlan,
   type LocalByokProviderConfig,
@@ -57,7 +57,7 @@ export { lookupLocalModelLimits } from './model-catalog.js';
 
 export const DEFAULT_LOCAL_PI_API: Api = 'anthropic-messages';
 export const MANAGED_PROVIDER_API_KEY_PLACEHOLDER = 'sk-xxx';
-export const MANAGED_PROVIDER_USER_AGENT = 'MiniMaxAgent';
+export const MANAGED_PROVIDER_USER_AGENT = 'RigAgent';
 const OPENAI_CODEX_PROVIDER = 'openai-codex';
 
 const THINKING_LEVEL_TO_PI: Record<ThinkingLevel, PiThinkingLevel> = {
@@ -103,7 +103,7 @@ export function resolveLocalProviderCredentials(
   const refBaseUrl = modelRef.base_url?.trim();
   const cfg = providerConfig?.[provider];
   const opts = cfg?.options;
-  const baseUrl = normalizeManagedMinimaxProxyBaseUrl(provider, refBaseUrl || opts?.baseURL);
+  const baseUrl = normalizeManagedRigProxyBaseUrl(provider, refBaseUrl || opts?.baseURL);
   // Header config has two user-authored layers in config.yaml:
   // provider.options.headers are defaults for every model under the provider,
   // while provider.models.<model_id>.headers are per-model overrides.
@@ -112,7 +112,7 @@ export function resolveLocalProviderCredentials(
   const authModeResolution = resolveProviderAuthMode({
     authMode: opts?.authMode,
     baseURL: baseUrl,
-    allowManagedBaseURLOverride: allowsManagedMinimaxProxy(provider),
+    allowManagedBaseURLOverride: allowsManagedRigProxy(provider),
   });
   const normalizedBaseUrl =
     baseUrl && authModeResolution.managedBaseURL ? stripUrlCredentials(baseUrl) : baseUrl;
@@ -185,7 +185,7 @@ export class LocalModelResolver implements LocalModelResolverLike {
       const byok = this.byokConfigGetter?.();
       const plan =
         parsed.source === 'rig_api'
-          ? planMinimaxApiResolution({
+          ? planRigApiResolution({
               byok,
               providerConfig,
               modelId,
@@ -228,7 +228,7 @@ export class LocalModelResolver implements LocalModelResolverLike {
     if (provider === 'rig') {
       const byok = this.byokConfigGetter?.();
       if (byok?.rigModelSource === 'rig_api_key') {
-        const plan = planMinimaxApiResolution({
+        const plan = planRigApiResolution({
           byok,
           providerConfig,
           modelId,
@@ -294,7 +294,7 @@ export class LocalModelResolver implements LocalModelResolverLike {
     if (
       credentials.authMode === 'managed-login' &&
       !credentials.managedBaseURL &&
-      !allowsManagedMinimaxProxy(provider)
+      !allowsManagedRigProxy(provider)
     ) {
       throw new Error(
         `LocalModelResolver: managed-login requires a known managed base_url for provider "${provider}".`,

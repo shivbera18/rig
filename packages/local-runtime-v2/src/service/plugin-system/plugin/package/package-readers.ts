@@ -26,7 +26,7 @@ interface LocalPluginCandidate {
   readonly rootPath: string;
 }
 
-export function readMiniMaxPlugin(
+export function readRigPlugin(
   packageRoot: string,
   options: { source: 'OFFICIAL' | 'LOCAL_RIG' },
 ): Promise<ReadPluginPackage> {
@@ -62,7 +62,7 @@ export async function readImportedPluginPackage(
 }
 
 /** Reads and digests one Host-selected Rig package outside the installed-package catalog. */
-export async function readLocalMiniMaxPluginPackage(
+export async function readLocalRigPluginPackage(
   packageRoot: string,
   options: {
     readonly rejectHardlinks?: boolean;

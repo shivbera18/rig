@@ -5,6 +5,6 @@
 - **models.dev**: the bundled provider / model catalog snapshot, MIT; notices are in `packages/tui/THIRD_PARTY_NOTICES.md`.
 - **Bundled assets**: LICENSE, NOTICE, and file-level declarations in each asset directory retain their original attribution.
 - **npm dependencies**: versions and declared licenses are recorded in `release/dependency-licenses.json`; `pnpm-lock.yaml` is authoritative for dependency resolution and integrity.
-- **mcode-tools 0.0.4**: extracted unchanged from the public `@minimax-ai/code@0.3.11` package during the build. Its distribution manifest declares MIT; archive and CLI hashes are pinned in `scripts/lib/mcode-tools-artifact.mjs`. The tool's own manifest is retained, and the original distribution's third-party notices are copied to `dist/MCODE_TOOLS_NOTICES.md`. The root license does not replace this artifact's existing declarations.
+- **rig-tools 0.0.4**: extracted unchanged from the public `@shivcdhry/rig` package during the build. Its distribution license is MIT; archive and CLI hashes are pinned in `scripts/lib/rig-tools-artifact.mjs`. The tool's own manifest is retained, and the original distribution notices are included in the bundle.
 
 The root MIT license does not replace these materials' separate licenses or copyright notices.

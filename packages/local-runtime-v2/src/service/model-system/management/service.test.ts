@@ -13,7 +13,7 @@ import type {
 } from '../contracts.js';
 import { planCustomProviderResolution } from '../resolution/model-resolver-byok.js';
 import { LocalModelCache } from '../catalog/model-cache.js';
-import { MINIMAX_API_DEFAULT_BASE_URL, minimaxApiModels } from '../catalog/rig-api.js';
+import { RIG_API_DEFAULT_BASE_URL, rigApiModels } from '../catalog/rig-api.js';
 import { listLocalRuntimeModels } from '../catalog/catalog.js';
 import { LocalModelProviderError, LocalModelProviderService } from './service.js';
 
@@ -127,7 +127,7 @@ function makeHarness(
       const update = configUpdateTail.then(async () => {
         const model =
           input.providerId === 'rig_api'
-            ? minimaxApiModels(config)[input.modelId]
+            ? rigApiModels(config)[input.modelId]
             : config.provider?.[input.providerId]?.models?.[input.modelId];
         if (model?.limit?.context !== input.expectedContextLimit) return false;
         if (!(await beforeCommit(config))) return false;
@@ -196,10 +196,10 @@ afterEach(async () => {
 describe('Rig api key', () => {
   it('reports no key before upsert and a masked key after', async () => {
     const h = makeHarness();
-    expect(h.service.getMinimaxApiKeyStatus()).toEqual({ hasApiKey: false });
+    expect(h.service.getRigApiKeyStatus()).toEqual({ hasApiKey: false });
 
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
-    const status = h.service.getMinimaxApiKeyStatus();
+    await h.service.upsertRigApiKey({ apiKey: RAW_KEY });
+    const status = h.service.getRigApiKeyStatus();
     expect(status.hasApiKey).toBe(true);
     expect(status.maskedApiKey).toBe(`${RAW_KEY.slice(0, 4)}****${RAW_KEY.slice(-4)}`);
     expect(status.maskedApiKey).not.toBe(RAW_KEY);
@@ -218,7 +218,7 @@ describe('Rig api key', () => {
       },
     });
 
-    const provider = await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    const provider = await h.service.upsertRigApiKey({ apiKey: RAW_KEY });
 
     expect(provider.models.map((model) => model.modelId)).toContain('Rig-M3');
     expect(provider.models.map((model) => model.modelId)).not.toContain('Remote-B');
@@ -227,7 +227,7 @@ describe('Rig api key', () => {
   it('rejects empty, whitespace-only, and masked placeholder keys', async () => {
     const h = makeHarness();
     for (const bad of ['', '   ', 'sk-u****5678', '****']) {
-      await expect(h.service.upsertMinimaxApiKey({ apiKey: bad })).rejects.toBeInstanceOf(
+      await expect(h.service.upsertRigApiKey({ apiKey: bad })).rejects.toBeInstanceOf(
         LocalModelProviderError,
       );
     }
@@ -236,17 +236,17 @@ describe('Rig api key', () => {
 
   it('upsert preserves an existing baseURL override and never writes one', async () => {
     const h = makeHarness({ rig_api: { apiKey: 'sk-old', baseURL: 'https://custom.example' } });
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h.service.upsertRigApiKey({ apiKey: RAW_KEY });
     expect(h.config.rig_api).toEqual({ apiKey: RAW_KEY, baseURL: 'https://custom.example' });
 
     const h2 = makeHarness();
-    await h2.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h2.service.upsertRigApiKey({ apiKey: RAW_KEY });
     expect(h2.config.rig_api).toEqual({ apiKey: RAW_KEY });
   });
 
   it('save_and_use sets rigModelSource without calling selectModel', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY, saveAndUse: true });
+    await h.service.upsertRigApiKey({ apiKey: RAW_KEY, saveAndUse: true });
     expect(h.selectModel).not.toHaveBeenCalled();
     expect(h.testCalls).toEqual([]);
     expect(h.config.rig_api?.apiKey).toBe(RAW_KEY);
@@ -255,16 +255,16 @@ describe('Rig api key', () => {
 
   it('save_and_use sets rigModelSource when default model is unknown', async () => {
     const h = makeHarness({ defaultModel: 'other/unknown-model' });
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY, saveAndUse: true });
+    await h.service.upsertRigApiKey({ apiKey: RAW_KEY, saveAndUse: true });
     expect(h.selectModel).not.toHaveBeenCalled();
     expect(h.config.rigModelSource).toBe('rig_api_key');
   });
 
   it('switches to the Rig API source without a prior connection test', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h.service.upsertRigApiKey({ apiKey: RAW_KEY });
 
-    await expect(h.service.setMinimaxModelSource('rig_api_key')).resolves.toBe(
+    await expect(h.service.setRigModelSource('rig_api_key')).resolves.toBe(
       'rig_api_key',
     );
     expect(h.testCalls).toEqual([]);
@@ -284,10 +284,10 @@ describe('Rig api key', () => {
       errorCode: 'UPSTREAM_REJECTED',
       errorMessage: 'provider rejected the test request',
     });
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h.service.upsertRigApiKey({ apiKey: RAW_KEY });
     await h.service.testProvider('rig_api');
 
-    await expect(h.service.setMinimaxModelSource('rig_api_key')).resolves.toBe(
+    await expect(h.service.setRigModelSource('rig_api_key')).resolves.toBe(
       'rig_api_key',
     );
     expect(h.config.rigModelSource).toBe('rig_api_key');
@@ -296,7 +296,7 @@ describe('Rig api key', () => {
   it('still requires a saved key before switching to the Rig API source', async () => {
     const h = makeHarness();
 
-    await expect(h.service.setMinimaxModelSource('rig_api_key')).rejects.toMatchObject({
+    await expect(h.service.setRigModelSource('rig_api_key')).rejects.toMatchObject({
       code: 'NO_API_KEY',
     });
     expect(h.config.rigModelSource).toBeUndefined();
@@ -440,7 +440,7 @@ describe('Rig model context', () => {
     });
 
     await expect(
-      h.service.updateMinimaxModelContext({
+      h.service.updateRigModelContext({
         modelId: 'Rig-M4',
         contextLimit: 768_000,
         expectedContextLimit: 256_000,
@@ -458,7 +458,7 @@ describe('Rig model context', () => {
     if (!m3) throw new Error('missing Rig-M3 fixture');
     m3.limit = { ...m3.limit, context: 512_000 };
 
-    const outcome = await h.service.updateMinimaxModelContext({
+    const outcome = await h.service.updateRigModelContext({
       modelId: 'Rig-M3',
       contextLimit: 1_000_000,
       expectedContextLimit: 512_000,
@@ -473,11 +473,11 @@ describe('Rig model context', () => {
     });
     expect(m3.limit?.context).toBe(512_000);
     expect(h.config.rig_api?.modelContextLimits).toEqual({ 'Rig-M3': 1_000_000 });
-    expect(minimaxApiModels(h.config)['Rig-M3']?.limit?.context).toBe(1_000_000);
+    expect(rigApiModels(h.config)['Rig-M3']?.limit?.context).toBe(1_000_000);
     h.config.provider.rig = {
       models: { 'Remote-Only-M4': { limit: { context: 256_000 } } },
     };
-    expect(minimaxApiModels(h.config)['Rig-M3']?.limit?.context).toBe(1_000_000);
+    expect(rigApiModels(h.config)['Rig-M3']?.limit?.context).toBe(1_000_000);
     expect(() => h.service.assertModelSelectable('rig', 'Rig-M3')).not.toThrow();
   });
 
@@ -492,7 +492,7 @@ describe('Rig model context', () => {
     h.setTestResult({ ok: false, errorCode: 'rejected', errorMessage: 'Rejected' });
 
     await expect(
-      h.service.updateMinimaxModelContext({
+      h.service.updateRigModelContext({
         modelId: 'Rig-M3',
         contextLimit: 1_000_000,
         expectedContextLimit: 512_000,
@@ -511,9 +511,9 @@ describe('Rig model context', () => {
       rigModelSource: 'rig_api_key',
     });
 
-    expect(minimaxApiModels(h.config)['Rig-M3']?.limit?.context).toBe(512_000);
+    expect(rigApiModels(h.config)['Rig-M3']?.limit?.context).toBe(512_000);
     await expect(
-      h.service.updateMinimaxModelContext({
+      h.service.updateRigModelContext({
         modelId: 'Rig-M3',
         contextLimit: 768_000,
         expectedContextLimit: 512_000,
@@ -551,7 +551,7 @@ describe('Rig model context transactions', () => {
     });
 
     await expect(
-      h.service.updateMinimaxModelContext({
+      h.service.updateRigModelContext({
         modelId: 'Rig-M3',
         contextLimit: 1_000_000,
         expectedContextLimit: 512_000,
@@ -589,7 +589,7 @@ describe('Rig model context transactions', () => {
 
     const olderTest = h.service.testModel('rig_api', 'Rig-M3');
     await started;
-    const contextUpdate = h.service.updateMinimaxModelContext({
+    const contextUpdate = h.service.updateRigModelContext({
       modelId: 'Rig-M3',
       contextLimit: 1_000_000,
       expectedContextLimit: 512_000,
@@ -605,7 +605,7 @@ describe('Rig model context transactions', () => {
     expect(calls).toBe(3);
     expect(m3.limit?.context).toBe(512_000);
     expect(h.config.rig_api?.modelContextLimits).toEqual({ 'Rig-M3': 1_000_000 });
-    expect(minimaxApiModels(h.config)['Rig-M3']?.limit?.context).toBe(1_000_000);
+    expect(rigApiModels(h.config)['Rig-M3']?.limit?.context).toBe(1_000_000);
     expect(() => h.service.assertModelSelectable('rig', 'Rig-M3')).not.toThrow();
   });
 
@@ -616,7 +616,7 @@ describe('Rig model context transactions', () => {
     m3.limit = { ...m3.limit, context: 512_000 };
 
     await expect(
-      h.service.updateMinimaxModelContext({
+      h.service.updateRigModelContext({
         modelId: 'Rig-M3',
         contextLimit: 1_000_000,
         expectedContextLimit: 512_000,
@@ -649,7 +649,7 @@ describe('Rig model context transactions', () => {
     h.failNextConfigWrite(new Error('config disk full'));
 
     await expect(
-      h.service.updateMinimaxModelContext({
+      h.service.updateRigModelContext({
         modelId: 'Rig-M3',
         contextLimit: 1_000_000,
         expectedContextLimit: 512_000,
@@ -667,7 +667,7 @@ describe('Rig model context transactions', () => {
 describe('Rig api key response', () => {
   it('upsert response contains only the masked key', async () => {
     const h = makeHarness();
-    const provider = await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    const provider = await h.service.upsertRigApiKey({ apiKey: RAW_KEY });
     expect(provider.hasApiKey).toBe(true);
     expect(provider.maskedApiKey).toContain('****');
     expect(provider.maskedApiKey).not.toBe(RAW_KEY);
@@ -751,7 +751,7 @@ describe('custom provider API key reveal', () => {
     );
     config.rig_api = { apiKey: CUSTOM_KEY };
     expect(service.revealModelProviderApiKey({ providerId: 'rig_api' })).toBe(CUSTOM_KEY);
-    expect(JSON.stringify(service.getMinimaxApiKeyStatus())).not.toContain(CUSTOM_KEY);
+    expect(JSON.stringify(service.getRigApiKeyStatus())).not.toContain(CUSTOM_KEY);
   });
 
   it.each([
@@ -2440,7 +2440,7 @@ describe('provider listings', () => {
 
   it('lists builtin and custom providers, excludes disabled custom providers', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h.service.upsertRigApiKey({ apiKey: RAW_KEY });
     await h.service.createUserProvider({
       name: 'On',
       baseUrl: 'https://on.example.com',
@@ -2485,7 +2485,7 @@ describe('provider listings', () => {
 
   it('returns only masked keys in listings', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h.service.upsertRigApiKey({ apiKey: RAW_KEY });
     await h.service.createUserProvider({
       name: 'Work',
       baseUrl: 'https://api.example.com',
@@ -2493,7 +2493,7 @@ describe('provider listings', () => {
     });
     const effective = h.service.listEffectiveProviders();
     const user = h.service.listUserProviders();
-    const status = h.service.getMinimaxApiKeyStatus();
+    const status = h.service.getRigApiKeyStatus();
 
     for (const provider of [...effective, ...user]) {
       if (provider.hasApiKey) {
@@ -2606,15 +2606,15 @@ describe('connection tests', () => {
 
   it('tests the rig_api provider against the derived base url and models', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h.service.upsertRigApiKey({ apiKey: RAW_KEY });
     await h.service.testProvider('rig_api');
     expect(h.testCalls[0]?.target).toMatchObject({
       api: 'anthropic-messages',
-      baseUrl: MINIMAX_API_DEFAULT_BASE_URL,
+      baseUrl: RIG_API_DEFAULT_BASE_URL,
       apiKey: RAW_KEY,
       modelId: 'Rig-M3',
     });
-    expect(h.testCalls.map((call) => call.target.minimaxM3ThinkingMode)).toEqual(['on', 'off']);
+    expect(h.testCalls.map((call) => call.target.rigM3ThinkingMode)).toEqual(['on', 'off']);
   });
 
   it('rejects testing providers without a key or unknown providers', async () => {

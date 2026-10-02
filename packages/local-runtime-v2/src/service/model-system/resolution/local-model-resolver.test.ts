@@ -215,7 +215,7 @@ describe('LocalModelResolver', () => {
     expect(resolved.model.compat?.supportsLongCacheRetention).toBe(false);
     expect(resolved.headers).toMatchObject({
       Authorization: 'Bearer managed-token',
-      'User-Agent': 'MiniMaxAgent',
+      'User-Agent': 'RigAgent',
       'X-Rig-Session-Id': 'session-managed',
     });
     expect(resolved.fileApiGatewayAuth).toMatchObject({
@@ -1130,7 +1130,7 @@ describe('LocalModelResolver credentials and thinking', () => {
         rig: {
           options: {
             apiKey: 'provider-key',
-            baseURL: 'https://api.minimaxi.com/messages-api',
+            baseURL: 'https://api.rig.cn/messages-api',
           },
         },
       },
@@ -1175,7 +1175,7 @@ describe('LocalModelResolver credentials and thinking', () => {
           rig: {
             options: {
               apiKey: 'provider-key',
-              baseURL: 'https://api.minimaxi.com/messages-api',
+              baseURL: 'https://api.rig.cn/messages-api',
             },
             models: { 'Rig-M3': modelConfig },
           },
@@ -1286,7 +1286,7 @@ describe('OpenCode Go conversation identity', () => {
         });
         const headers = new Headers(resolved.headers);
         expect(headers.get('x-opencode-session')).toBe(sessionId);
-        expect(headers.get('user-agent')).toBe('MiniMaxCode');
+        expect(headers.get('user-agent')).toBe('Rig');
         expect(resolved.model.provider).toBe('custom_provider:renamed');
       }
     },

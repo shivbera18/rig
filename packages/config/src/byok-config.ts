@@ -296,7 +296,7 @@ export function applyRequiredProviderOverrides(
   const existing = provider.rig;
   const managedRuntime = deps.isManagedRuntime();
   const shouldBackfillManagedRig =
-    managedRuntime || isManagedOriginMinimaxProvider(existing, deps);
+    managedRuntime || isManagedOriginRigProvider(existing, deps);
   if (!shouldBackfillManagedRig) return { provider, defaultModel };
 
   const existingOptions = existing?.options;
@@ -342,7 +342,7 @@ export function applyRequiredProviderOverrides(
   return { provider, defaultModel };
 }
 
-function isManagedOriginMinimaxProvider(
+function isManagedOriginRigProvider(
   provider: ProviderConfig | undefined,
   deps: RequiredProviderOverrideDeps,
 ): boolean {

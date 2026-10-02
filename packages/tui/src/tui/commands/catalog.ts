@@ -774,10 +774,10 @@ export function isTuiCommandAvailable(command: TuiCommand, context: TuiCommandCo
 
 const DEFAULT_COMMAND_CATALOG = createTuiCommandCatalog();
 
-export const MINIMAX_CODE_COMMANDS: readonly TuiCommand[] = DEFAULT_COMMAND_CATALOG.commands;
-export const MINIMAX_CODE_ACTIVE_RUN_COMMANDS: readonly TuiCommand[] =
+export const RIG_COMMANDS: readonly TuiCommand[] = DEFAULT_COMMAND_CATALOG.commands;
+export const RIG_ACTIVE_RUN_COMMANDS: readonly TuiCommand[] =
   DEFAULT_COMMAND_CATALOG.activeRunCommands;
-export const MINIMAX_CODE_DISCOVERABLE_COMMANDS: readonly TuiCommand[] =
+export const RIG_DISCOVERABLE_COMMANDS: readonly TuiCommand[] =
   DEFAULT_COMMAND_CATALOG.discoverableCommands;
 
 export function formatTuiCommandUsage(command: TuiCommand): string {

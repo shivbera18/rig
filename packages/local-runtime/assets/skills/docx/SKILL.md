@@ -4,7 +4,7 @@ metadata:
   version: "4.0.0"
   category: document-processing
   status: stable
-  author: MiniMaxAI
+  author: RigAI
   sources:
     - "ECMA-376 Office Open XML File Formats"
     - "GB/T 9704-2012 Layout Standard for Official Documents"
@@ -13,8 +13,7 @@ metadata:
 description: >
   Unified DOCX skill — create, template-apply, edit/fill, read, repair, and compare Word documents.
   Use for formal Word deliverables and DOCX diagnosis. Not for PDF/PPT or casual plain-text drafting.
-descriptions:
-  zh-Hans: "创建、套模板、编辑、读取、修复和比较 Word DOCX 文档，适用于正式文档交付。"
+
 triggers:
   - Word
   - docx
@@ -138,7 +137,7 @@ anything on `MINGW*/MSYS*/CYGWIN*` and tell you to switch to `powershell.exe` / 
 > - `references/typography_guide.md`
 > - `references/design_principles.md`
 > - `references/cjk_typography.md`
-> - `scripts/dotnet/MiniMaxAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
+> - `scripts/dotnet/RigAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
 >
 > These are not optional decoration. They are the quality-preserving recipe layer.
 
@@ -210,19 +209,19 @@ Use these after `CREATE_DOCX` / `APPLY_TEMPLATE` is selected:
 | `references/typography_guide.md` | font pairings, sizes, spacing, page layout, table rules |
 | `references/design_principles.md` | visual judgment rules when exact specs are missing |
 | `references/cjk_typography.md` | CJK fonts, 字号, mixed-script rules, 公文 defaults |
-| `scripts/dotnet/MiniMaxAIDocx.Core/Samples/AestheticRecipeSamples*.cs` | benchmarked recipe families; choose one instead of inventing values |
+| `scripts/dotnet/RigAIDocx.Core/Samples/AestheticRecipeSamples*.cs` | benchmarked recipe families; choose one instead of inventing values |
 
 ## Runtime shorthands
 
 ```bash
 # macOS / Linux / WSL
-CLI="dotnet run --project <skill_dir>/scripts/dotnet/MiniMaxAIDocx.Cli --"
+CLI="dotnet run --project <skill_dir>/scripts/dotnet/RigAIDocx.Cli --"
 TMPDIR_DOCX="${TMPDIR:-/tmp}"
 ```
 
 ```powershell
 # Windows PowerShell
-$CLI = "dotnet run --project <skill_dir>\scripts\dotnet\MiniMaxAIDocx.Cli --"
+$CLI = "dotnet run --project <skill_dir>\scripts\dotnet\RigAIDocx.Cli --"
 $TmpDocx = $env:TEMP
 ```
 

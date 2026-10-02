@@ -33,7 +33,7 @@ export interface LocalModelSelectionWriteInput {
   readonly contextLimit?: number;
 }
 
-export interface ManagedMinimaxProviderSnapshot {
+export interface ManagedRigProviderSnapshot {
   readonly api?: string;
   readonly name?: string;
   readonly options?: unknown;
@@ -56,8 +56,8 @@ export async function removeLocalProviderConfig(
 }
 
 /** Replace the official Rig snapshot without taking ownership of BYOK roots. */
-export async function replaceLocalManagedMinimaxProvider(
-  provider: ManagedMinimaxProviderSnapshot,
+export async function replaceLocalManagedRigProvider(
+  provider: ManagedRigProviderSnapshot,
 ): Promise<{ readonly config: Config }> {
   if (!isPlainRecord(provider) || !isPlainRecord(provider.models)) {
     throw new LocalModelProviderConfigValidationError('Invalid managed Rig provider snapshot');
@@ -195,7 +195,7 @@ export async function compareAndSetLocalModelContext(
     const currentContext =
       input.providerId === MANAGED_RIG_PROVIDER_ID
         ? currentConfig.provider?.[input.providerId]?.models?.[modelId]?.limit?.context
-        : currentMinimaxApiContext(currentConfig, modelId);
+        : currentRigApiContext(currentConfig, modelId);
     if (currentContext !== input.expectedContextLimit) {
       return { write: false, value: false };
     }
@@ -210,7 +210,7 @@ export async function compareAndSetLocalModelContext(
   return { config: outcome.config, updated: outcome.value };
 }
 
-function currentMinimaxApiContext(config: Config, modelId: string): number | undefined {
+function currentRigApiContext(config: Config, modelId: string): number | undefined {
   const model = RIG_API_MODEL_CATALOG[modelId];
   const override = config.rig_api?.modelContextLimits?.[modelId];
   return override !== undefined && model?.contextWindowOptions?.includes(override)

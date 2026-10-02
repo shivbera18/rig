@@ -4,10 +4,8 @@ description:
   Safely continue the task from a Codex CLI or VS Code session in the current workspace. Use when
   invoked as /resume-codex with an optional Codex session id, or when the user asks to pick up their
   latest Codex work.
-descriptions:
-  zh-Hans: '安全接续当前工作区中的 Codex CLI 或 VS Code session。'
-displayNames:
-  zh-Hans: '接续 Codex Session'
+
+
 ---
 
 # Resume Codex

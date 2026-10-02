@@ -22,18 +22,18 @@ Keep optional dependencies enabled and allow the native SQLite installation
 script. The tag determines the installed version. GitHub archive installation is
 validated on Linux and macOS; Windows package acceptance is currently not run.
 
-This archive uses the same `@rig-ai/code` package name, `rig` command and
+This archive uses the `@shivcdhry/rig` package name, `rig` command and
 default user data directory as the official npm CLI. Installing it globally into
 the same npm prefix replaces that npm installation. Update to another GitHub
 version by explicitly installing its archive; the built-in updater follows the
 official npm registry channel and does not select GitHub release assets. To remove
-the package, use `npm uninstall --global @rig-ai/code`. User data remains in place.
+the package, use `npm uninstall --global @shivcdhry/rig`. User data remains in place.
 
 ## Install from source
 
-The official CLI is available as [`@rig-ai/code`](https://www.npmjs.com/package/@rig-ai/code). Public npm `latest` was 0.4.12 on 2026-09-18. Follow the [official quick start](https://agent.rig.io/docs/cli/quick-start) or the [README installation steps](../README.md#quick-start) for the macOS / Linux / WSL installer, Windows PowerShell installer, or npm installation.
+The CLI is available as [`@shivcdhry/rig`](https://www.npmjs.com/package/@shivcdhry/rig). Follow the [README installation steps](../README.md#quick-start) for the macOS / Linux / WSL installer, Windows PowerShell installer, or npm installation.
 
-For npm, use the command in the README: it explicitly selects the public registry, includes optional dependencies, and allows the `@rig-ai/code` and `better-sqlite3` lifecycle scripts. SQLite is declared optional in the package metadata, but a working native SQLite binding is required at runtime. Do not omit optional dependencies or disable installation scripts. On npm versions that enforce script approvals, `--allow-scripts` grants these two packages permission without allowing every dependency script.
+For npm, use the command in the README: it explicitly selects the public registry, includes optional dependencies, and allows the `@shivcdhry/rig` and `better-sqlite3` lifecycle scripts. SQLite is declared optional in the package metadata, but a working native SQLite binding is required at runtime. Do not omit optional dependencies or disable installation scripts. On npm versions that enforce script approvals, `--allow-scripts` grants these two packages permission without allowing every dependency script.
 
 `@latest` follows the stable npm dist-tag. For a reproducible CLI version, replace `@latest` with an exact published version such as `@0.4.12`, keeping the other options. Use Node.js 22.19+ (22.x), 24.2+ (24.x), 25, or 26 for both npm and source installations.
 
@@ -59,7 +59,7 @@ pnpm rig
 
 If your Node.js installation does not include Corepack, install the exact pnpm version using your existing package manager. Native dependencies without matching prebuilt binaries require C/C++ build tools and Python: the C++ workload in Visual Studio Build Tools on Windows, Command Line Tools on macOS, or the system build toolchain on Linux.
 
-The build extracts rig-tools from a pinned public `@rig-ai/code` archive and verifies both archive and CLI hashes. The cache is in `.cache/artifacts`. On integrity failure, check the network or remove that cache and retry; never bypass hash verification.
+The build extracts rig-tools from a pinned public `@shivcdhry/rig` archive and verifies both archive and CLI hashes. The cache is in `.cache/artifacts`. On integrity failure, check the network or remove that cache and retry; never bypass hash verification.
 
 To use the CLI in another project, open that project's directory and run the built entry point by absolute path:
 
@@ -77,12 +77,12 @@ Source builds and the published npm CLI use the same default user data directory
 
 | CLI artifact | Default user data directory |
 | --- | --- |
-| Published npm `@rig-ai/code@0.4.12` | `~/.rig` |
+| Published npm `@shivcdhry/rig` | `~/.rig` |
 | Build from this repository | `~/.rig` |
 
-The npm 0.4.12 default was checked against the [public registry artifact](https://registry.npmjs.org/@rig-ai/code/0.4.12) on 2026-09-19, with its SHA-512 integrity verified. This applies to that published version, including local npm dependencies; do not infer the default of another release from its version label alone. A selected profile uses `~/.rig-<profile>`. The source default is defined in [`data-dir.ts`](../packages/tui/src/runtime/data-dir.ts). Login state, provider configuration such as `config.yaml`, caches, and sessions belong to the selected data directory.
+The npm default was checked against the public registry artifact for `@shivcdhry/rig`, with its SHA-512 integrity verified. This applies to that published version, including local npm dependencies; do not infer the default of another release from its version label alone. A selected profile uses `~/.rig-<profile>`. The source default is defined in [`data-dir.ts`](../packages/tui/src/runtime/data-dir.ts). Login state, provider configuration such as `config.yaml`, caches, and sessions belong to the selected data directory.
 
-Both accept a non-empty `RIG_DATA_DIR`, falling back to a non-empty `RIG_DATA_DIR`, before the default. The [macOS / Linux / WSL installer](https://filecdn.rig.chat/public/install.sh) installs the npm package under `~/.rig` by default (`MCODE_INSTALL_DIR` changes the installation location). It does not set either data-directory override. Installation files and user data are separate concerns, even when their directories have the same name.
+Both accept a non-empty `RIG_DATA_DIR`, falling back to a non-empty `RIG_DATA_DIR`, before the default. The [macOS / Linux / WSL installer](https://filecdn.rig.chat/public/install.sh) installs the npm package under `~/.rig` by default (`RIG_INSTALL_DIR` changes the installation location).
 
 Earlier source builds used `~/.rig` for user data. The new default does not move or merge that data. To keep using an existing source-build data directory, explicitly set `RIG_DATA_DIR` to its path.
 

@@ -458,7 +458,7 @@ export class LocalSkillHubStore {
       response = await (this.options.fetch ?? fetch)(requestUrl, {
         method: 'GET',
         headers: {
-          'User-Agent': 'MiniMaxAgent',
+          'User-Agent': 'RigAgent',
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           ...managedBackendRoutingHeaders(
             this.options.routingContextGetter?.(),

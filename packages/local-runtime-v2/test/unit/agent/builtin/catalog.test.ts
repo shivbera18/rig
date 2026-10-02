@@ -1009,7 +1009,7 @@ describe("BuiltinAgentCatalog session surfaces", () => {
     );
     expect(productSkill).toContain("https://agent.rig.cn/docs/llms.txt");
     expect(productSkill).toContain(
-      "https://platform.minimaxi.com/docs/llms.txt",
+      "https://platform.rig.io/docs/llms.txt",
     );
     expect(productSkill).toContain("https://agent.rig.io/docs/llms.txt");
     expect(productSkill).toContain("https://platform.rig.io/docs/llms.txt");

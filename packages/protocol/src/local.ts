@@ -119,7 +119,7 @@ export const SkillScope = {
 export type SkillScope = (typeof SkillScope)[keyof typeof SkillScope];
 
 export const SkillSourceType = {
-  MINIMAX_OFFICIAL: 1,
+  RIG_OFFICIAL: 1,
   USER_CONTRIBUTION: 2,
 } as const;
 

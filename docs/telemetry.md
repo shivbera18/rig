@@ -4,7 +4,7 @@ All automatic telemetry uploads are disabled by default and each requires its ow
 
 ## Turn it on or off
 
-Add this to the active profile's `config.yaml`, then restart Rig. Builds from this repository and the published npm CLI `@rig-ai/code@0.4.12` default to `~/.rig/config.yaml` (or `~/.rig-<profile>/config.yaml` when a profile is selected). Overrides can change this path; see [Accounts and data](installation.md#accounts-and-data) to locate it. The telemetry controls below describe this repository's source build and are not a guarantee of feature parity with that npm release.
+Add this to the active profile's `config.yaml`, then restart Rig. Builds from this repository and the published npm CLI `@shivcdhry/rig` default to `~/.rig/config.yaml` (or `~/.rig-<profile>/config.yaml` when a profile is selected). Overrides can change this path; see [Accounts and data](installation.md#accounts-and-data) to locate it. The telemetry controls below describe this repository's source build and are not a guarantee of feature parity with that npm release.
 
 ```yaml
 telemetry:
@@ -16,7 +16,7 @@ telemetry:
 Remove a setting or set it to `false` to turn that channel off. Either environment variable below turns **all channels** off and takes precedence over the config file:
 
 ```sh
-MCODE_DISABLE_TELEMETRY=1 rig
+RIG_DISABLE_TELEMETRY=1 rig
 DO_NOT_TRACK=1 rig
 ```
 
@@ -59,7 +59,7 @@ Event-specific fields are limited to:
 
 - `tui_launch`: `launch_type` (`cold`, `hot`).
 - `login_click`, `logout_click`: no extra fields.
-- `login_result`: `source` (`agent_web`, `agent_desktop`, `openplatform`, `mcode_tui`, `mcode_cli`); `result_type` (`1` success, `2` failure); `fail_reason` (empty for success, `1` server, `2` network, `3` cancelled, `4` other, `5` OAuth/authorization); `login_type` (`google`, `mobile`, `wechat`, `apple`, `minimax_sso`, `minimax_oauth`).
+- `login_result`: `source` (`agent_web`, `agent_desktop`, `openplatform`, `rig_tui`, `rig_cli`); `result_type` (`1` success, `0` failure); `failure_reason` (optional).
 - `btw_session_lifecycle`: `phase` (`opened`, `closed`); `duration_bucket` (`not_applicable`, `under_1m`, `1m_to_5m`, `5m_to_30m`, `over_30m`); `exit_reason` (empty, `ctrl_c`, `ctrl_d`, `navigation`, `replaced`).
 - `chat_send`: `chat_type` (`chat`, `agent_team`, `claw`, `hermes`, `IM`); `is_first_message` (`0`, `1`); `is_attachment` (`text`, `attachment`).
 - `slash_command_menu_view`, `at_command_menu_view`: `chat_type` (values above).
@@ -74,10 +74,10 @@ As with any network request, the receiving server can observe transport metadata
 
 The destination depends on region and build environment:
 
-- China production: `https://data.hailuoai.com/meerkat-reporter/api/report?project=MiniMaxAgent`
-- Global production: `https://data.hailuo.ai/meerkat-reporter/api/report?project=MiniMaxAgent`
-- China non-production: `https://bigdata-test.xingyeai.com/meerkat-reporter/api/report?project=MiniMaxAgent`
-- Global non-production: `https://bigdata-test.talkie-ai.com/meerkat-reporter/api/report?project=MiniMaxAgent`
+- China production: `https://data.hailuoai.com/meerkat-reporter/api/report?project=RigAgent`
+- Global production: `https://data.hailuo.ai/meerkat-reporter/api/report?project=RigAgent`
+- China non-production: `https://bigdata-test.xingyeai.com/meerkat-reporter/api/report?project=RigAgent`
+- Global non-production: `https://bigdata-test.talkie-ai.com/meerkat-reporter/api/report?project=RigAgent`
 
 The client keeps pending events only in memory and does not write them to disk. This repository does not define or verify server-side retention. Keep telemetry disabled when that policy does not meet your requirements.
 

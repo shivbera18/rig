@@ -16,7 +16,7 @@ import {
 } from '../contracts.js';
 import type { ModelDiscoveryTarget } from '../connectivity/discover-models.js';
 import { modelConnectionTestFingerprint } from '../catalog/config-fingerprint.js';
-import { minimaxApiBaseUrl, minimaxApiModels } from '../catalog/list-models.js';
+import { rigApiBaseUrl, rigApiModels } from '../catalog/list-models.js';
 import { modelConfigFingerprint, type ModelCacheStatusEntry } from '../catalog/model-cache.js';
 import { generateProviderKey } from './provider-key.js';
 import { buildCustomProviderView, type ModelProviderView } from '../catalog/provider-views.js';
@@ -34,9 +34,9 @@ import {
 } from './service-input.js';
 import { customProviderKeyFromId, removeLegacyCustomProviderNpm } from './service-helpers.js';
 import {
-  isMiniMaxM3ModelId,
+  isRigM3ModelId,
   normalizeModelThinkingEffortOptions,
-  type MiniMaxM3ThinkingMode,
+  type RigM3ThinkingMode,
 } from '../resolution/model-ref.js';
 import { byokEffectiveOutputLimit } from '../resolution/model-resolver-byok.js';
 
@@ -52,16 +52,16 @@ export interface ResolvedConnectionTestTarget {
   fingerprint: string;
   target: ModelConnectionTestTarget;
   effortOptions?: string[];
-  minimaxM3ThinkingModes?: MiniMaxM3ThinkingMode[];
+  rigM3ThinkingModes?: RigM3ThinkingMode[];
 }
 
 interface ResolveTestTargetOptions {
   apiKeyOverride?: string;
   customProviderOverride?: LocalCustomProviderConfig;
-  minimaxModelOverride?: LocalModelConfig;
+  rigModelOverride?: LocalModelConfig;
 }
 
-interface ResolveMinimaxTestTargetOptions {
+interface ResolveRigTestTargetOptions {
   apiKeyOverride?: string;
   modelOverride?: LocalModelConfig;
 }
@@ -140,14 +140,14 @@ interface ConnectionTestCase {
   target: ModelConnectionTestTarget;
 }
 
-function minimaxThinkingTestCases(
+function rigThinkingTestCases(
   resolved: ResolvedConnectionTestTarget,
   dedupKey: string,
 ): ConnectionTestCase[] {
-  return (resolved.minimaxM3ThinkingModes ?? []).map((mode) => ({
+  return (resolved.rigM3ThinkingModes ?? []).map((mode) => ({
     dedupKey: `${dedupKey}@rig-m3-thinking=${mode}`,
     label: `Rig M3 Thinking ${JSON.stringify(mode)}`,
-    target: { ...resolved.target, minimaxM3ThinkingMode: mode },
+    target: { ...resolved.target, rigM3ThinkingMode: mode },
   }));
 }
 
@@ -215,7 +215,7 @@ function requireCustomProviderModelId(
   throw new LocalModelProviderError(400, 'Provider has no configured models', 'NO_MODELS');
 }
 
-function requireMinimaxModelId(
+function requireRigModelId(
   models: Record<string, LocalModelConfig>,
   requestedModelId: string | undefined,
 ): string {
@@ -224,8 +224,8 @@ function requireMinimaxModelId(
   throw new LocalModelProviderError(404, 'Model not found', 'MODEL_NOT_FOUND');
 }
 
-function minimaxThinkingModes(modelId: string): MiniMaxM3ThinkingMode[] | undefined {
-  return isMiniMaxM3ModelId(modelId) ? ['on', 'off'] : undefined;
+function rigThinkingModes(modelId: string): RigM3ThinkingMode[] | undefined {
+  return isRigM3ModelId(modelId) ? ['on', 'off'] : undefined;
 }
 
 function providerTestCacheKey(providerId: string, modelId: string | undefined): string {
@@ -235,7 +235,7 @@ function providerTestCacheKey(providerId: string, modelId: string | undefined): 
 export class ModelProviderServiceContext {
   constructor(readonly deps: LocalModelProviderServiceDeps) {}
 
-  minimaxMutationKey(): string {
+  rigMutationKey(): string {
     return `${this.deps.configGetter().dataDir}\u0000${RIG_API_PROVIDER_ID}`;
   }
 
@@ -341,8 +341,8 @@ export class ModelProviderServiceContext {
     resolved: ResolvedConnectionTestTarget,
   ): Promise<ModelConnectionTestResult> {
     const dedupKey = `${resolved.cacheKey}@${resolved.fingerprint}`;
-    if (resolved.minimaxM3ThinkingModes?.length) {
-      return runConnectionTestCases(this.deps.tester, minimaxThinkingTestCases(resolved, dedupKey));
+    if (resolved.rigM3ThinkingModes?.length) {
+      return runConnectionTestCases(this.deps.tester, rigThinkingTestCases(resolved, dedupKey));
     }
     if (resolved.effortOptions?.length) {
       return runConnectionTestCases(this.deps.tester, effortTestCases(resolved, dedupKey));
@@ -357,9 +357,9 @@ export class ModelProviderServiceContext {
   ): ResolvedConnectionTestTarget {
     const config = this.deps.configGetter();
     if (parseProviderId(providerId)?.source === 'rig_api') {
-      return this.resolveMinimaxTestTarget(config, modelId, {
+      return this.resolveRigTestTarget(config, modelId, {
         ...(options.apiKeyOverride ? { apiKeyOverride: options.apiKeyOverride } : {}),
-        ...(options.minimaxModelOverride ? { modelOverride: options.minimaxModelOverride } : {}),
+        ...(options.rigModelOverride ? { modelOverride: options.rigModelOverride } : {}),
       });
     }
     return this.resolveCustomTestTarget(config, providerId, modelId, options);
@@ -399,24 +399,24 @@ export class ModelProviderServiceContext {
     };
   }
 
-  resolveMinimaxTestTarget(
+  resolveRigTestTarget(
     config: LocalRuntimeConfig,
     modelId: string | undefined,
-    options: ResolveMinimaxTestTargetOptions = {},
+    options: ResolveRigTestTargetOptions = {},
   ): ResolvedConnectionTestTarget {
     const apiKey = options.apiKeyOverride?.trim() || config.rig_api?.apiKey?.trim();
     if (!apiKey) {
       throw new LocalModelProviderError(400, 'Rig API key is not configured', 'NO_API_KEY');
     }
-    const models = minimaxApiModels(config);
-    const chosenModelId = requireMinimaxModelId(models, modelId);
+    const models = rigApiModels(config);
+    const chosenModelId = requireRigModelId(models, modelId);
     const model = options.modelOverride ?? models[chosenModelId];
     const effortOptions = normalizeModelThinkingEffortOptions(model?.thinking?.effortOptions);
-    const minimaxM3ThinkingModes = minimaxThinkingModes(chosenModelId);
+    const rigM3ThinkingModes = rigThinkingModes(chosenModelId);
     const outputLimit = byokEffectiveOutputLimit(model);
     const target: ModelConnectionTestTarget = {
       api: 'anthropic-messages',
-      baseUrl: normalizeProviderBaseUrl('anthropic-messages', minimaxApiBaseUrl(config)),
+      baseUrl: normalizeProviderBaseUrl('anthropic-messages', rigApiBaseUrl(config)),
       apiKey,
       modelId: chosenModelId,
       outputLimit,
@@ -425,7 +425,7 @@ export class ModelProviderServiceContext {
       cacheKey: providerTestCacheKey(RIG_API_PROVIDER_ID, modelId),
       fingerprint: modelConnectionTestFingerprint(target, model),
       target,
-      ...(minimaxM3ThinkingModes ? { minimaxM3ThinkingModes } : {}),
+      ...(rigM3ThinkingModes ? { rigM3ThinkingModes } : {}),
       ...(effortOptions ? { effortOptions } : {}),
     };
   }

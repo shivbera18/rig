@@ -4,7 +4,7 @@ import { ThinkingLevel } from '@rig/protocol';
 import type { LocalConversationRuntimeConfig, LocalModelConfig } from '../contracts.js';
 import { MANAGED_RIG_PROVIDER_ID, RIG_API_PROVIDER_ID } from '../identity.js';
 import { modelConfigForRef } from './list-models.js';
-import { resolveLegacyMinimaxModel } from './model-selection.js';
+import { resolveLegacyRigModel } from './model-selection.js';
 import {
   CUSTOM_PROVIDER_ID_PREFIX,
   formatModelKey,
@@ -12,10 +12,10 @@ import {
   type ParsedModelKey,
 } from '../resolution/model-key.js';
 import {
-  MINIMAX_M3_MODEL_ID,
-  isMiniMaxM3ThinkingMode,
+  RIG_M3_MODEL_ID,
+  isRigM3ThinkingMode,
   isThinkingEffortDisabled,
-  resolveMiniMaxM3ThinkingMode,
+  resolveRigM3ThinkingMode,
   normalizeModelThinkingEffort,
   normalizeModelThinkingEffortOptions,
   resolveModelThinkingMiddleEffort,
@@ -377,7 +377,7 @@ function hasM3ContextTiers(
   contextDefault: number | undefined,
 ): boolean {
   return (
-    model.modelId === MINIMAX_M3_MODEL_ID &&
+    model.modelId === RIG_M3_MODEL_ID &&
     (model.providerId === MANAGED_RIG_PROVIDER_ID ||
       model.providerId === RIG_API_PROVIDER_ID) &&
     contextDefault !== undefined
@@ -405,7 +405,7 @@ function withRuntimeDefault(
   // an explicit Agent model. Do not carry its old variant to a replacement.
   const replacement =
     parsed && !sources.some(({ selection }) => selection?.model !== undefined)
-      ? resolveLegacyMinimaxModel(config, parsed)
+      ? resolveLegacyRigModel(config, parsed)
       : undefined;
   const model = replacement
     ? formatModelKey(replacement.providerId, replacement.modelId)
@@ -522,14 +522,14 @@ function resolveSwitchableOrCatalogEffort(
   input: EffortResolutionInput,
   requested: string | undefined,
 ): string | undefined {
-  const miniMaxM3Mode = resolveMiniMaxM3ThinkingMode(
+  const rigM3Mode = resolveRigM3ThinkingMode(
     input.providerId.startsWith(CUSTOM_PROVIDER_ID_PREFIX) ? undefined : input.modelId,
     input.modelConfig,
     input.runtimeDefaultVariant,
   );
-  if (miniMaxM3Mode) {
-    if (!requested) return miniMaxM3Mode;
-    return isMiniMaxM3ThinkingMode(requested)
+  if (rigM3Mode) {
+    if (!requested) return rigM3Mode;
+    return isRigM3ThinkingMode(requested)
       ? requested
       : throwUnsupportedEffort(input, requested);
   }

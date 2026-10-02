@@ -140,7 +140,7 @@ function commonConfigRequestHeaders(
 ): Record<string, string> {
   const headers: Record<string, string> = { accept: 'application/json' };
   if (previewSecret?.trim()) {
-    headers['X-Minimax-Agent-Preview-Secret'] = previewSecret.trim();
+    headers['X-Rig-Agent-Preview-Secret'] = previewSecret.trim();
   }
   if (lane?.trim()) {
     headers.lane = lane.trim();

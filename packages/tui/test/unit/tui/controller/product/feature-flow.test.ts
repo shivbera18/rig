@@ -92,8 +92,8 @@ function createHarness(
       authUrl: "https://auth.openai.example/authorize",
     })),
     listUserModelProviders: vi.fn(async () => []),
-    getMiniMaxApiKeyStatus: vi.fn(async () => ({ hasApiKey: false })),
-    getMiniMaxModelSource: vi.fn(async () => "token_plan" as const),
+    getRigApiKeyStatus: vi.fn(async () => ({ hasApiKey: false })),
+    getRigModelSource: vi.fn(async () => "token_plan" as const),
     deleteUserModelProvider: vi.fn(async () => undefined),
   };
   const transcript = new TranscriptStore();

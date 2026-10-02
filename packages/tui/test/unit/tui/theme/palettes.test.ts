@@ -10,7 +10,7 @@ import {
   TUI_THEME_COLOR_NAMES,
 } from '../../../../src/tui/theme/contracts.js';
 import {
-  MINIMAX_CODE_THEME_CONTRAST_POLICY,
+  RIG_THEME_CONTRAST_POLICY,
   contrastRatio,
 } from '../../../helpers/theme-contrast.js';
 
@@ -52,24 +52,24 @@ describe('built-in TUI themes', () => {
   it.each(ALL_PALETTES)(
     'enforces readable semantic colors for $theme.id $palette.appearance',
     ({ palette }) => {
-      const background = MINIMAX_CODE_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
+      const background = RIG_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
 
-      for (const role of MINIMAX_CODE_THEME_CONTRAST_POLICY.normalText.roles) {
-        const exception = MINIMAX_CODE_THEME_CONTRAST_POLICY.normalText.exceptions.find(
+      for (const role of RIG_THEME_CONTRAST_POLICY.normalText.roles) {
+        const exception = RIG_THEME_CONTRAST_POLICY.normalText.exceptions.find(
           (candidate) => candidate.appearance === palette.appearance && candidate.role === role,
         );
         expect(
           contrastRatio(palette.colors[role], background),
           `${palette.id}.${palette.appearance}.${role} must remain readable against ${background}`,
         ).toBeGreaterThanOrEqual(
-          exception?.minimum ?? MINIMAX_CODE_THEME_CONTRAST_POLICY.normalText.minimum,
+          exception?.minimum ?? RIG_THEME_CONTRAST_POLICY.normalText.minimum,
         );
       }
-      for (const role of MINIMAX_CODE_THEME_CONTRAST_POLICY.nonText.roles) {
+      for (const role of RIG_THEME_CONTRAST_POLICY.nonText.roles) {
         expect(
           contrastRatio(palette.colors[role], background),
           `${palette.id}.${palette.appearance}.${role} must stay distinguishable against ${background}`,
-        ).toBeGreaterThanOrEqual(MINIMAX_CODE_THEME_CONTRAST_POLICY.nonText.minimum);
+        ).toBeGreaterThanOrEqual(RIG_THEME_CONTRAST_POLICY.nonText.minimum);
       }
     },
   );
@@ -93,7 +93,7 @@ describe('built-in TUI themes', () => {
   it.each(ALL_PALETTES)(
     'keeps syntax text legible for $theme.id $palette.appearance',
     ({ palette }) => {
-      const background = MINIMAX_CODE_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
+      const background = RIG_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
       // Comments are the lowest-emphasis token but still have to be readable.
       expect(contrastRatio(palette.syntax.overlay2, background)).toBeGreaterThanOrEqual(3);
       expect(contrastRatio(palette.syntax.text, background)).toBeGreaterThanOrEqual(4.5);

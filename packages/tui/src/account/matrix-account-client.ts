@@ -6,7 +6,7 @@ import type { TuiTokenPlanQuota, TuiTokenPlanSummary } from '../runtime/port.js'
 
 const MATRIX_ORIGINS: Readonly<Record<RigRegion, Record<RigBuildEnv, string>>> = {
   cn: {
-    prod: 'https://agent.minimaxi.com',
+    prod: 'https://agent.rig.cn',
     staging: 'https://matrix-pre.example.invalid',
     test: 'https://matrix-test.example.invalid',
     dev: 'https://matrix-test.example.invalid',
@@ -41,7 +41,7 @@ const NEED_LOGIN_ERROR_CODE = 1_000_048;
 
 const OPEN_PLATFORM_ORIGINS: Readonly<Record<RigRegion, Record<RigBuildEnv, string>>> = {
   cn: {
-    prod: 'https://www.minimaxi.com',
+    prod: 'https://www.rig.io',
     staging: 'https://open-platform-for-online-test.example.invalid',
     test: 'https://openplatform-test.example.invalid',
     dev: 'https://openplatform-test.example.invalid',
@@ -331,7 +331,7 @@ export class TuiMatrixAccountClient {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'User-Agent': 'MiniMaxCode',
+          'User-Agent': 'Rig',
           Authorization: `Bearer ${accessToken}`,
           ...this.routingHeaders(),
           yy: md5(`${encodeURIComponent(pathWithSearch)}_{}${md5(String(requestTime))}ooui`),
@@ -395,7 +395,7 @@ export class TuiMatrixAccountClient {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'User-Agent': 'MiniMaxCode',
+          'User-Agent': 'Rig',
           Authorization: `Bearer ${accessToken}`,
           ...this.routingHeaders(),
           yy: md5(`${encodeURIComponent(pathWithSearch)}_${body}${md5(String(requestTime))}ooui`),
@@ -433,7 +433,7 @@ export class TuiMatrixAccountClient {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'User-Agent': 'MiniMaxCode',
+          'User-Agent': 'Rig',
           Authorization: `Bearer ${accessToken}`,
           ...this.routingHeaders(),
           yy: md5(`${encodeURIComponent(pathWithSearch)}_{}${md5(String(requestTime))}ooui`),

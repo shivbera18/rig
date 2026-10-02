@@ -14,7 +14,7 @@ import { consumeLoginRestartHandoff } from '../tui/login-restart-handoff.js';
 import type { McodeTelemetryCliAction } from './telemetry-command.js';
 
 const OUTPUT_DRAIN_TIMEOUT_MS = 250;
-const MINIMAX_CODE_PROCESS_TITLE = 'rig';
+const RIG_PROCESS_TITLE = 'rig';
 
 export interface TuiOutputStream {
   readonly destroyed: boolean;
@@ -80,7 +80,7 @@ export interface RunTuiCliDependencies {
 
 export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promise<void> {
   const processRef = dependencies.processRef ?? process;
-  processRef.title = MINIMAX_CODE_PROCESS_TITLE;
+  processRef.title = RIG_PROCESS_TITLE;
   const resumeDraftAfterLogin = consumeLoginRestartHandoff(processRef.env);
   const supportsNodeVersion =
     dependencies.supportsNodeVersion ?? ((version: string) => supportsTuiNodeVersion(version));

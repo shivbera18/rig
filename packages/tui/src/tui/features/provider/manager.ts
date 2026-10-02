@@ -35,8 +35,8 @@ export interface TuiProviderManagerOptions {
   onTest(providerId: string, modelId?: string): Promise<McodeProviderTestResult>;
   onConnectCodex?(): void;
   onSaveCustom?(input: McodeSaveProviderCandidateInput): Promise<McodeSaveProviderCandidateResult>;
-  onSetMiniMaxApiKey(apiKey: string): Promise<void>;
-  onSetMiniMaxSource(source: 'token_plan' | 'rig_api_key'): Promise<void>;
+  onSetRigApiKey(apiKey: string): Promise<void>;
+  onSetRigSource(source: 'token_plan' | 'rig_api_key'): Promise<void>;
   /** Starts the same sign-in flow as `/login`; absent when the host has no auth. */
   onReLogin?(): void;
   onCancel(): void;
@@ -58,7 +58,7 @@ export class TuiProviderManager implements Component, Focusable {
     this.snapshotValue = options.snapshot;
     const activeIndex = this.providers().findIndex((provider) => provider.active);
     this.selectedIndex = Math.max(0, activeIndex);
-    this.secretInput.onSubmit = (value) => this.submitMiniMaxKey(value);
+    this.secretInput.onSubmit = (value) => this.submitRigKey(value);
     this.secretInput.onEscape = () => this.exitMode();
   }
 
@@ -123,7 +123,7 @@ export class TuiProviderManager implements Component, Focusable {
     if (this.editor) return this.editor.render(safeWidth);
     const lines =
       this.mode.kind === 'rig-key'
-        ? this.renderMiniMaxKey(safeWidth)
+        ? this.renderRigKey(safeWidth)
         : this.renderList(safeWidth);
     return lines.map((line) => truncateToWidth(line, safeWidth, chalk.hex(colors.dim)('…')));
   }
@@ -200,7 +200,7 @@ export class TuiProviderManager implements Component, Focusable {
     return lines;
   }
 
-  private renderMiniMaxKey(width: number): string[] {
+  private renderRigKey(width: number): string[] {
     const replacing = this.mode.kind === 'rig-key' && this.mode.replacing;
     return [
       frameTop(width),
@@ -278,15 +278,15 @@ export class TuiProviderManager implements Component, Focusable {
       return;
     }
     if (provider.kind === 'rig-oauth') {
-      await this.setMiniMaxSource('token_plan');
+      await this.setRigSource('token_plan');
       return;
     }
     if (provider.kind === 'rig-api-key') {
       if (!provider.hasApiKey) {
-        this.startMiniMaxKey();
+        this.startRigKey();
         return;
       }
-      await this.setMiniMaxSource('rig_api_key');
+      await this.setRigSource('rig_api_key');
       return;
     }
     this.editSelected();
@@ -301,7 +301,7 @@ export class TuiProviderManager implements Component, Focusable {
     const provider = this.selectedProvider();
     if (!provider) return;
     if (provider.kind === 'rig-api-key') {
-      this.startMiniMaxKey(provider.hasApiKey);
+      this.startRigKey(provider.hasApiKey);
       return;
     }
     if (provider.kind === 'rig-oauth') {
@@ -369,7 +369,7 @@ export class TuiProviderManager implements Component, Focusable {
     this.options.onConnectCodex();
   }
 
-  private startMiniMaxKey(replacing = false): void {
+  private startRigKey(replacing = false): void {
     this.mode = { kind: 'rig-key', replacing };
     this.status = undefined;
     this.secretInput.setValue('');
@@ -378,7 +378,7 @@ export class TuiProviderManager implements Component, Focusable {
     this.requestRender();
   }
 
-  private submitMiniMaxKey(value: string): void {
+  private submitRigKey(value: string): void {
     if (this.mode.kind !== 'rig-key') return;
     const replacing = this.mode.replacing;
     if (!value.trim()) {
@@ -386,7 +386,7 @@ export class TuiProviderManager implements Component, Focusable {
       return;
     }
     void this.perform(async () => {
-      await this.options.onSetMiniMaxApiKey(value.trim());
+      await this.options.onSetRigApiKey(value.trim());
       if (this.disposed) return;
       await this.refresh(
         replacing
@@ -424,9 +424,9 @@ export class TuiProviderManager implements Component, Focusable {
     });
   }
 
-  private async setMiniMaxSource(source: 'token_plan' | 'rig_api_key'): Promise<void> {
+  private async setRigSource(source: 'token_plan' | 'rig_api_key'): Promise<void> {
     await this.perform(async () => {
-      await this.options.onSetMiniMaxSource(source);
+      await this.options.onSetRigSource(source);
       if (this.disposed) return;
       await this.refresh(
         source === 'token_plan' ? 'Using Rig Token Plan.' : 'Using Rig API Key.',

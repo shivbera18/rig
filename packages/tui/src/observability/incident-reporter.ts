@@ -148,7 +148,7 @@ const ERROR_API_HOST: Readonly<Record<RigRegion, Readonly<Record<RigBuildEnv, st
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
     staging: 'https://matrix-pre.example.invalid',
-    prod: 'https://agent.minimaxi.com',
+    prod: 'https://agent.rig.cn',
   },
   en: {
     dev: 'https://matrix-overseas-test.example.invalid',
@@ -438,7 +438,7 @@ class LocalTuiIncidentReporter implements TuiIncidentReporter {
       const response = await this.fetchImpl(requestUrl, {
         method: 'POST',
         headers: {
-          'User-Agent': 'MiniMaxAgent',
+          'User-Agent': 'RigAgent',
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },

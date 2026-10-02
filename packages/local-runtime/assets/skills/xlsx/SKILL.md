@@ -4,8 +4,7 @@ description: >-
   Spreadsheet skill — read, edit, create, and convert .xlsx/.xlsm/.csv/.tsv files.
   Trigger when a spreadsheet file is the primary input or output: editing columns, formulas, formatting, charting, cleaning messy data, or creating new spreadsheets.
   Not for Word/HTML/PDF deliverables even if tabular data is involved.
-descriptions:
-  zh-Hans: "读取、编辑、创建和转换表格文件，支持 xlsx、xlsm、csv、tsv、公式、格式、图表和数据清洗。"
+
 license: MIT
 ---
 

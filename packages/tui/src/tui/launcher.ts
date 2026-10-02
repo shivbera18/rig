@@ -68,7 +68,7 @@ import { schedulePendingMcodePrefixUpdate } from '../update/prefix-update.js';
 import { MCODE_TUI_RESULT_PATH_ENV } from './automation/result-writer.js';
 import { startTuiStartupStatus, type TuiStartupStatus } from './startup-status.js';
 
-const MINIMAX_CODE_EXIT_SLOGAN = 'Intelligence with everyone, bye~';
+const RIG_EXIT_SLOGAN = 'Intelligence with everyone, bye~';
 export interface LaunchTuiOptions {
   version: string;
   initialPrompt?: string;
@@ -896,7 +896,7 @@ function isExistingFile(file: string): boolean {
 
 export function formatTuiExitMessage(sessionId?: string): string {
   const sessionHint = sessionId ? formatTuiSessionHint(sessionId) : undefined;
-  return `${sessionHint ?? '\n'}${sessionHint ? '\n' : ''}${MINIMAX_CODE_EXIT_SLOGAN}\n`;
+  return `${sessionHint ?? '\n'}${sessionHint ? '\n' : ''}${RIG_EXIT_SLOGAN}\n`;
 }
 
 export function formatTuiSessionHint(sessionId: string): string | undefined {

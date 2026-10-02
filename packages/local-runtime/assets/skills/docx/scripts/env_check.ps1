@@ -215,7 +215,7 @@ if ($Level -eq 'Full') {
     } else {
         $built = $false
         foreach ($tfm in @('net10.0', 'net9.0', 'net8.0')) {
-            $dll = Join-Path $DotnetDir "MiniMaxAIDocx.Cli\bin\Debug\$tfm\MiniMaxAIDocx.Cli.dll"
+            $dll = Join-Path $DotnetDir "RigAIDocx.Cli\bin\Debug\$tfm\RigAIDocx.Cli.dll"
             if (Test-Path $dll) { $built = $true; break }
         }
         if ($built) {

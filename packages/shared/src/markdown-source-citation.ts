@@ -99,7 +99,7 @@ function collectWebSourceCitationsInto(
       readString(record.summary),
       readString(record.text),
       readString(record.content)
-        ?.split(/(?:^|\n)\[(?:附加字段|additional fields?)[^\]]*\]/iu, 1)[0]
+        ?.split(/(?:^|\n)\[(?:additional fields?)[^\]]*\]/iu, 1)[0]
         ?.trim(),
     ]
       .filter((entry): entry is string => Boolean(entry))
@@ -221,7 +221,7 @@ function evidenceLine(value: string, index: number): string {
 function parseSupplementalMetadata(value: unknown): Record<string, unknown> | undefined {
   if (typeof value !== 'string' || value.length > MAX_EVIDENCE_CHARS) return undefined;
   const matches = Array.from(
-    value.matchAll(/(?:^|\n)\[(?:附加字段|additional fields?)[^\]]*\]\s*/giu),
+    value.matchAll(/(?:^|\n)\[(?:additional fields?)[^\]]*\]\s*/giu),
   );
   const marker = matches.at(-1);
   if (marker?.index === undefined) return undefined;

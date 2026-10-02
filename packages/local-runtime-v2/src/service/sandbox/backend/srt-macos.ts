@@ -62,7 +62,7 @@ const SRT_MACOS_CAPABILITIES: SandboxBackendCapabilities = Object.freeze({
  * not ship that file, and the unhandled `MODULE_NOT_FOUND` fired before
  * `manager.initialize()` and left the whole sandbox in `failed`.
  */
-const SRT_RUNTIME_VERSION = '0.0.74-rig.2';
+const SRT_RUNTIME_VERSION = '0.0.74-mcode.2';
 
 export function createSrtMacosBackend(
   manager: SrtMacosManagerPort = SandboxManager,
@@ -228,7 +228,7 @@ function runtimeConfig(policy: SandboxEffectivePolicy): SandboxRuntimeConfig {
 /**
  * SRT `network.disabled: true` turns the whole network subsystem off: no proxy
  * startup, unrestricted seatbelt network rules, zero proxy/cert env injection.
- * The exact-pinned `@rig/rig-sandbox-runtime` (>= 0.0.74-rig.2, see
+ * The exact-pinned `@rig/rig-sandbox-runtime` (>= 0.0.74-mcode.2, see
  * `SRT_RUNTIME_VERSION`) ships `disabled` in `NetworkConfigSchema`, so schema,
  * type and runtime consume the key from the same package. Older product
  * binaries bundle an older SRT and are unaffected by this code.

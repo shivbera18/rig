@@ -54,7 +54,7 @@ describe("srt-macos backend version pin", () => {
     expect(pinned).toBe("workspace:*");
 
     const backend = createSrtMacosBackend(fakeManager());
-    expect(backend.describeVersions().backendVersion).toBe("0.0.74-rig.2");
+    expect(backend.describeVersions().backendVersion).toBe("0.0.74-mcode.2");
 
     const installed = createRequire(import.meta.url)(
       "@rig/rig-sandbox-runtime/package.json",

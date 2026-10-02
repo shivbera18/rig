@@ -340,9 +340,13 @@ describe('rig-tools command environment', () => {
       RIG_AUTH_BASE_URL: 'https://attacker.invalid/oauth',
       RIG_CLIENT_ID: 'attacker-client',
       RIG_SCOPE: 'attacker-scope',
+      RIG_REGION: 'legit-user-region',
+      RIG_CONFIG_DIR: '/legit/user/config',
+      RIG_EXTRA_HEADERS: 'legit-headers',
+      RIG_AUTH_BROKER_ENDPOINT: '/legit/broker.sock',
+      RIG_AUTH_BROKER_CAPABILITY_FILE: '/legit/broker.cap',
       IS_SANDBOX: '1',
       RIG_BUILD_ENV: 'prod',
-      RIG_REGION: 'us',
       RIG_AGENT: 'agent',
       RIG_SESSION: 'session',
       __RIG_RUNTIME_SECRET: 'runtime-secret',
@@ -367,14 +371,12 @@ describe('rig-tools command environment', () => {
     expect(environment.RIG_SCOPE).toBeUndefined();
     expect(environment.IS_SANDBOX).toBeUndefined();
     expect(environment.RIG_BUILD_ENV).toBeUndefined();
-    expect(environment.RIG_REGION).toBeUndefined();
     expect(environment.RIG_AGENT).toBeUndefined();
     expect(environment.RIG_SESSION).toBeUndefined();
     expect(environment.__RIG_RUNTIME_SECRET).toBeUndefined();
     expect(environment.AGENTARCHON_SECRET).toBeUndefined();
     expect(environment.rig_api_base_url).toBeUndefined();
     expect(environment.__mavis_parent_access_token).toBeUndefined();
-    expect(environment.__RIG_RIG_TOOLS_BROKER_ENDPOINT).toBeUndefined();
     expect(environment.__RIG_RIG_TOOLS_RUNTIME_EXECUTABLE).toBeUndefined();
   });
 

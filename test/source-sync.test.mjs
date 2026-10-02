@@ -594,7 +594,7 @@ function verificationFixture(t) {
     const fs = require('node:fs');
     const path = require('node:path');
     const gate = process.argv[3];
-    const report = JSON.parse(fs.readFileSync(path.join(process.env.MCODE_VERIFY_REPORT_DIR, 'verification.json')));
+    const report = JSON.parse(fs.readFileSync(path.join(process.env.RIG_VERIFY_REPORT_DIR, 'verification.json')));
     if (report.status !== 'RUNNING' || report.gates.find(g => g.name === gate)?.status !== 'RUNNING') process.exit(99);
     console.log('FIXTURE_OUTPUT_MUST_NOT_BE_UPLOADED');
     if (gate === process.env.VERIFY_FIXTURE_FAIL) process.exit(17);
@@ -615,7 +615,7 @@ function verificationFixture(t) {
       env: {
         ...process.env,
         npm_execpath: manager,
-        MCODE_VERIFY_REPORT_DIR: reportDir,
+        RIG_VERIFY_REPORT_DIR: reportDir,
         GITHUB_STEP_SUMMARY: summaryPath,
         VERIFY_FIXTURE_EXPORT: exportRecord,
         VERIFY_FIXTURE_FAIL: '',
@@ -773,10 +773,10 @@ test('manual source candidates pin every checkout and receipt to the selected re
   const workflow = parseYaml(readFileSync(new URL('../.github/workflows/source-candidate.yml', import.meta.url), 'utf8'));
   assert.deepEqual(Object.keys(workflow.on).sort(), ['workflow_call', 'workflow_dispatch']);
   assert.equal(workflow.on.workflow_call.inputs.revision.required, true);
-  assert.equal(workflow.env.MCODE_CANDIDATE_REVISION, '${{ inputs.revision || github.sha }}');
+  assert.equal(workflow.env.RIG_CANDIDATE_REVISION, '${{ inputs.revision || github.sha }}');
   assert.equal(workflow.concurrency['cancel-in-progress'], false);
   assert.match(workflow.concurrency.group, /inputs\.revision \|\| github\.sha/);
-  const revision = '${{ env.MCODE_CANDIDATE_REVISION }}';
+  const revision = '${{ env.RIG_CANDIDATE_REVISION }}';
   for (const job of Object.values(workflow.jobs)) {
     const checkout = job.steps.find(step => step.uses?.startsWith('actions/checkout@'));
     assert.equal(checkout.with.ref, revision);
@@ -787,7 +787,7 @@ test('manual source candidates pin every checkout and receipt to the selected re
   assert.deepEqual(validate.strategy.matrix.os, ['ubuntu-latest', 'macos-latest']);
   assert.ok(validate.steps.some(step => step.run?.includes('--store-dir "$RUNNER_TEMP/candidate-store" --registry https://registry.npmjs.org/')));
   const verify = validate.steps.find(step => step.run === 'pnpm verify --profile archive');
-  assert.equal(verify.env.MCODE_VERIFY_REVISION, revision);
+  assert.equal(verify.env.RIG_VERIFY_REVISION, revision);
   assert.deepEqual(workflow.jobs.publish.needs, ['export', 'validate']);
   assert.ok(workflow.jobs.publish.steps.some(step => step.run?.includes('scripts/source-candidate.mjs finalize')));
   assert.equal(workflow.permissions.contents, 'read');

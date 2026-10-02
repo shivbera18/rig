@@ -25,12 +25,12 @@ describe('business telemetry privacy', () => {
     expect(
       resolveMcodeBusinessTelemetryPolicy({
         configEnabled: true,
-        environment: { MCODE_DISABLE_TELEMETRY: '1' },
+        environment: { RIG_DISABLE_TELEMETRY: '1' },
       }),
     ).toEqual({
       enabled: false,
       configured: true,
-      blockedBy: 'MCODE_DISABLE_TELEMETRY',
+      blockedBy: 'RIG_DISABLE_TELEMETRY',
     });
     expect(
       resolveMcodeBusinessTelemetryPolicy({

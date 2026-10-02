@@ -54,11 +54,11 @@ try {
   try { assert.equal(db.prepare('select 42 as value').get().value, 42); } finally { db.close(); }
   assert.match(execFileSync(require('@vscode/ripgrep').rgPath, ['--version'], { encoding: 'utf8' }), /ripgrep/);
   execFileSync(process.execPath, ['--test', 'test/smoke.test.mjs', 'test/byok.test.mjs'], {
-    cwd: root, env: { ...env, MCODE_TEST_CLI: path.join(installed, 'cli.js') }, stdio: 'inherit', timeout: 240000,
+    cwd: root, env: { ...env, RIG_TEST_CLI: path.join(installed, 'cli.js') }, stdio: 'inherit', timeout: 240000,
   });
-  if (process.env.MCODE_VERIFY_REPORT_DIR) {
-    mkdirSync(process.env.MCODE_VERIFY_REPORT_DIR, { recursive: true });
-    writeFileSync(path.join(process.env.MCODE_VERIFY_REPORT_DIR, 'package-install.json'), JSON.stringify({
+  if (process.env.RIG_VERIFY_REPORT_DIR) {
+    mkdirSync(process.env.RIG_VERIFY_REPORT_DIR, { recursive: true });
+    writeFileSync(path.join(process.env.RIG_VERIFY_REPORT_DIR, 'package-install.json'), JSON.stringify({
       status: 'PASS', version, revision, sha256, platform: process.platform, arch: process.arch, node: process.version,
     }, null, 2) + '\n');
   }

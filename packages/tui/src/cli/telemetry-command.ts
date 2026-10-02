@@ -37,7 +37,7 @@ export function runMcodeTelemetryCommand(
       diagnostics: channel(config.telemetry.diagnostics),
     },
     optInSetting: { telemetry: { enabled: true, metrics: true, diagnostics: true } },
-    optOutEnvironment: ['MCODE_DISABLE_TELEMETRY=1', 'DO_NOT_TRACK=1'],
+    optOutEnvironment: ['RIG_DISABLE_TELEMETRY=1', 'MCODE_DISABLE_TELEMETRY=1', 'DO_NOT_TRACK=1'],
   };
   if (action === 'status') return `${JSON.stringify(status, null, 2)}\n`;
   if (!policy.enabled) {

@@ -83,7 +83,7 @@ export interface CreateMcodeBusinessTelemetryOptions {
 export interface McodeTelemetryPolicy {
   readonly enabled: boolean;
   readonly configured: boolean;
-  readonly blockedBy?: 'MCODE_DISABLE_TELEMETRY' | 'DO_NOT_TRACK';
+  readonly blockedBy?: 'RIG_DISABLE_TELEMETRY' | 'MCODE_DISABLE_TELEMETRY' | 'DO_NOT_TRACK';
 }
 
 export interface McodeBusinessTelemetryPreview {
@@ -129,6 +129,9 @@ export function resolveMcodeBusinessTelemetryPolicy(options: {
 }): McodeTelemetryPolicy {
   const environment = options.environment ?? process.env;
   const configured = options.configEnabled === true;
+  if (isEnabledEnvironmentFlag(environment.RIG_DISABLE_TELEMETRY)) {
+    return { enabled: false, configured, blockedBy: 'RIG_DISABLE_TELEMETRY' };
+  }
   if (isEnabledEnvironmentFlag(environment.MCODE_DISABLE_TELEMETRY)) {
     return { enabled: false, configured, blockedBy: 'MCODE_DISABLE_TELEMETRY' };
   }

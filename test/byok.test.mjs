@@ -20,7 +20,7 @@ import Database from "better-sqlite3";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { withoutProxyEnvironment } from "./offline-environment.mjs";
 
-const cli = process.env.MCODE_TEST_CLI ?? fileURLToPath(new URL("../dist/cli.js", import.meta.url));
+const cli = process.env.RIG_TEST_CLI ?? fileURLToPath(new URL("../dist/cli.js", import.meta.url));
 // This fixture validates BYOK transport and real Runtime persistence, not model quality.
 test(
   "BYOK runs without managed login and resumes its saved conversation",
@@ -162,10 +162,10 @@ test(
       RIG_DATA_DIR: dataDir,
       RIG_DATA_DIR: dataDir,
       RIG_PROVIDER_API_KEY: "fixture-only-key",
-      MCODE_TEST_ALLOWED_ORIGIN: new URL(baseUrl).origin,
-      MCODE_TEST_NETWORK_AUDIT: networkAudit,
-      MCODE_TEST_MANAGED_OFFLINE: "1",
-      MCODE_TEST_PROCESS_PROBE: "1",
+      RIG_TEST_ALLOWED_ORIGIN: new URL(baseUrl).origin,
+      RIG_TEST_NETWORK_AUDIT: networkAudit,
+      RIG_TEST_MANAGED_OFFLINE: "1",
+      RIG_TEST_PROCESS_PROBE: "1",
       NODE_OPTIONS: `--import=${new URL("./network-deny.mjs", import.meta.url).href}`,
     };
     let commandSequence = 0;
@@ -741,9 +741,9 @@ function cancellationTest(cancellation) {
           XDG_DATA_HOME: path.join(homeDir, "data"),
           RIG_DATA_DIR: dataDir,
           RIG_DATA_DIR: dataDir,
-          MCODE_TEST_ALLOWED_ORIGIN: origin,
-          MCODE_TEST_NETWORK_AUDIT: networkAudit,
-          MCODE_TEST_MANAGED_OFFLINE: "1",
+          RIG_TEST_ALLOWED_ORIGIN: origin,
+          RIG_TEST_NETWORK_AUDIT: networkAudit,
+          RIG_TEST_MANAGED_OFFLINE: "1",
           NODE_OPTIONS: `--import=${new URL("./network-deny.mjs", import.meta.url).href}`,
         },
         stdio: ["ignore", "pipe", "pipe"],

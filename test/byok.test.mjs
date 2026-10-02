@@ -295,7 +295,7 @@ test(
     const configPath = path.join(dataDir, "config.yaml");
     const savedConfig = () => parseYaml(readFileSync(configPath, "utf8"));
     assert.equal(savedConfig().defaultModel, "rig/Rig-M3");
-    assert.equal(savedConfig().custom-provider.fixture.models["fixture-model"].limit, undefined);
+    assert.equal(savedConfig()['custom-provider'].fixture.models["fixture-model"].limit, undefined);
     assert.equal(selected.active, false);
     assert.equal(selected.models[0].contextLimit, undefined);
     assert.equal(selected.models[0].maxOutputTokens, undefined);
@@ -307,7 +307,7 @@ test(
       "provider", "add", "--name", "Coding", "--base-url", codingUrl,
       "--api-format", "openai-completions", "--model", "glm-5.3", "--use",
     ]);
-    assert.equal(savedConfig().custom-provider.coding.options.baseURL, codingUrl);
+    assert.equal(savedConfig()['custom-provider'].coding.options.baseURL, codingUrl);
     assert.equal(savedConfig().defaultModel, "custom_provider:coding/glm-5.3");
     assert.match(await run([
       "exec", "CODING_ENDPOINT_TEST", "--timeout", "20s", "--max-steps", "1",
@@ -337,8 +337,8 @@ test(
     const config = savedConfig();
     assert.equal(config.defaultModel, "custom_provider:limited/fixture-model");
     for (const model of ["fixture-model", "second-model"]) {
-      assert.deepEqual(config.custom-provider.limited.models[model].limit, { context: 32768, output: 4096 });
-      assert.deepEqual(config.custom-provider.limited.models[model].capabilities, { support_image: true });
+      assert.deepEqual(config['custom-provider'].limited.models[model].limit, { context: 32768, output: 4096 });
+      assert.deepEqual(config['custom-provider'].limited.models[model].capabilities, { support_image: true });
     }
     const configured = JSON.parse(await run(["provider", "list", "--json"])).providers.find(
       (provider) => provider.name === "Limited",
@@ -367,14 +367,14 @@ test(
     // Exercise the metadata persisted by provider preset import through real
     // config reload, headless validation and the OpenAI-compatible request body.
     const effortConfig = savedConfig();
-    effortConfig.custom-provider.fixture.models["kimi-k3"] = {
+    effortConfig['custom-provider'].fixture.models["kimi-k3"] = {
       reasoning: true,
       thinking: { effortOptions: ["low", "high", "max"] },
     };
-    effortConfig.custom-provider.fixture.models["vision-modalities"] = {
+    effortConfig['custom-provider'].fixture.models["vision-modalities"] = {
       modalities: { input: ["text", "image"], output: ["text"] },
     };
-    effortConfig.custom-provider.fixture.models["attachment-only"] = { attachment: true };
+    effortConfig['custom-provider'].fixture.models["attachment-only"] = { attachment: true };
     writeFileSync(configPath, stringifyYaml(effortConfig));
     // The packaged command must carry the declaration through saving, a fresh
     // process/config reload, attachment preparation and SDK serialization.
@@ -699,7 +699,7 @@ function cancellationTest(cancellation) {
     writeFileSync(
       path.join(dataDir, "config.yaml"),
       stringifyYaml({
-        custom_provider?: {
+        "custom_provider?": {
           fixture: {
             name: "fixture",
             kind: "custom",

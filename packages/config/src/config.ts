@@ -1582,7 +1582,7 @@ const PRESET_BASE_URLS: Record<PresetKey, string> = {
 };
 
 const LEGACY_MANAGED_PRESET_BASE_URLS = [
-  "https://agent.rig.cn/rig/api/v1/llm/v1",
+  "https://agent.minimaxi.com/rig/api/v1/llm/v1",
 ] as const;
 const MANAGED_PRESET_BASE_URLS = new Set([
   ...Object.values(PRESET_BASE_URLS),

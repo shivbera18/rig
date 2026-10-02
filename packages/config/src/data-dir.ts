@@ -188,6 +188,7 @@ function ensureCompatLink(
   logger: DataDirMigrationLogger,
   nowMs: () => number,
 ): void {
+  if (normalizeResolvedPathForCompare(legacyDir) === normalizeResolvedPathForCompare(newDir)) return;
   if (!prepareLegacyPathForLink(legacyDir, newDir, logger, nowMs)) return;
   createCompatLink(legacyDir, newDir, logger);
 }

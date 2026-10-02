@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getConfig,
@@ -186,9 +187,10 @@ describe.skipIf(process.platform === "win32")(
     });
 
     it("copies default-profile credentials into a private config", () => {
-      const defaults = join(os.homedir(), ".rig");
-      fs.mkdirSync(defaults, { recursive: true });
-      fs.writeFileSync(join(defaults, "config.yaml"), document, {
+      const stubHome = join(root, "stub-home");
+      vi.spyOn(os, "homedir").mockReturnValue(stubHome);
+      fs.mkdirSync(join(stubHome, ".rig"), { recursive: true });
+      fs.writeFileSync(join(stubHome, ".rig", "config.yaml"), document, {
         mode: 0o644,
       });
       getConfig();

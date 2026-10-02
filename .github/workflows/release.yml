@@ -23,6 +23,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm verify
+      - run: npm update -g npm
       - run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ""

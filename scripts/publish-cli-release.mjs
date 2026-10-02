@@ -28,7 +28,7 @@ export function validateReleaseReports({ archive, reports, version, revision }) 
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const tag = process.env.MCODE_RELEASE_TAG;
+  const tag = process.env.RIG_RELEASE_TAG;
   const version = versionFromTag(tag);
   const revision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   if (!process.env.MCODE_RELEASE_DIRECTORY || !process.env.MCODE_RELEASE_REPORTS) throw new Error('Release directory and reports are required.');

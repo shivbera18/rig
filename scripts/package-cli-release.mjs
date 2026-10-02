@@ -74,10 +74,10 @@ export function releaseManifest(importers, version) {
 export async function packageCliRelease({ tag, out }) {
   const version = cliBuildVersion(root, tag);
   const dist = path.join(root, 'dist');
-  if (json(path.join(dist, 'package.json')).version !== version) throw new Error('Build version does not match the release tag. Build with MCODE_RELEASE_TAG first.');
+  if (json(path.join(dist, 'package.json')).version !== version) throw new Error('Build version does not match the release tag. Build with RIG_RELEASE_TAG first.');
   const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   if (execFileSync('git', ['status', '--porcelain', '--untracked-files=no'], { cwd: root, encoding: 'utf8' }).trim()) throw new Error('Packaging requires a clean committed working tree.');
-  if (json(path.join(dist, 'package.json')).gitHead !== revision) throw new Error('Build revision does not match HEAD. Rebuild with MCODE_RELEASE_TAG.');
+  if (json(path.join(dist, 'package.json')).gitHead !== revision) throw new Error('Build revision does not match HEAD. Rebuild with RIG_RELEASE_TAG.');
   const temporary = mkdtempSync(path.join(tmpdir(), 'rig-release-'));
   try {
     const stage = path.join(temporary, 'package');

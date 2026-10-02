@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { versionFromTag } from './lib/cli-release.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const version = versionFromTag(process.env.MCODE_RELEASE_TAG);
+const version = versionFromTag(process.env.RIG_RELEASE_TAG);
 if (!process.env.MCODE_RELEASE_ARCHIVE) throw new Error('MCODE_RELEASE_ARCHIVE is required.');
 if (!['linux', 'darwin'].includes(process.platform)) throw new Error('Package validation currently supports Linux and macOS.');
 const archive = path.resolve(process.env.MCODE_RELEASE_ARCHIVE);
@@ -44,7 +44,7 @@ try {
   const installed = path.join(prefix, 'lib/node_modules/@shivcdhry/rig');
   const release = JSON.parse(readFileSync(path.join(installed, 'release.json'), 'utf8'));
   assert.equal(release.version, version);
-  assert.equal(release.tag, process.env.MCODE_RELEASE_TAG);
+  assert.equal(release.tag, process.env.RIG_RELEASE_TAG);
   assert.equal(release.revision, revision);
   const result = execFileSync(path.join(prefix, 'bin/rig'), ['--version'], { cwd: home, env, encoding: 'utf8', timeout: 30000 });
   assert.equal(result.trim(), version);

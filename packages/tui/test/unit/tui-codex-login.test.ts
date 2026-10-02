@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { McodeCodexOAuthStatus } from "../../src/provider/contract.js";
+import type { RigCodexOAuthStatus } from "../../src/provider/contract.js";
 import { TuiCodexLogin } from "../../src/tui/features/auth/codex-login.js";
 import { stripAnsi, visibleWidth } from "../../src/tui/rendering/text.js";
 
-const disconnected: McodeCodexOAuthStatus = {
+const disconnected: RigCodexOAuthStatus = {
   state: "disconnected",
   providerId: "openai-codex",
 };
-const device: McodeCodexOAuthStatus = {
+const device: RigCodexOAuthStatus = {
   state: "pending",
   providerId: "openai-codex",
   method: "device_code",
@@ -22,13 +22,13 @@ const device: McodeCodexOAuthStatus = {
 function harness(initial = disconnected) {
   const application = {
     getCodexOAuthStatus: vi.fn(
-      async (): Promise<McodeCodexOAuthStatus> => initial,
+      async (): Promise<RigCodexOAuthStatus> => initial,
     ),
     connectCodexOAuth: vi.fn(
-      async (): Promise<McodeCodexOAuthStatus> => device,
+      async (): Promise<RigCodexOAuthStatus> => device,
     ),
     cancelCodexOAuthLogin: vi.fn(
-      async (): Promise<McodeCodexOAuthStatus> => disconnected,
+      async (): Promise<RigCodexOAuthStatus> => disconnected,
     ),
   };
   const openExternalTarget = vi.fn(async () => undefined);
@@ -115,7 +115,7 @@ describe("Codex sign-in panel", () => {
 
   it("cancels an authorization that arrives after the user closes the starting panel", async () => {
     const h = harness();
-    let release!: (status: McodeCodexOAuthStatus) => void;
+    let release!: (status: RigCodexOAuthStatus) => void;
     h.application.connectCodexOAuth.mockImplementation(
       () =>
         new Promise((resolve) => {

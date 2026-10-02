@@ -1,30 +1,30 @@
 import type { RigBuildEnv, RigRegion } from '@rig/config';
 import {
-  resolveMCodeOAuthEndpointConfig,
-  type MCodeOAuthEndpointEnvironment,
+  resolveRigOAuthEndpointConfig,
+  type RigOAuthEndpointEnvironment,
 } from '@rig/oauth-core';
 
-import { createMcodeSharedAuthSession } from '../runtime/auth-session.js';
-import { McodeAuthApplication, type McodeAuthApplicationOptions } from './application.js';
-import { resolveMcodeAuthEnvironment } from './environment.js';
+import { createRigSharedAuthSession } from '../runtime/auth-session.js';
+import { RigAuthApplication, type RigAuthApplicationOptions } from './application.js';
+import { resolveRigAuthEnvironment } from './environment.js';
 import { writeTuiRegionPreference } from './region-preference.js';
 
-export interface CreateDefaultMcodeAuthApplicationOptions {
+export interface CreateDefaultRigAuthApplicationOptions {
   dataDir: string;
   region?: RigRegion;
   buildEnv?: RigBuildEnv;
-  oauthEndpointEnvironment?: MCodeOAuthEndpointEnvironment;
-  createSharedSession?: typeof createMcodeSharedAuthSession;
-  telemetry?: McodeAuthApplicationOptions['telemetry'];
-  telemetrySource?: McodeAuthApplicationOptions['telemetrySource'];
-  writeRegionPreference?: McodeAuthApplicationOptions['writeRegionPreference'];
-  sharedAuthCore?: McodeAuthApplicationOptions['sharedAuthCore'];
+  oauthEndpointEnvironment?: RigOAuthEndpointEnvironment;
+  createSharedSession?: typeof createRigSharedAuthSession;
+  telemetry?: RigAuthApplicationOptions['telemetry'];
+  telemetrySource?: RigAuthApplicationOptions['telemetrySource'];
+  writeRegionPreference?: RigAuthApplicationOptions['writeRegionPreference'];
+  sharedAuthCore?: RigAuthApplicationOptions['sharedAuthCore'];
 }
 
-export function createDefaultMcodeAuthApplication(
-  options: CreateDefaultMcodeAuthApplicationOptions,
-): McodeAuthApplication {
-  const environment = resolveMcodeAuthEnvironment({
+export function createDefaultRigAuthApplication(
+  options: CreateDefaultRigAuthApplicationOptions,
+): RigAuthApplication {
+  const environment = resolveRigAuthEnvironment({
     runtimeRegion: options.region,
     runtimeBuildEnv: options.buildEnv,
   });
@@ -37,19 +37,19 @@ export function createDefaultMcodeAuthApplication(
     ...(options.telemetry ? { telemetry: options.telemetry } : {}),
     ...(options.telemetrySource ? { telemetrySource: options.telemetrySource } : {}),
     writeRegionPreference: options.writeRegionPreference ?? writeTuiRegionPreference,
-  } satisfies Omit<McodeAuthApplicationOptions, 'sharedAuthCore'>;
+  } satisfies Omit<RigAuthApplicationOptions, 'sharedAuthCore'>;
   const createSharedAuthCore = (requestedRegion: RigRegion) =>
-    (options.createSharedSession ?? createMcodeSharedAuthSession)({
+    (options.createSharedSession ?? createRigSharedAuthSession)({
       dataDir: options.dataDir,
       region: requestedRegion,
       buildEnv,
-      oauthEndpoints: resolveMCodeOAuthEndpointConfig(
+      oauthEndpoints: resolveRigOAuthEndpointConfig(
         options.oauthEndpointEnvironment ?? process.env,
         { buildEnv, region: requestedRegion },
       ),
     });
   const sharedAuthCore = options.sharedAuthCore ?? createSharedAuthCore(region);
-  return new McodeAuthApplication({
+  return new RigAuthApplication({
     ...applicationOptions,
     sharedAuthCore,
     resolveSharedAuthCore: createSharedAuthCore,

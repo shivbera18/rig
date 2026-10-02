@@ -1,4 +1,4 @@
-export type McodeUpdatePhase =
+export type RigUpdatePhase =
   | 'checking'
   | 'downloading'
   | 'staging'
@@ -7,38 +7,38 @@ export type McodeUpdatePhase =
   | 'activating'
   | 'completed';
 
-export interface McodeUpdatePhaseEvent {
-  readonly phase: McodeUpdatePhase;
+export interface RigUpdatePhaseEvent {
+  readonly phase: RigUpdatePhase;
   readonly cancellable: boolean;
 }
 
-export interface McodeUpdateOperationOptions {
+export interface RigUpdateOperationOptions {
   readonly signal?: AbortSignal;
   readonly onOutput?: (chunk: string) => void;
-  readonly onPhase?: (event: McodeUpdatePhaseEvent) => void;
+  readonly onPhase?: (event: RigUpdatePhaseEvent) => void;
 }
 
-export class McodeUpdateCancelledError extends Error {
+export class RigUpdateCancelledError extends Error {
   constructor(message = 'Rig update cancelled; the previous installation remains active.') {
     super(message);
-    this.name = 'McodeUpdateCancelledError';
+    this.name = 'RigUpdateCancelledError';
   }
 }
 
-export class McodeUpdateAdmissionError extends Error {
+export class RigUpdateAdmissionError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'McodeUpdateAdmissionError';
+    this.name = 'RigUpdateAdmissionError';
   }
 }
 
-export function throwIfMcodeUpdateCancelled(signal: AbortSignal | undefined): void {
-  if (signal?.aborted) throw new McodeUpdateCancelledError();
+export function throwIfRigUpdateCancelled(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) throw new RigUpdateCancelledError();
 }
 
-export function reportMcodeUpdatePhase(
-  options: Pick<McodeUpdateOperationOptions, 'onPhase'>,
-  phase: McodeUpdatePhase,
+export function reportRigUpdatePhase(
+  options: Pick<RigUpdateOperationOptions, 'onPhase'>,
+  phase: RigUpdatePhase,
   cancellable: boolean,
 ): void {
   try {
@@ -48,10 +48,10 @@ export function reportMcodeUpdatePhase(
   }
 }
 
-export function isMcodeUpdateCancelledError(error: unknown): error is McodeUpdateCancelledError {
-  return error instanceof McodeUpdateCancelledError;
+export function isRigUpdateCancelledError(error: unknown): error is RigUpdateCancelledError {
+  return error instanceof RigUpdateCancelledError;
 }
 
-export function isMcodeUpdateAdmissionError(error: unknown): error is McodeUpdateAdmissionError {
-  return error instanceof McodeUpdateAdmissionError;
+export function isRigUpdateAdmissionError(error: unknown): error is RigUpdateAdmissionError {
+  return error instanceof RigUpdateAdmissionError;
 }

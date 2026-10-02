@@ -29,7 +29,7 @@ the existing npm package or move an existing release tag.
 
 | Surface | Decision |
 | --- | --- |
-| Usage, metrics and diagnostics | Keep the public independent opt-ins, disabled defaults, and `DO_NOT_TRACK` / `MCODE_DISABLE_TELEMETRY` overrides. |
+| Usage, metrics and diagnostics | Keep the public independent opt-ins, disabled defaults, and `DO_NOT_TRACK` / `RIG_DISABLE_TELEMETRY` overrides. |
 | Evaluation capture and data contribution | Do not import automatic capture wiring, evaluation payload/transport expansions, or default-enabled contribution behavior. |
 | Workspace collection and indexing | Keep snapshot collection, archive creation, background upload/retry and semantic-index activation excluded. |
 | Feedback and automatic error reports | Keep the public reviewed-text/count-only feedback projection and allowlisted diagnostic schemas; no raw conversations, tool output or workspace files. |

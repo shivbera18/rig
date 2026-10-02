@@ -224,7 +224,7 @@ function patchOutputFormatPayload(
   const schema = outputContract.schema;
   const schemaSnapshot = structuredClone(schema);
   const contract = {
-    name: 'mcode_output',
+    name: 'rig_output',
     strict: true,
     schema: schemaSnapshot,
   };

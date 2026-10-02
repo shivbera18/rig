@@ -1,4 +1,4 @@
-import { MCODE_OAUTH_AUDIENCE, MCODE_OAUTH_CLIENT_ID, MCODE_OAUTH_SCOPES } from '../contracts.js';
+import { RIG_OAUTH_AUDIENCE, RIG_OAUTH_CLIENT_ID, RIG_OAUTH_SCOPES } from '../contracts.js';
 
 export type CredentialStoreKind = 'file';
 export type LegacyCredentialStoreKind = 'os-keyring';
@@ -17,9 +17,9 @@ export interface StoredCredential {
   accessToken: string;
   refreshToken: string;
   tokenType: 'Bearer';
-  clientId: typeof MCODE_OAUTH_CLIENT_ID;
+  clientId: typeof RIG_OAUTH_CLIENT_ID;
   scopes: string[];
-  audience: typeof MCODE_OAUTH_AUDIENCE;
+  audience: typeof RIG_OAUTH_AUDIENCE;
   expiresAtMs: number;
   generation: number;
   subject?: string;
@@ -74,9 +74,9 @@ export function parseStoredCredential(value: unknown): StoredCredential {
     typeof candidate.refreshToken === 'string' &&
     candidate.refreshToken.length > 0 &&
     candidate.tokenType === 'Bearer' &&
-    candidate.clientId === MCODE_OAUTH_CLIENT_ID &&
+    candidate.clientId === RIG_OAUTH_CLIENT_ID &&
     validScopes &&
-    candidate.audience === MCODE_OAUTH_AUDIENCE &&
+    candidate.audience === RIG_OAUTH_AUDIENCE &&
     typeof candidate.expiresAtMs === 'number' &&
     Number.isFinite(candidate.expiresAtMs) &&
     Number.isSafeInteger(candidate.generation) &&

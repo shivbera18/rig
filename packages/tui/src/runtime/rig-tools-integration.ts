@@ -5,61 +5,61 @@ import { fileURLToPath } from 'node:url';
 
 import type { RigBuildEnv, RigRegion } from '@rig/config';
 import {
-  startMcodeToolsAuthLeaseBroker,
-  validateMcodeToolsResource,
-  type McodeToolsAuthLeaseBroker,
-  type McodeToolsBuildEnv,
-  type McodeToolsHostAuthSession,
-  type McodeToolsHostLogger,
-  type ValidatedMcodeToolsResource,
+  startRigToolsAuthLeaseBroker,
+  validateRigToolsResource,
+  type RigToolsAuthLeaseBroker,
+  type RigToolsBuildEnv,
+  type RigToolsHostAuthSession,
+  type RigToolsHostLogger,
+  type ValidatedRigToolsResource,
 } from '@rig/rig-tools-host';
 
 import {
-  activateTuiMcodeToolsHostEnvironment,
-  type TuiMcodeToolsHostEnvironmentActivation,
+  activateTuiRigToolsHostEnvironment,
+  type TuiRigToolsHostEnvironmentActivation,
 } from '../cli/rig-tools-environment.js';
 
-export type McodeToolsReadinessCategory =
+export type RigToolsReadinessCategory =
   | 'disabled'
   | 'ready'
   | 'resource_unavailable'
   | 'broker_unavailable'
   | 'host_unavailable';
 
-export interface McodeToolsReadiness {
+export interface RigToolsReadiness {
   readonly requested: boolean;
   readonly ready: boolean;
-  readonly category: McodeToolsReadinessCategory;
-  readonly buildEnv: McodeToolsBuildEnv;
+  readonly category: RigToolsReadinessCategory;
+  readonly buildEnv: RigToolsBuildEnv;
   readonly version?: string;
   ensureCommandPath(): void;
   dispose(): Promise<void>;
 }
 
-export interface PrepareTuiMcodeToolsIntegrationOptions {
+export interface PrepareTuiRigToolsIntegrationOptions {
   requested: boolean;
   dataDir: string;
   buildEnv: RigBuildEnv;
   region: RigRegion;
-  session: McodeToolsHostAuthSession;
+  session: RigToolsHostAuthSession;
   entryUrl: string;
   bedrockLane?: string;
   environment?: Record<string, string | undefined>;
-  logger?: McodeToolsHostLogger;
+  logger?: RigToolsHostLogger;
 }
 
-export interface PrepareTuiMcodeToolsIntegrationDependencies {
-  validateResource?: typeof validateMcodeToolsResource;
-  startBroker?: typeof startMcodeToolsAuthLeaseBroker;
-  createRuntimeDir?: typeof createTuiMcodeToolsRuntimeDir;
-  removeRuntimeDir?: typeof removeTuiMcodeToolsRuntimeDir;
-  activateEnvironment?: typeof activateTuiMcodeToolsHostEnvironment;
+export interface PrepareTuiRigToolsIntegrationDependencies {
+  validateResource?: typeof validateRigToolsResource;
+  startBroker?: typeof startRigToolsAuthLeaseBroker;
+  createRuntimeDir?: typeof createTuiRigToolsRuntimeDir;
+  removeRuntimeDir?: typeof removeTuiRigToolsRuntimeDir;
+  activateEnvironment?: typeof activateTuiRigToolsHostEnvironment;
 }
 
 const NOOP_DISPOSE = async (): Promise<void> => undefined;
 const NOOP = (): void => undefined;
 
-export function resolveBundledMcodeToolsResourceDir(
+export function resolveBundledRigToolsResourceDir(
   entryUrl: string,
   environment: Record<string, string | undefined> = process.env,
 ): string {
@@ -73,37 +73,37 @@ export function resolveBundledMcodeToolsResourceDir(
   return path.join(path.dirname(fileURLToPath(entryUrl)), 'embedded', 'rig-tools');
 }
 
-export function resolveBundledMcodeToolsCommandBinDir(entryUrl: string): string {
+export function resolveBundledRigToolsCommandBinDir(entryUrl: string): string {
   return path.join(path.dirname(fileURLToPath(entryUrl)), 'internal-bin');
 }
 
-export async function prepareTuiMcodeToolsIntegration(
-  options: PrepareTuiMcodeToolsIntegrationOptions,
-  dependencies: PrepareTuiMcodeToolsIntegrationDependencies = {},
-): Promise<McodeToolsReadiness> {
-  const buildEnv = normalizeMcodeToolsHostBuildEnv(options.buildEnv);
+export async function prepareTuiRigToolsIntegration(
+  options: PrepareTuiRigToolsIntegrationOptions,
+  dependencies: PrepareTuiRigToolsIntegrationDependencies = {},
+): Promise<RigToolsReadiness> {
+  const buildEnv = normalizeRigToolsHostBuildEnv(options.buildEnv);
   if (!options.requested) return inactiveReadiness(false, 'disabled', buildEnv);
 
   const logger = options.logger ?? { info: () => undefined, warn: () => undefined };
   const environment = options.environment ?? process.env;
-  const removeRuntimeDir = dependencies.removeRuntimeDir ?? removeTuiMcodeToolsRuntimeDir;
+  const removeRuntimeDir = dependencies.removeRuntimeDir ?? removeTuiRigToolsRuntimeDir;
   let runtimeDir: string | undefined;
-  let broker: McodeToolsAuthLeaseBroker | undefined;
-  let activation: TuiMcodeToolsHostEnvironmentActivation | undefined;
+  let broker: RigToolsAuthLeaseBroker | undefined;
+  let activation: TuiRigToolsHostEnvironmentActivation | undefined;
   try {
-    const resource = (dependencies.validateResource ?? validateMcodeToolsResource)({
-      resourceDir: resolveBundledMcodeToolsResourceDir(options.entryUrl, environment),
+    const resource = (dependencies.validateResource ?? validateRigToolsResource)({
+      resourceDir: resolveBundledRigToolsResourceDir(options.entryUrl, environment),
       expectedBuildEnv: buildEnv,
     });
-    runtimeDir = await (dependencies.createRuntimeDir ?? createTuiMcodeToolsRuntimeDir)();
-    broker = await (dependencies.startBroker ?? startMcodeToolsAuthLeaseBroker)({
+    runtimeDir = await (dependencies.createRuntimeDir ?? createTuiRigToolsRuntimeDir)();
+    broker = await (dependencies.startBroker ?? startRigToolsAuthLeaseBroker)({
       dataDir: runtimeDir,
       session: options.session,
       logger,
     });
     const configDir = path.join(options.dataDir, 'integrations', 'rig-tools', options.region);
     await ensurePrivateDirectory(configDir);
-    activation = (dependencies.activateEnvironment ?? activateTuiMcodeToolsHostEnvironment)(
+    activation = (dependencies.activateEnvironment ?? activateTuiRigToolsHostEnvironment)(
       environment,
       {
         runtimeExecutable: process.execPath,
@@ -111,7 +111,7 @@ export async function prepareTuiMcodeToolsIntegration(
         brokerCapabilityFile: broker.capabilityFile,
         configDir,
         region: options.region,
-        commandBinDir: resolveBundledMcodeToolsCommandBinDir(options.entryUrl),
+        commandBinDir: resolveBundledRigToolsCommandBinDir(options.entryUrl),
         ...(options.bedrockLane ? { bedrockLane: options.bedrockLane } : {}),
       },
     );
@@ -139,11 +139,11 @@ export async function prepareTuiMcodeToolsIntegration(
   }
 }
 
-export function normalizeMcodeToolsHostBuildEnv(buildEnv: RigBuildEnv): McodeToolsBuildEnv {
+export function normalizeRigToolsHostBuildEnv(buildEnv: RigBuildEnv): RigToolsBuildEnv {
   return buildEnv === 'dev' ? 'test' : buildEnv;
 }
 
-export async function createTuiMcodeToolsRuntimeDir(): Promise<string> {
+export async function createTuiRigToolsRuntimeDir(): Promise<string> {
   // macOS Unix-domain sockets have a short path limit. `/tmp` keeps the
   // process-private broker endpoint bounded even when the user's dataDir is long.
   const parent = process.platform === 'win32' ? tmpdir() : '/tmp';
@@ -152,18 +152,18 @@ export async function createTuiMcodeToolsRuntimeDir(): Promise<string> {
   return runtimeDir;
 }
 
-export function removeTuiMcodeToolsRuntimeDir(runtimeDir: string): Promise<void> {
+export function removeTuiRigToolsRuntimeDir(runtimeDir: string): Promise<void> {
   return rm(runtimeDir, { recursive: true, force: true });
 }
 
 function activeReadiness(options: {
-  buildEnv: McodeToolsBuildEnv;
-  resource: ValidatedMcodeToolsResource;
-  broker: McodeToolsAuthLeaseBroker;
+  buildEnv: RigToolsBuildEnv;
+  resource: ValidatedRigToolsResource;
+  broker: RigToolsAuthLeaseBroker;
   runtimeDir: string;
   removeRuntimeDir: (runtimeDir: string) => Promise<void>;
-  activation: TuiMcodeToolsHostEnvironmentActivation;
-}): McodeToolsReadiness {
+  activation: TuiRigToolsHostEnvironmentActivation;
+}): RigToolsReadiness {
   let disposed = false;
   return {
     requested: true,
@@ -195,9 +195,9 @@ function activeReadiness(options: {
 
 function inactiveReadiness(
   requested: boolean,
-  category: Exclude<McodeToolsReadinessCategory, 'ready'>,
-  buildEnv: McodeToolsBuildEnv,
-): McodeToolsReadiness {
+  category: Exclude<RigToolsReadinessCategory, 'ready'>,
+  buildEnv: RigToolsBuildEnv,
+): RigToolsReadiness {
   return {
     requested,
     ready: false,
@@ -215,7 +215,7 @@ async function ensurePrivateDirectory(directory: string): Promise<void> {
 
 function classifyReadinessFailure(
   error: unknown,
-): Exclude<McodeToolsReadinessCategory, 'disabled' | 'ready'> {
+): Exclude<RigToolsReadinessCategory, 'disabled' | 'ready'> {
   if (isErrorCode(error, 'EADDRINUSE')) return 'broker_unavailable';
   const message = error instanceof Error ? error.message.toLowerCase() : '';
   if (

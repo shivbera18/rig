@@ -2,7 +2,7 @@ import { getConfig, type TelemetryConfig } from './config.js';
 
 export type TelemetryChannel = keyof TelemetryConfig;
 
-const TELEMETRY_OPT_OUT_ENV = ['RIG_DISABLE_TELEMETRY', 'MCODE_DISABLE_TELEMETRY', 'DO_NOT_TRACK'] as const;
+const TELEMETRY_OPT_OUT_ENV = ['RIG_DISABLE_TELEMETRY', 'DO_NOT_TRACK'] as const;
 
 /**
  * True only when the channel is explicitly opted in and no global opt-out is set.

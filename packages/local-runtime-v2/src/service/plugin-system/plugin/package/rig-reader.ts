@@ -160,7 +160,7 @@ function assertRequiredMiniApp(
   required: boolean | undefined,
 ): void {
   if (required && !miniapp) {
-    readerFail('MINIAPP_MCODE_SCHEMA_INVALID', 'package.json#rig must declare a MiniApp');
+    readerFail('MINIAPP_RIG_SCHEMA_INVALID', 'package.json#rig must declare a MiniApp');
   }
 }
 

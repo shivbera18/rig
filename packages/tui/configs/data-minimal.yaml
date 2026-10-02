@@ -46,5 +46,5 @@ beta:
   asr: false
   taskHistoryProjectGrouping: false
   threadGoal: false
-  mcodeTools: false
+  rigTools: false
   codexOAuth: false

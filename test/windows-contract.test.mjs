@@ -7,7 +7,7 @@ import path from "node:path";
 import { afterEach, describe, it } from "vitest";
 import { checkWindowsSourceLocation } from "../scripts/check-windows-source-location.mjs";
 import { resolveWslPath } from "../packages/tui/src/host/wsl-path.js";
-import { McodeUpdateService } from "../packages/tui/src/update/service.js";
+import { RigUpdateService } from "../packages/tui/src/update/service.js";
 
 const windowsPath = String.raw`D:\Users\demo\Documents\Screen shots\截图.png`;
 const temporaryRoots = [];
@@ -95,7 +95,7 @@ describe.skipIf(process.platform !== "win32")("Windows source contract", () => {
     const installRoot = path.join(root, "用户 files & (test)");
     mkdirSync(installRoot);
     writeFileSync(path.join(installRoot, "current"), "1.2.3\n");
-    const service = new McodeUpdateService({
+    const service = new RigUpdateService({
       currentVersion: "1.2.3",
       installRoot,
       environment,

@@ -20,15 +20,15 @@ import {
   AUTH_LEASE_PROTOCOL_VERSION,
 } from '@rig/oauth-lease-protocol';
 
-export type McodeToolsBuildEnv = 'test' | 'staging' | 'prod';
-export type McodeToolsRegion = 'cn' | 'en';
+export type RigToolsBuildEnv = 'test' | 'staging' | 'prod';
+export type RigToolsRegion = 'cn' | 'en';
 
-export interface McodeToolsManifest {
+export interface RigToolsManifest {
   schemaVersion: 3 | 4;
   packageName: string;
   version: string;
   gitSha: string;
-  buildEnv: McodeToolsBuildEnv;
+  buildEnv: RigToolsBuildEnv;
   bedrockLane: string;
   nodeRange: string;
   entry: 'cli.mjs';
@@ -44,16 +44,16 @@ export interface McodeToolsManifest {
   resources: [{ path: 'cli.mjs'; sha256: string }, ...{ path: string; sha256: string }[]];
 }
 
-export interface ValidatedMcodeToolsResource {
+export interface ValidatedRigToolsResource {
   rootDir: string;
   cliPath: string;
-  manifest: McodeToolsManifest;
+  manifest: RigToolsManifest;
 }
 
-export function validateMcodeToolsResource(options: {
+export function validateRigToolsResource(options: {
   resourceDir: string;
-  expectedBuildEnv: McodeToolsBuildEnv;
-}): ValidatedMcodeToolsResource {
+  expectedBuildEnv: RigToolsBuildEnv;
+}): ValidatedRigToolsResource {
   const manifestPath = path.join(options.resourceDir, 'manifest.json');
   if (!existsSync(manifestPath)) throw new Error('rig-tools manifest is missing');
 
@@ -83,22 +83,22 @@ export function validateMcodeToolsResource(options: {
   return { rootDir: options.resourceDir, cliPath, manifest };
 }
 
-export async function installMcodeToolsLauncher(options: {
+export async function installRigToolsLauncher(options: {
   resourceDir: string;
-  expectedBuildEnv: McodeToolsBuildEnv;
+  expectedBuildEnv: RigToolsBuildEnv;
   dataDir: string;
   executable: string;
   platform: NodeJS.Platform;
-  region: McodeToolsRegion;
+  region: RigToolsRegion;
   bedrockLane?: string;
   brokerEndpoint: string;
   brokerCapabilityFile: string;
 }): Promise<{
   launcherPath: string;
   regionalLauncherPath: string;
-  resource: ValidatedMcodeToolsResource;
+  resource: ValidatedRigToolsResource;
 }> {
-  const resource = validateMcodeToolsResource(options);
+  const resource = validateRigToolsResource(options);
   const binDir = path.join(options.dataDir, 'bin');
   const configDir = path.join(options.dataDir, 'integrations', 'rig-tools', options.region);
   mkdirSync(binDir, { recursive: true, mode: 0o700 });
@@ -146,7 +146,7 @@ export async function installMcodeToolsLauncher(options: {
   return { launcherPath, regionalLauncherPath, resource };
 }
 
-export function removeMcodeToolsLaunchers(dataDir: string, region?: McodeToolsRegion): void {
+export function removeRigToolsLaunchers(dataDir: string, region?: RigToolsRegion): void {
   const binDir = path.join(dataDir, 'bin');
   const regionLabels = region ? [region === 'cn' ? 'cn' : 'global'] : ['cn', 'global'];
   for (const name of regionLabels.flatMap((label) => [
@@ -170,7 +170,7 @@ function renderPosixDispatcher(): string {
   return [
     '#!/bin/sh',
     'rig_tools_bin_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)',
-    ['rig_tools_region=$', '{MCODE_REGION:-$', '{RIG_REGION:-}}'].join(''),
+    'rig_tools_region=${RIG_REGION:-}',
     'case "$rig_tools_region" in',
     '  cn) rig_tools_target="$rig_tools_bin_dir/rig-tools-cn" ;;',
     '  en|global) rig_tools_target="$rig_tools_bin_dir/rig-tools-global" ;;',
@@ -180,11 +180,11 @@ function renderPosixDispatcher(): string {
     '    elif [ -x "$rig_tools_bin_dir/rig-tools-global" ] && [ ! -x "$rig_tools_bin_dir/rig-tools-cn" ]; then',
     '      rig_tools_target="$rig_tools_bin_dir/rig-tools-global"',
     '    else',
-    '      echo "MCODE_REGION must be cn or global when both regional rig-tools launchers are installed." >&2',
+    '      echo "RIG_REGION must be cn or global when both regional rig-tools launchers are installed." >&2',
     '      exit 2',
     '    fi',
     '    ;;',
-    '  *) echo "Invalid MCODE_REGION; expected cn or global." >&2; exit 2 ;;',
+    '  *) echo "Invalid RIG_REGION; expected cn or global." >&2; exit 2 ;;',
     'esac',
     'exec "$rig_tools_target" "$@"',
     '',
@@ -195,15 +195,14 @@ function renderWindowsDispatcher(): string {
   return [
     '@echo off',
     'setlocal DisableDelayedExpansion',
-    'set "rig_tools_region=%MCODE_REGION%"',
-    'if not defined rig_tools_region set "rig_tools_region=%RIG_REGION%"',
+    'set "rig_tools_region=%RIG_REGION%"',
     'if /i "%rig_tools_region%"=="cn" goto rig_tools_cn',
     'if /i "%rig_tools_region%"=="en" goto rig_tools_global',
     'if /i "%rig_tools_region%"=="global" goto rig_tools_global',
     'if defined rig_tools_region goto rig_tools_invalid',
     'if exist "%~dp0rig-tools-cn.cmd" if not exist "%~dp0rig-tools-global.cmd" goto rig_tools_cn',
     'if exist "%~dp0rig-tools-global.cmd" if not exist "%~dp0rig-tools-cn.cmd" goto rig_tools_global',
-    'echo MCODE_REGION must be cn or global when both regional rig-tools launchers are installed. 1>&2',
+    'echo RIG_REGION must be cn or global when both regional rig-tools launchers are installed. 1>&2',
     'exit /b 2',
     ':rig_tools_cn',
     'call "%~dp0rig-tools-cn.cmd" %*',
@@ -212,7 +211,7 @@ function renderWindowsDispatcher(): string {
     'call "%~dp0rig-tools-global.cmd" %*',
     'exit /b %ERRORLEVEL%',
     ':rig_tools_invalid',
-    'echo Invalid MCODE_REGION; expected cn or global. 1>&2',
+    'echo Invalid RIG_REGION; expected cn or global. 1>&2',
     'exit /b 2',
     '',
   ].join('\r\n');
@@ -222,14 +221,14 @@ export function renderPosixLauncher(options: {
   executable: string;
   cliPath: string;
   configDir: string;
-  region: McodeToolsRegion;
+  region: RigToolsRegion;
   bedrockLane?: string;
   brokerEndpoint: string;
   brokerCapabilityFile: string;
 }): string {
   const lines = [
     '#!/bin/sh',
-    'unset RIG_ACCESS_TOKEN RIG_DATA_DIR RIG_DATA_DIR RIG_PORT RIG_PROFILE IS_SANDBOX MCODE_API_BASE_URL MCODE_AUTH_BASE_URL MCODE_CLIENT_ID MCODE_SCOPE MCODE_AUTH_PROVIDER MCODE_AUTH_BROKER_ENDPOINT MCODE_AUTH_BROKER_CAPABILITY_FILE MCODE_EXTRA_HEADERS',
+    'unset RIG_ACCESS_TOKEN RIG_DATA_DIR RIG_DATA_DIR RIG_PORT RIG_PROFILE IS_SANDBOX RIG_API_BASE_URL RIG_AUTH_BASE_URL RIG_CLIENT_ID RIG_SCOPE RIG_AUTH_PROVIDER RIG_AUTH_BROKER_ENDPOINT RIG_AUTH_BROKER_CAPABILITY_FILE RIG_EXTRA_HEADERS',
     "for rig_tools_name in $(env | sed -n 's/^\\([^=]*\\)=.*$/\\1/p'); do",
     '  case "$rig_tools_name" in',
     '    __RIG_PARENT_*|__RIG_RUNTIME_*|AGENTARCHON_*|AGENT_ARCHON_*) unset "$rig_tools_name" ;;',
@@ -237,17 +236,17 @@ export function renderPosixLauncher(options: {
     'done',
     'unset rig_tools_name',
     'export ELECTRON_RUN_AS_NODE=1',
-    `export MCODE_REGION=${quotePosix(options.region)}`,
-    `export MCODE_CONFIG_DIR=${quotePosix(options.configDir)}`,
+    `export RIG_REGION=${quotePosix(options.region)}`,
+    `export RIG_CONFIG_DIR=${quotePosix(options.configDir)}`,
   ];
   lines.push(
-    'export MCODE_AUTH_PROVIDER=shared-broker',
-    `export MCODE_AUTH_BROKER_ENDPOINT=${quotePosix(options.brokerEndpoint)}`,
-    `export MCODE_AUTH_BROKER_CAPABILITY_FILE=${quotePosix(options.brokerCapabilityFile)}`,
+    'export RIG_AUTH_PROVIDER=shared-broker',
+    `export RIG_AUTH_BROKER_ENDPOINT=${quotePosix(options.brokerEndpoint)}`,
+    `export RIG_AUTH_BROKER_CAPABILITY_FILE=${quotePosix(options.brokerCapabilityFile)}`,
   );
   if (options.bedrockLane) {
     lines.push(
-      `export MCODE_EXTRA_HEADERS=${quotePosix(`bedrock_lane:${options.bedrockLane},bedrock-lane:${options.bedrockLane}`)}`,
+      `export RIG_EXTRA_HEADERS=${quotePosix(`bedrock_lane:${options.bedrockLane},bedrock-lane:${options.bedrockLane}`)}`,
     );
   }
   lines.push(`exec ${quotePosix(options.executable)} ${quotePosix(options.cliPath)} "$@"`, '');
@@ -258,7 +257,7 @@ export function renderWindowsLauncher(options: {
   executable: string;
   cliPath: string;
   configDir: string;
-  region: McodeToolsRegion;
+  region: RigToolsRegion;
   bedrockLane?: string;
   brokerEndpoint: string;
   brokerCapabilityFile: string;
@@ -272,30 +271,30 @@ export function renderWindowsLauncher(options: {
     'set "RIG_PORT="',
     'set "RIG_PROFILE="',
     'set "IS_SANDBOX="',
-    'set "MCODE_API_BASE_URL="',
-    'set "MCODE_AUTH_BASE_URL="',
-    'set "MCODE_CLIENT_ID="',
-    'set "MCODE_SCOPE="',
-    'set "MCODE_AUTH_PROVIDER="',
-    'set "MCODE_AUTH_BROKER_ENDPOINT="',
-    'set "MCODE_AUTH_BROKER_CAPABILITY_FILE="',
-    'set "MCODE_EXTRA_HEADERS="',
+    'set "RIG_API_BASE_URL="',
+    'set "RIG_AUTH_BASE_URL="',
+    'set "RIG_CLIENT_ID="',
+    'set "RIG_SCOPE="',
+    'set "RIG_AUTH_PROVIDER="',
+    'set "RIG_AUTH_BROKER_ENDPOINT="',
+    'set "RIG_AUTH_BROKER_CAPABILITY_FILE="',
+    'set "RIG_EXTRA_HEADERS="',
     'for /f "tokens=1 delims==" %%V in (\'set __RIG_PARENT_ 2^>nul\') do set "%%V="',
     'for /f "tokens=1 delims==" %%V in (\'set __RIG_RUNTIME_ 2^>nul\') do set "%%V="',
     'for /f "tokens=1 delims==" %%V in (\'set AGENTARCHON_ 2^>nul\') do set "%%V="',
     'for /f "tokens=1 delims==" %%V in (\'set AGENT_ARCHON_ 2^>nul\') do set "%%V="',
     'set "ELECTRON_RUN_AS_NODE=1"',
-    `set "MCODE_REGION=${escapeWindowsBatchValue(options.region)}"`,
-    `set "MCODE_CONFIG_DIR=${escapeWindowsBatchValue(options.configDir)}"`,
+    `set "RIG_REGION=${escapeWindowsBatchValue(options.region)}"`,
+    `set "RIG_CONFIG_DIR=${escapeWindowsBatchValue(options.configDir)}"`,
   ];
   lines.push(
-    'set "MCODE_AUTH_PROVIDER=shared-broker"',
-    `set "MCODE_AUTH_BROKER_ENDPOINT=${escapeWindowsBatchValue(options.brokerEndpoint)}"`,
-    `set "MCODE_AUTH_BROKER_CAPABILITY_FILE=${escapeWindowsBatchValue(options.brokerCapabilityFile)}"`,
+    'set "RIG_AUTH_PROVIDER=shared-broker"',
+    `set "RIG_AUTH_BROKER_ENDPOINT=${escapeWindowsBatchValue(options.brokerEndpoint)}"`,
+    `set "RIG_AUTH_BROKER_CAPABILITY_FILE=${escapeWindowsBatchValue(options.brokerCapabilityFile)}"`,
   );
   if (options.bedrockLane) {
     lines.push(
-      `set "MCODE_EXTRA_HEADERS=${escapeWindowsBatchValue(`bedrock_lane:${options.bedrockLane},bedrock-lane:${options.bedrockLane}`)}"`,
+      `set "RIG_EXTRA_HEADERS=${escapeWindowsBatchValue(`bedrock_lane:${options.bedrockLane},bedrock-lane:${options.bedrockLane}`)}"`,
     );
   }
   lines.push(
@@ -306,7 +305,7 @@ export function renderWindowsLauncher(options: {
   return lines.join('\r\n');
 }
 
-function parseManifest(value: unknown): McodeToolsManifest {
+function parseManifest(value: unknown): RigToolsManifest {
   if (!value || typeof value !== 'object') throw new Error('rig-tools manifest is invalid');
   const input = value as Record<string, unknown>;
   const buildEnv = input.buildEnv;
@@ -343,7 +342,7 @@ function parseManifest(value: unknown): McodeToolsManifest {
     );
   }
   validateEmbeddedResourceManifest(input);
-  return input as unknown as McodeToolsManifest;
+  return input as unknown as RigToolsManifest;
 }
 
 function hasOwn(value: object, key: PropertyKey): boolean {
@@ -359,7 +358,7 @@ function resolveManagedBedrockLane(value: string | undefined): string | undefine
   return lane;
 }
 
-function packageNameForBuildEnv(buildEnv: McodeToolsBuildEnv): string {
+function packageNameForBuildEnv(buildEnv: RigToolsBuildEnv): string {
   if (buildEnv === 'test') return '@rig/rig-tools-test';
   if (buildEnv === 'staging') return '@rig/rig-tools-staging';
   return '@rig/rig-tools';

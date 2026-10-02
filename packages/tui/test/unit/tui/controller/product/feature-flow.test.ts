@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TuiModel } from "../../../../../src/runtime/port.js";
 import type { TuiMessage } from "../../../../../src/runtime/stream-events.js";
-import type { McodeProviderTemplate } from "../../../../../src/provider/contract.js";
+import type { RigProviderTemplate } from "../../../../../src/provider/contract.js";
 import { TuiFeatureFlow } from "../../../../../src/tui/controller/product/feature-flow.js";
 import { stripAnsi } from "../../../../../src/tui/rendering/text.js";
 import { TranscriptStore } from "../../../../../src/tui/transcript/store.js";
@@ -19,7 +19,7 @@ function createHarness(
     readonly writeClipboardText?: (text: string) => Promise<void>;
     readonly openExternalTarget?: (target: string) => Promise<void>;
     readonly loadProviderTemplates?: () => Promise<
-      readonly McodeProviderTemplate[]
+      readonly RigProviderTemplate[]
     >;
     readonly hasLiveRun?: () => boolean;
   } = {},
@@ -794,7 +794,7 @@ describe("TuiFeatureFlow", () => {
   });
 
   it("adds a known API Key provider from /model and selects its model for the Session", async () => {
-    const template: McodeProviderTemplate = {
+    const template: RigProviderTemplate = {
       providerId: "deepseek",
       name: "DeepSeek",
       baseUrl: "https://api.deepseek.com/v1",

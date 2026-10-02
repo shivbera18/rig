@@ -11,14 +11,14 @@ import {
 } from '@rig/config';
 import {
   AuthSessionChangedError,
-  MCODE_OAUTH_SCOPES,
+  RIG_OAUTH_SCOPES,
   requiresInteractiveLogin,
-  resolveMCodeOAuthEndpointConfig,
+  resolveRigOAuthEndpointConfig,
   type AccessTokenLease,
   type AuthStatusSnapshot,
-  type MCodeOAuthCore,
+  type RigOAuthCore,
 } from '@rig/oauth-core';
-import type { McodeToolsHostAuthSession } from '@rig/rig-tools-host';
+import type { RigToolsHostAuthSession } from '@rig/rig-tools-host';
 import {
   createEmbeddedRuntimeHost,
   type EmbeddedRuntimeHost,
@@ -61,11 +61,11 @@ import {
 } from './browser-provider.js';
 import { TuiDailyCheckinApplication } from '../checkin/application.js';
 import { TuiDailyCheckinHttpGateway } from '../checkin/http-gateway.js';
-import { createMcodeSharedAuthSession } from './auth-session.js';
+import { createRigSharedAuthSession } from './auth-session.js';
 import { resolveTuiManagedBackendLane } from '../cli/environment.js';
 import {
-  prepareTuiMcodeToolsIntegration,
-  type McodeToolsReadiness,
+  prepareTuiRigToolsIntegration,
+  type RigToolsReadiness,
 } from './rig-tools-integration.js';
 
 // Runtime components own dependency-ordered bounded drains of up to 20 seconds.
@@ -117,10 +117,10 @@ export interface CreateTuiRuntimeDependencies {
   getDataEnvironment?: typeof resolveRigDataEnvironment;
   fetchImpl?: typeof fetch;
   sharedAuthCore?: Pick<
-    MCodeOAuthCore,
+    RigOAuthCore,
     'getStatus' | 'getAccessToken' | 'handleUnauthorized' | 'watch'
   >;
-  prepareMcodeToolsIntegration?: typeof prepareTuiMcodeToolsIntegration;
+  prepareRigToolsIntegration?: typeof prepareTuiRigToolsIntegration;
 }
 
 export interface CreatedTuiRuntime {
@@ -155,7 +155,7 @@ export async function createTuiRuntime(
     };
   };
   // Reject unreadable or unsafe config before auth watchers can keep a failed CLI alive.
-  const requestedMcodeTools = getConfig().beta?.rigTools === true;
+  const requestedRigTools = getConfig().beta?.rigTools === true;
   const readAuthContext = dependencies.readAuthContext ?? readCliAuthContext;
   const importSharedAuthContext =
     dependencies.importSharedAuthContext ?? importSharedCliAuthContext;
@@ -208,11 +208,11 @@ export async function createTuiRuntime(
   if (useSharedOAuth) {
     const activeSharedAuthCore =
       dependencies.sharedAuthCore ??
-      createMcodeSharedAuthSession({
+      createRigSharedAuthSession({
         dataDir: options.dataDir,
         region: authScope.region,
         buildEnv: authScope.buildEnv,
-        oauthEndpoints: resolveMCodeOAuthEndpointConfig(process.env, authScope),
+        oauthEndpoints: resolveRigOAuthEndpointConfig(process.env, authScope),
       });
     sharedAuthCore = activeSharedAuthCore;
     const projectSharedLease = async (
@@ -320,30 +320,30 @@ export async function createTuiRuntime(
       }
     }
   }
-  let mcodeToolsReadiness: McodeToolsReadiness = fallbackMcodeToolsReadiness(
-    requestedMcodeTools,
+  let rigToolsReadiness: RigToolsReadiness = fallbackRigToolsReadiness(
+    requestedRigTools,
     authScope.buildEnv,
   );
   if (useSharedOAuth && sharedAuthCore) {
-    mcodeToolsReadiness = await (
-      dependencies.prepareMcodeToolsIntegration ?? prepareTuiMcodeToolsIntegration
+    rigToolsReadiness = await (
+      dependencies.prepareRigToolsIntegration ?? prepareTuiRigToolsIntegration
     )({
-      requested: requestedMcodeTools,
+      requested: requestedRigTools,
       dataDir: options.dataDir,
       buildEnv: authScope.buildEnv,
       region: authScope.region,
-      session: createMcodeToolsBrokerAuthSession(sharedAuthCore),
+      session: createRigToolsBrokerAuthSession(sharedAuthCore),
       entryUrl: import.meta.url,
       ...(bedrockLane ? { bedrockLane } : {}),
     });
   }
-  const effectiveMcodeTools = mcodeToolsReadiness.ready;
+  const effectiveRigTools = rigToolsReadiness.ready;
   let authShutdown = false;
   const shutdownAuth = async (): Promise<void> => {
     if (authShutdown) return;
     authShutdown = true;
     stopSharedAuthWatch();
-    await mcodeToolsReadiness.dispose();
+    await rigToolsReadiness.dispose();
   };
   const publicAuthContextResolver = (input: {
     readonly forceRefresh: boolean;
@@ -386,7 +386,7 @@ export async function createTuiRuntime(
         ...(options.permissionMode ? { permissionMode: options.permissionMode } : {}),
         beta: {
           ...config.beta,
-          rigTools: effectiveMcodeTools,
+          rigTools: effectiveRigTools,
         },
       };
     },
@@ -477,12 +477,12 @@ export async function createTuiRuntime(
         {
           ...hostOptions,
           ...(browserProvider ? { browserAdapter: browserProvider } : {}),
-          productCapabilities: { rigTools: effectiveMcodeTools },
+          productCapabilities: { rigTools: effectiveRigTools },
         },
         dependencies.factory,
       ),
     );
-    mcodeToolsReadiness.ensureCommandPath();
+    rigToolsReadiness.ensureCommandPath();
     if (ownsObservability) {
       observability.recordStartup({
         phase: 'runtime.initialize',
@@ -635,7 +635,7 @@ async function readSharedAccessToken(
 ): Promise<AccessTokenLease | undefined> {
   try {
     return await core.getAccessToken({
-      requiredScopes: [...MCODE_OAUTH_SCOPES],
+      requiredScopes: [...RIG_OAUTH_SCOPES],
       minValidityMs,
     });
   } catch (error) {
@@ -652,9 +652,9 @@ function isSharedCredentialState(status: AuthStatusSnapshot): boolean {
   );
 }
 
-function createMcodeToolsBrokerAuthSession(
+function createRigToolsBrokerAuthSession(
   core: NonNullable<CreateTuiRuntimeDependencies['sharedAuthCore']>,
-): McodeToolsHostAuthSession {
+): RigToolsHostAuthSession {
   const projectStatus = (status: AuthStatusSnapshot) => ({
     status: status.status,
     generation: status.generation,
@@ -664,7 +664,7 @@ function createMcodeToolsBrokerAuthSession(
     getStatus: async () => projectStatus(await core.getStatus()),
     getAccessToken: (minValidityMs) =>
       core.getAccessToken({
-        requiredScopes: [...MCODE_OAUTH_SCOPES],
+        requiredScopes: [...RIG_OAUTH_SCOPES],
         minValidityMs,
       }),
     handleUnauthorized: (generation) => core.handleUnauthorized({ generation }),
@@ -672,10 +672,10 @@ function createMcodeToolsBrokerAuthSession(
   };
 }
 
-function fallbackMcodeToolsReadiness(
+function fallbackRigToolsReadiness(
   requested: boolean,
   buildEnv: CliAuthScope['buildEnv'],
-): McodeToolsReadiness {
+): RigToolsReadiness {
   return {
     requested,
     ready: false,

@@ -1,26 +1,26 @@
 import { translateRuntimeText } from '@rig/shared/runtime-i18n';
 
-export function mcodePrefixActivationScheduledMessage(
+export function rigPrefixActivationScheduledMessage(
   _environment: NodeJS.ProcessEnv = process.env,
 ): string {
   return 'A staged Rig update will activate after this process exits.';
 }
 
-export function mcodePrefixJournalScheduleFailedMessage(
+export function rigPrefixJournalScheduleFailedMessage(
   _environment: NodeJS.ProcessEnv = process.env,
 ): string {
   return 'Rig update was staged, but its activation journal could not be scheduled.';
 }
 
-export function mcodePrefixNonPrefixPlanMessage(_environment: NodeJS.ProcessEnv): string {
+export function rigPrefixNonPrefixPlanMessage(_environment: NodeJS.ProcessEnv): string {
   return 'Rig npm prefix updater received a non-prefix plan.';
 }
 
-export function mcodePrefixOwnershipMissingMessage(_environment: NodeJS.ProcessEnv): string {
+export function rigPrefixOwnershipMissingMessage(_environment: NodeJS.ProcessEnv): string {
   return 'Rig npm prefix ownership metadata is missing.';
 }
 
-export function mcodePrefixPendingActivationMessage(
+export function rigPrefixPendingActivationMessage(
   version: string,
   options: {
     readonly blockingSessionCount?: number;
@@ -37,7 +37,7 @@ export function mcodePrefixPendingActivationMessage(
   return `Rig ${version} is already staged. It will activate after this process exits.`;
 }
 
-export function mcodePrefixPendingCleanupMessage(
+export function rigPrefixPendingCleanupMessage(
   version: string,
   options: {
     readonly blockingSessionCount?: number;
@@ -54,7 +54,7 @@ export function mcodePrefixPendingCleanupMessage(
   return `Rig ${version} is already active. Restarting will finish update cleanup.`;
 }
 
-export function mcodePrefixStagedVersionMismatchMessage(
+export function rigPrefixStagedVersionMismatchMessage(
   actualVersion: string,
   expectedVersion: string,
   _environment: NodeJS.ProcessEnv,
@@ -62,7 +62,7 @@ export function mcodePrefixStagedVersionMismatchMessage(
   return `Rig update staged ${actualVersion}; expected ${expectedVersion}.`;
 }
 
-export function mcodePrefixStagedMessage(
+export function rigPrefixStagedMessage(
   version: string,
   options: {
     readonly blockingSessionCount?: number;
@@ -79,7 +79,7 @@ export function mcodePrefixStagedMessage(
   return `Rig ${version} is downloaded and staged safely. It will activate after this process exits.`;
 }
 
-export function mcodePrefixVersionedInstalledMessage(
+export function rigPrefixVersionedInstalledMessage(
   version: string,
   environment: NodeJS.ProcessEnv = process.env,
 ): string {
@@ -87,7 +87,7 @@ export function mcodePrefixVersionedInstalledMessage(
   return translateRuntimeText(locale, 'update.versionedInstalled').replace('{version}', version);
 }
 
-export function mcodePrefixNotStagedMessage(
+export function rigPrefixNotStagedMessage(
   version: string,
   reason: string,
   _environment: NodeJS.ProcessEnv,

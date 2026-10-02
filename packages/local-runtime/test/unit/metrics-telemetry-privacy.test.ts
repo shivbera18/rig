@@ -45,7 +45,7 @@ describe('automatic runtime metrics consent', () => {
     expect(String(fetchRequest.mock.calls[0]![0])).toBe('https://agent.rig.io/matrix/api/v1/metrics/batch');
   });
 
-  it.each(['RIG_DISABLE_TELEMETRY', 'MCODE_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('%s overrides the metrics opt-in', async (key) => {
+  it.each(['RIG_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('%s overrides the metrics opt-in', async (key) => {
     vi.stubEnv(key, '1');
     const client = fixture(true);
     client.counter('started_total', 1);

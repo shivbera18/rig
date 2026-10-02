@@ -5,20 +5,20 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import type {
-  McodeToolsAuthStatusSnapshot,
-  McodeToolsHostAuthSession,
-  ValidatedMcodeToolsResource,
+  RigToolsAuthStatusSnapshot,
+  RigToolsHostAuthSession,
+  ValidatedRigToolsResource,
 } from '@rig/rig-tools-host';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  activateTuiMcodeToolsHostEnvironment,
-  configureMcodeToolsChildEnvironment,
+  activateTuiRigToolsHostEnvironment,
+  configureRigToolsChildEnvironment,
 } from '../../src/cli/rig-tools-environment.js';
 import {
-  createTuiMcodeToolsRuntimeDir,
-  prepareTuiMcodeToolsIntegration,
-  resolveBundledMcodeToolsResourceDir,
+  createTuiRigToolsRuntimeDir,
+  prepareTuiRigToolsIntegration,
+  resolveBundledRigToolsResourceDir,
 } from '../../src/runtime/rig-tools-integration.js';
 
 const temporaryDirectories: string[] = [];
@@ -35,7 +35,7 @@ describe('TUI rig-tools integration readiness', () => {
   it.skipIf(process.platform === 'win32')(
     'keeps the POSIX broker socket path below platform limits',
     async () => {
-      const runtimeDir = await createTuiMcodeToolsRuntimeDir();
+      const runtimeDir = await createTuiRigToolsRuntimeDir();
       temporaryDirectories.push(runtimeDir);
 
       expect(runtimeDir).toMatch(/^\/tmp\/rig-tools-tui-\d+-/u);
@@ -46,7 +46,7 @@ describe('TUI rig-tools integration readiness', () => {
   it('does no resource or broker work when the capability is not requested', async () => {
     const validateResource = vi.fn();
     const startBroker = vi.fn();
-    const result = await prepareTuiMcodeToolsIntegration(
+    const result = await prepareTuiRigToolsIntegration(
       {
         requested: false,
         dataDir: '/profile',
@@ -79,7 +79,7 @@ describe('TUI rig-tools integration readiness', () => {
       dispose: brokerDispose,
     }));
 
-    const result = await prepareTuiMcodeToolsIntegration(
+    const result = await prepareTuiRigToolsIntegration(
       {
         requested: true,
         dataDir,
@@ -174,11 +174,11 @@ describe('TUI rig-tools integration readiness', () => {
       entryUrl: pathToFileURL('/package/cli.js').href,
     };
     const [first, second] = await Promise.all([
-      prepareTuiMcodeToolsIntegration(
+      prepareTuiRigToolsIntegration(
         { ...options, environment: firstEnvironment },
         dependencies,
       ),
-      prepareTuiMcodeToolsIntegration(
+      prepareTuiRigToolsIntegration(
         { ...options, environment: secondEnvironment },
         dependencies,
       ),
@@ -210,7 +210,7 @@ describe('TUI rig-tools integration readiness', () => {
 
   it('falls back with a sanitized category when resource validation fails', async () => {
     const warnings: string[] = [];
-    const result = await prepareTuiMcodeToolsIntegration(
+    const result = await prepareTuiRigToolsIntegration(
       {
         requested: true,
         dataDir: '/Users/private/profile',
@@ -237,13 +237,13 @@ describe('TUI rig-tools integration readiness', () => {
 
   it('uses only an explicit absolute dev resource override', () => {
     expect(
-      resolveBundledMcodeToolsResourceDir(pathToFileURL('/pkg/cli.js').href, {
+      resolveBundledRigToolsResourceDir(pathToFileURL('/pkg/cli.js').href, {
         RIG_DEV_RIG_TOOLS_MODE: 'published',
         RIG_DEV_RIG_TOOLS_RESOURCE_DIR: path.resolve(tmpdir(), 'rig-tools-resource'),
       }),
     ).toBe(path.resolve(tmpdir(), 'rig-tools-resource'));
     expect(() =>
-      resolveBundledMcodeToolsResourceDir(pathToFileURL('/pkg/cli.js').href, {
+      resolveBundledRigToolsResourceDir(pathToFileURL('/pkg/cli.js').href, {
         RIG_DEV_RIG_TOOLS_MODE: 'published',
         RIG_DEV_RIG_TOOLS_RESOURCE_DIR: '../rig-tools-resource',
       }),
@@ -283,7 +283,7 @@ describe('rig-tools command environment', () => {
       ...process.env,
       PATH: [fakeBin, '/usr/bin', '/bin'].join(path.delimiter),
     };
-    const activation = activateTuiMcodeToolsHostEnvironment(environment, {
+    const activation = activateTuiRigToolsHostEnvironment(environment, {
       runtimeExecutable: process.execPath,
       brokerEndpoint: path.join(packageRoot, 'broker.sock'),
       brokerCapabilityFile: path.join(packageRoot, 'broker.cap'),
@@ -316,14 +316,14 @@ describe('rig-tools command environment', () => {
 
   it('preserves standalone user configuration outside a TUI-owned process', () => {
     const environment = {
-      MCODE_AUTH_PROVIDER: 'user-provider',
-      MCODE_CONFIG_DIR: '/user/config',
+      RIG_AUTH_PROVIDER: 'user-provider',
+      RIG_CONFIG_DIR: '/user/config',
     };
 
-    expect(configureMcodeToolsChildEnvironment(environment)).toBe(false);
+    expect(configureRigToolsChildEnvironment(environment)).toBe(false);
     expect(environment).toEqual({
-      MCODE_AUTH_PROVIDER: 'user-provider',
-      MCODE_CONFIG_DIR: '/user/config',
+      RIG_AUTH_PROVIDER: 'user-provider',
+      RIG_CONFIG_DIR: '/user/config',
     });
   });
 
@@ -335,11 +335,11 @@ describe('rig-tools command environment', () => {
       __RIG_RIG_TOOLS_REGION: 'cn',
       __RIG_RIG_TOOLS_EXTRA_HEADERS: 'bedrock_lane:oauth2,bedrock-lane:oauth2',
       __RIG_RIG_TOOLS_RUNTIME_EXECUTABLE: process.execPath,
-      MCODE_AUTH_PROVIDER: 'attacker-provider',
-      MCODE_API_BASE_URL: 'https://attacker.invalid/api',
-      MCODE_AUTH_BASE_URL: 'https://attacker.invalid/oauth',
-      MCODE_CLIENT_ID: 'attacker-client',
-      MCODE_SCOPE: 'attacker-scope',
+      RIG_AUTH_PROVIDER: 'attacker-provider',
+      RIG_API_BASE_URL: 'https://attacker.invalid/api',
+      RIG_AUTH_BASE_URL: 'https://attacker.invalid/oauth',
+      RIG_CLIENT_ID: 'attacker-client',
+      RIG_SCOPE: 'attacker-scope',
       IS_SANDBOX: '1',
       RIG_BUILD_ENV: 'prod',
       RIG_REGION: 'us',
@@ -347,24 +347,24 @@ describe('rig-tools command environment', () => {
       RIG_SESSION: 'session',
       __RIG_RUNTIME_SECRET: 'runtime-secret',
       AGENTARCHON_SECRET: 'legacy-secret',
-      mcode_api_base_url: 'https://case-insensitive-attacker.invalid/api',
+      rig_api_base_url: 'https://case-insensitive-attacker.invalid/api',
       __mavis_parent_access_token: 'case-insensitive-token',
     };
 
-    expect(configureMcodeToolsChildEnvironment(environment)).toBe(true);
+    expect(configureRigToolsChildEnvironment(environment)).toBe(true);
     expect(environment).toMatchObject({
       ELECTRON_RUN_AS_NODE: '1',
-      MCODE_REGION: 'cn',
-      MCODE_CONFIG_DIR: '/profile/integrations/rig-tools/cn',
-      MCODE_AUTH_PROVIDER: 'shared-broker',
-      MCODE_AUTH_BROKER_ENDPOINT: '/runtime/broker.sock',
-      MCODE_AUTH_BROKER_CAPABILITY_FILE: '/runtime/broker.cap',
-      MCODE_EXTRA_HEADERS: 'bedrock_lane:oauth2,bedrock-lane:oauth2',
+      RIG_REGION: 'cn',
+      RIG_CONFIG_DIR: '/profile/integrations/rig-tools/cn',
+      RIG_AUTH_PROVIDER: 'shared-broker',
+      RIG_AUTH_BROKER_ENDPOINT: '/runtime/broker.sock',
+      RIG_AUTH_BROKER_CAPABILITY_FILE: '/runtime/broker.cap',
+      RIG_EXTRA_HEADERS: 'bedrock_lane:oauth2,bedrock-lane:oauth2',
     });
-    expect(environment.MCODE_API_BASE_URL).toBeUndefined();
-    expect(environment.MCODE_AUTH_BASE_URL).toBeUndefined();
-    expect(environment.MCODE_CLIENT_ID).toBeUndefined();
-    expect(environment.MCODE_SCOPE).toBeUndefined();
+    expect(environment.RIG_API_BASE_URL).toBeUndefined();
+    expect(environment.RIG_AUTH_BASE_URL).toBeUndefined();
+    expect(environment.RIG_CLIENT_ID).toBeUndefined();
+    expect(environment.RIG_SCOPE).toBeUndefined();
     expect(environment.IS_SANDBOX).toBeUndefined();
     expect(environment.RIG_BUILD_ENV).toBeUndefined();
     expect(environment.RIG_REGION).toBeUndefined();
@@ -372,7 +372,7 @@ describe('rig-tools command environment', () => {
     expect(environment.RIG_SESSION).toBeUndefined();
     expect(environment.__RIG_RUNTIME_SECRET).toBeUndefined();
     expect(environment.AGENTARCHON_SECRET).toBeUndefined();
-    expect(environment.mcode_api_base_url).toBeUndefined();
+    expect(environment.rig_api_base_url).toBeUndefined();
     expect(environment.__mavis_parent_access_token).toBeUndefined();
     expect(environment.__RIG_RIG_TOOLS_BROKER_ENDPOINT).toBeUndefined();
     expect(environment.__RIG_RIG_TOOLS_RUNTIME_EXECUTABLE).toBeUndefined();
@@ -380,20 +380,20 @@ describe('rig-tools command environment', () => {
 
   it('rejects a partial TUI host environment', () => {
     expect(() =>
-      configureMcodeToolsChildEnvironment({
+      configureRigToolsChildEnvironment({
         __RIG_RIG_TOOLS_BROKER_ENDPOINT: '/runtime/broker.sock',
       }),
     ).toThrow(/Restart Rig/u);
   });
 });
 
-function createSession(initialStatus: McodeToolsAuthStatusSnapshot): {
-  session: McodeToolsHostAuthSession;
-  status: McodeToolsAuthStatusSnapshot;
-  emit(status: McodeToolsAuthStatusSnapshot): void;
+function createSession(initialStatus: RigToolsAuthStatusSnapshot): {
+  session: RigToolsHostAuthSession;
+  status: RigToolsAuthStatusSnapshot;
+  emit(status: RigToolsAuthStatusSnapshot): void;
   stopWatching: ReturnType<typeof vi.fn>;
 } {
-  let listener: ((status: McodeToolsAuthStatusSnapshot) => void) | undefined;
+  let listener: ((status: RigToolsAuthStatusSnapshot) => void) | undefined;
   const stopWatching = vi.fn();
   const state = {
     status: initialStatus,
@@ -401,12 +401,12 @@ function createSession(initialStatus: McodeToolsAuthStatusSnapshot): {
       getStatus: vi.fn(async () => state.status),
       getAccessToken: vi.fn(),
       handleUnauthorized: vi.fn(),
-      watch: vi.fn((nextListener: (status: McodeToolsAuthStatusSnapshot) => void) => {
+      watch: vi.fn((nextListener: (status: RigToolsAuthStatusSnapshot) => void) => {
         listener = nextListener;
         return stopWatching;
       }),
-    } satisfies McodeToolsHostAuthSession,
-    emit(status: McodeToolsAuthStatusSnapshot): void {
+    } satisfies RigToolsHostAuthSession,
+    emit(status: RigToolsAuthStatusSnapshot): void {
       state.status = status;
       listener?.(status);
     },
@@ -415,7 +415,7 @@ function createSession(initialStatus: McodeToolsAuthStatusSnapshot): {
   return state;
 }
 
-function validatedResource(rootDir: string): ValidatedMcodeToolsResource {
+function validatedResource(rootDir: string): ValidatedRigToolsResource {
   return {
     rootDir,
     cliPath: path.join(rootDir, 'cli.mjs'),

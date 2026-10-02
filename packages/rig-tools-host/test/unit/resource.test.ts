@@ -6,8 +6,8 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
-  installMcodeToolsLauncher,
-  validateMcodeToolsResource,
+  installRigToolsLauncher,
+  validateRigToolsResource,
 } from '../../src/resource.js';
 
 function fixture(): { dataDir: string; resourceDir: string } {
@@ -48,12 +48,12 @@ function fixture(): { dataDir: string; resourceDir: string } {
 describe('rig-tools embedded resource', () => {
   it('validates the exact shared-broker artifact and installs a POSIX launcher', async () => {
     const input = fixture();
-    expect(validateMcodeToolsResource({
+    expect(validateRigToolsResource({
       resourceDir: input.resourceDir,
       expectedBuildEnv: 'test',
     }).manifest.packageName).toBe('@rig/rig-tools-test');
 
-    const installed = await installMcodeToolsLauncher({
+    const installed = await installRigToolsLauncher({
       ...input,
       expectedBuildEnv: 'test',
       executable: '/path with spaces/node',
@@ -64,21 +64,21 @@ describe('rig-tools embedded resource', () => {
       brokerCapabilityFile: '/profile/run/rig-auth-lease-v1.cap',
     });
     const launcher = readFileSync(installed.regionalLauncherPath, 'utf8');
-    expect(launcher).toContain("export MCODE_AUTH_PROVIDER=shared-broker");
+    expect(launcher).toContain("export RIG_AUTH_PROVIDER=shared-broker");
     expect(launcher).toContain(
-      "export MCODE_EXTRA_HEADERS='bedrock_lane:oauth2,bedrock-lane:oauth2'",
+      "export RIG_EXTRA_HEADERS='bedrock_lane:oauth2,bedrock-lane:oauth2'",
     );
     expect(launcher).toContain('IS_SANDBOX');
-    expect(launcher).toContain('MCODE_API_BASE_URL');
-    expect(launcher).toContain('MCODE_AUTH_BASE_URL');
-    expect(launcher).toContain('MCODE_CLIENT_ID');
-    expect(launcher).toContain('MCODE_SCOPE');
+    expect(launcher).toContain('RIG_API_BASE_URL');
+    expect(launcher).toContain('RIG_AUTH_BASE_URL');
+    expect(launcher).toContain('RIG_CLIENT_ID');
+    expect(launcher).toContain('RIG_SCOPE');
     expect(launcher).toContain("'/path with spaces/node'");
   });
 
   it('clears inherited auth and routing overrides in the Windows launcher', async () => {
     const input = fixture();
-    const installed = await installMcodeToolsLauncher({
+    const installed = await installRigToolsLauncher({
       ...input,
       expectedBuildEnv: 'test',
       executable: 'C:\\Program Files\\node.exe',
@@ -90,10 +90,10 @@ describe('rig-tools embedded resource', () => {
     const launcher = readFileSync(installed.regionalLauncherPath, 'utf8');
     for (const name of [
       'IS_SANDBOX',
-      'MCODE_API_BASE_URL',
-      'MCODE_AUTH_BASE_URL',
-      'MCODE_CLIENT_ID',
-      'MCODE_SCOPE',
+      'RIG_API_BASE_URL',
+      'RIG_AUTH_BASE_URL',
+      'RIG_CLIENT_ID',
+      'RIG_SCOPE',
     ]) {
       expect(launcher).toContain(`set "${name}="`);
     }
@@ -103,7 +103,7 @@ describe('rig-tools embedded resource', () => {
     const input = fixture();
     chmodSync(path.join(input.resourceDir, 'cli.mjs'), 0o600);
     writeFileSync(path.join(input.resourceDir, 'cli.mjs'), 'modified\n');
-    expect(() => validateMcodeToolsResource({
+    expect(() => validateRigToolsResource({
       resourceDir: input.resourceDir,
       expectedBuildEnv: 'test',
     })).toThrow(/sha256/u);

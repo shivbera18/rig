@@ -1,26 +1,26 @@
 import {
-  installMcodeToolsLauncher,
-  removeMcodeToolsLaunchers,
-  validateMcodeToolsResource,
-  type McodeToolsBuildEnv,
-  type McodeToolsRegion,
+  installRigToolsLauncher,
+  removeRigToolsLaunchers,
+  validateRigToolsResource,
+  type RigToolsBuildEnv,
+  type RigToolsRegion,
 } from './resource.js';
-import { startMcodeToolsAuthLeaseBroker, type McodeToolsAuthLeaseBroker } from './lease-broker.js';
-import type { McodeToolsHostAuthSession, McodeToolsHostLogger } from './contracts.js';
+import { startRigToolsAuthLeaseBroker, type RigToolsAuthLeaseBroker } from './lease-broker.js';
+import type { RigToolsHostAuthSession, RigToolsHostLogger } from './contracts.js';
 
-export interface StartMcodeToolsHostIntegrationOptions {
+export interface StartRigToolsHostIntegrationOptions {
   dataDir: string;
   resourceDir: string;
-  expectedBuildEnv: McodeToolsBuildEnv;
+  expectedBuildEnv: RigToolsBuildEnv;
   executable: string;
   platform: NodeJS.Platform;
-  region: McodeToolsRegion;
+  region: RigToolsRegion;
   bedrockLane?: string;
-  session: McodeToolsHostAuthSession;
-  logger?: McodeToolsHostLogger;
+  session: RigToolsHostAuthSession;
+  logger?: RigToolsHostLogger;
 }
 
-export interface ActiveMcodeToolsHostIntegration {
+export interface ActiveRigToolsHostIntegration {
   readonly launcherPath: string;
   readonly brokerEndpoint: string;
   readonly packageName: string;
@@ -28,24 +28,24 @@ export interface ActiveMcodeToolsHostIntegration {
   dispose(): Promise<void>;
 }
 
-export interface McodeToolsHostIntegrationDependencies {
-  validateResource: typeof validateMcodeToolsResource;
-  startBroker: typeof startMcodeToolsAuthLeaseBroker;
-  installLauncher: typeof installMcodeToolsLauncher;
-  removeLaunchers: typeof removeMcodeToolsLaunchers;
+export interface RigToolsHostIntegrationDependencies {
+  validateResource: typeof validateRigToolsResource;
+  startBroker: typeof startRigToolsAuthLeaseBroker;
+  installLauncher: typeof installRigToolsLauncher;
+  removeLaunchers: typeof removeRigToolsLaunchers;
 }
 
-const DEFAULT_DEPENDENCIES: McodeToolsHostIntegrationDependencies = {
-  validateResource: validateMcodeToolsResource,
-  startBroker: startMcodeToolsAuthLeaseBroker,
-  installLauncher: installMcodeToolsLauncher,
-  removeLaunchers: removeMcodeToolsLaunchers,
+const DEFAULT_DEPENDENCIES: RigToolsHostIntegrationDependencies = {
+  validateResource: validateRigToolsResource,
+  startBroker: startRigToolsAuthLeaseBroker,
+  installLauncher: installRigToolsLauncher,
+  removeLaunchers: removeRigToolsLaunchers,
 };
 
-export async function startMcodeToolsHostIntegration(
-  options: StartMcodeToolsHostIntegrationOptions,
-  dependencies: McodeToolsHostIntegrationDependencies = DEFAULT_DEPENDENCIES,
-): Promise<ActiveMcodeToolsHostIntegration> {
+export async function startRigToolsHostIntegration(
+  options: StartRigToolsHostIntegrationOptions,
+  dependencies: RigToolsHostIntegrationDependencies = DEFAULT_DEPENDENCIES,
+): Promise<ActiveRigToolsHostIntegration> {
   const resource = dependencies.validateResource({
     resourceDir: options.resourceDir,
     expectedBuildEnv: options.expectedBuildEnv,
@@ -90,12 +90,12 @@ export async function startMcodeToolsHostIntegration(
 }
 
 function activeIntegration(
-  options: StartMcodeToolsHostIntegrationOptions,
-  dependencies: McodeToolsHostIntegrationDependencies,
-  broker: McodeToolsAuthLeaseBroker,
+  options: StartRigToolsHostIntegrationOptions,
+  dependencies: RigToolsHostIntegrationDependencies,
+  broker: RigToolsAuthLeaseBroker,
   launcherPath: string,
-  resource: ReturnType<typeof validateMcodeToolsResource>,
-): ActiveMcodeToolsHostIntegration {
+  resource: ReturnType<typeof validateRigToolsResource>,
+): ActiveRigToolsHostIntegration {
   let disposed = false;
   return {
     launcherPath,

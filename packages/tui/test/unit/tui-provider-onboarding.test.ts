@@ -1,13 +1,13 @@
 import type {
-  McodeProviderTemplate,
-  McodeProviderView,
+  RigProviderTemplate,
+  RigProviderView,
 } from "../../src/provider/contract.js";
 import { stripAnsi, visibleWidth } from "../../src/tui/rendering/text.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { TuiProviderOnboarding } from "../../src/tui/features/provider/onboarding.js";
 
-const knownTemplate: McodeProviderTemplate = {
+const knownTemplate: RigProviderTemplate = {
   providerId: "deepseek",
   name: "DeepSeek",
   baseUrl: "https://api.deepseek.com/v1",
@@ -370,7 +370,7 @@ describe("TuiProviderOnboarding", () => {
   });
 });
 
-const savedConnection: McodeProviderView = {
+const savedConnection: RigProviderView = {
   providerId: "custom_provider:work",
   name: "DeepSeek Work",
   kind: "custom",
@@ -483,7 +483,7 @@ describe("existing connection onboarding", () => {
 });
 
 describe("preset endpoint editing", () => {
-  const template: McodeProviderTemplate = {
+  const template: RigProviderTemplate = {
     providerId: "zai",
     name: "Z.AI API",
     baseUrl: "https://api.z.ai/api/paas/v4",

@@ -148,7 +148,7 @@ writeFileSync(
   path.join(outdir, "package.json"),
   JSON.stringify(
     {
-      // MUST match the published name: resolveMcodePackageIdentity walks up from
+      // MUST match the published name: resolveRigPackageIdentity walks up from
       // dist/cli.js and must find @shivcdhry/rig, else `rig update` reports 'unsupported'.
       name: "@shivcdhry/rig", version, type: "module", private: true,
       ...(process.env.RIG_RELEASE_TAG ? {

@@ -1,22 +1,22 @@
 import type { AuthBuildEnv, AuthRegion } from './contracts.js';
 
-export type MCodeOAuthEndpointEnvironment = Partial<
+export type RigOAuthEndpointEnvironment = Partial<
   Record<
-    | 'MCODE_OAUTH_DEVICE_AUTHORIZATION_ENDPOINT'
-    | 'MCODE_OAUTH_TOKEN_ENDPOINT'
-    | 'MCODE_OAUTH_REVOCATION_ENDPOINT',
+    | 'RIG_OAUTH_DEVICE_AUTHORIZATION_ENDPOINT'
+    | 'RIG_OAUTH_TOKEN_ENDPOINT'
+    | 'RIG_OAUTH_REVOCATION_ENDPOINT',
     string
   >
 >;
 
-export interface MCodeOAuthEndpointConfig {
+export interface RigOAuthEndpointConfig {
   deviceAuthorizationEndpoint: string;
   deviceAuthorizationHeaders?: Record<string, string>;
   tokenEndpoint: string;
   revocationEndpoint: string;
 }
 
-export interface MCodeOAuthEndpointContext {
+export interface RigOAuthEndpointContext {
   buildEnv: AuthBuildEnv;
   region: AuthRegion;
 }
@@ -36,14 +36,14 @@ const ACCOUNT_ORIGINS: Record<AuthRegion, Record<AuthBuildEnv, string>> = {
   },
 };
 
-export function resolveMCodeOAuthEndpointConfig(
-  environment: MCodeOAuthEndpointEnvironment,
-  context: MCodeOAuthEndpointContext,
-): MCodeOAuthEndpointConfig {
+export function resolveRigOAuthEndpointConfig(
+  environment: RigOAuthEndpointEnvironment,
+  context: RigOAuthEndpointContext,
+): RigOAuthEndpointConfig {
   const configuredValues = [
-    environment.MCODE_OAUTH_DEVICE_AUTHORIZATION_ENDPOINT,
-    environment.MCODE_OAUTH_TOKEN_ENDPOINT,
-    environment.MCODE_OAUTH_REVOCATION_ENDPOINT,
+    environment.RIG_OAUTH_DEVICE_AUTHORIZATION_ENDPOINT,
+    environment.RIG_OAUTH_TOKEN_ENDPOINT,
+    environment.RIG_OAUTH_REVOCATION_ENDPOINT,
   ];
   if (configuredValues.every((value) => !value?.trim())) {
     const accountOrigin = ACCOUNT_ORIGINS[context.region][context.buildEnv];
@@ -56,10 +56,10 @@ export function resolveMCodeOAuthEndpointConfig(
   }
 
   const deviceAuthorizationEndpoint = readHttpsEndpoint(
-    environment.MCODE_OAUTH_DEVICE_AUTHORIZATION_ENDPOINT,
+    environment.RIG_OAUTH_DEVICE_AUTHORIZATION_ENDPOINT,
   );
-  const tokenEndpoint = readHttpsEndpoint(environment.MCODE_OAUTH_TOKEN_ENDPOINT);
-  const revocationEndpoint = readHttpsEndpoint(environment.MCODE_OAUTH_REVOCATION_ENDPOINT);
+  const tokenEndpoint = readHttpsEndpoint(environment.RIG_OAUTH_TOKEN_ENDPOINT);
+  const revocationEndpoint = readHttpsEndpoint(environment.RIG_OAUTH_REVOCATION_ENDPOINT);
   if (!deviceAuthorizationEndpoint || !tokenEndpoint || !revocationEndpoint) {
     throw new TypeError(
       'Shared Rig OAuth requires all three public OAuth endpoints to be configured.',
@@ -75,7 +75,7 @@ export function resolveMCodeOAuthEndpointConfig(
 
 function deviceAuthorizationRequestConfig(
   buildEnv: AuthBuildEnv,
-): Pick<MCodeOAuthEndpointConfig, 'deviceAuthorizationHeaders'> {
+): Pick<RigOAuthEndpointConfig, 'deviceAuthorizationHeaders'> {
   return buildEnv === 'staging' ? { deviceAuthorizationHeaders: { 'X-User-Pre': '1' } } : {};
 }
 

@@ -21,17 +21,17 @@ import type {
 } from "../port.js";
 import type { TuiRuntimeAccessContext } from "./access-context.js";
 import type {
-  McodeCreateProviderInput,
-  McodeCodexOAuthStartResult,
-  McodeCodexOAuthLoginOptions,
-  McodeCodexOAuthStatus,
+  RigCreateProviderInput,
+  RigCodexOAuthStartResult,
+  RigCodexOAuthLoginOptions,
+  RigCodexOAuthStatus,
   RigModelSource,
-  McodeProviderTemplate,
-  McodeProviderTestResult,
-  McodeRuntimeProviderView,
-  McodeSaveProviderCandidateInput,
-  McodeSaveProviderCandidateResult,
-  McodeUpdateProviderInput,
+  RigProviderTemplate,
+  RigProviderTestResult,
+  RigRuntimeProviderView,
+  RigSaveProviderCandidateInput,
+  RigSaveProviderCandidateResult,
+  RigUpdateProviderInput,
 } from "../../provider/contract.js";
 import {
   normalizeAccountStatus,
@@ -130,53 +130,53 @@ export class TuiProductAccess {
     });
   }
 
-  async listUserModelProviders(): Promise<readonly McodeRuntimeProviderView[]> {
+  async listUserModelProviders(): Promise<readonly RigRuntimeProviderView[]> {
     const providers = (await this.context
       .service("provider.list")
-      .listUserModelProviders()) as unknown as readonly McodeRuntimeProviderView[];
+      .listUserModelProviders()) as unknown as readonly RigRuntimeProviderView[];
     return providers.filter(
       (provider) =>
         !isLegacyManagedRigProvider(provider.providerId, provider.baseUrl),
     );
   }
 
-  async listProviderPresets(): Promise<readonly McodeProviderTemplate[]> {
+  async listProviderPresets(): Promise<readonly RigProviderTemplate[]> {
     return (await this.context
       .service("provider.presets")
-      .listProviderPresets()) as readonly McodeProviderTemplate[];
+      .listProviderPresets()) as readonly RigProviderTemplate[];
   }
 
-  async getCodexOAuthStatus(): Promise<McodeCodexOAuthStatus> {
+  async getCodexOAuthStatus(): Promise<RigCodexOAuthStatus> {
     return (await this.context
       .service("provider.codex-oauth.status")
-      .getCodexOAuthStatus()) as McodeCodexOAuthStatus;
+      .getCodexOAuthStatus()) as RigCodexOAuthStatus;
   }
 
   async startCodexOAuthLogin(
-    options?: McodeCodexOAuthLoginOptions,
-  ): Promise<McodeCodexOAuthStartResult> {
+    options?: RigCodexOAuthLoginOptions,
+  ): Promise<RigCodexOAuthStartResult> {
     return (await this.context
       .service("provider.codex-oauth.start")
-      .startCodexOAuthLogin(options)) as McodeCodexOAuthStartResult;
+      .startCodexOAuthLogin(options)) as RigCodexOAuthStartResult;
   }
 
-  async cancelCodexOAuthLogin(loginId: string): Promise<McodeCodexOAuthStatus> {
+  async cancelCodexOAuthLogin(loginId: string): Promise<RigCodexOAuthStatus> {
     return (await this.context
       .service("provider.codex-oauth.cancel")
-      .cancelCodexOAuthLogin(loginId)) as McodeCodexOAuthStatus;
+      .cancelCodexOAuthLogin(loginId)) as RigCodexOAuthStatus;
   }
 
   async getRigApiKeyStatus(): Promise<{
     readonly hasApiKey: boolean;
     readonly maskedApiKey?: string;
-    readonly cachedStatus?: McodeProviderTestResult["status"];
+    readonly cachedStatus?: RigProviderTestResult["status"];
   }> {
     return (await this.context
       .service("provider.rig.status")
       .getRigApiKeyStatus()) as {
       hasApiKey: boolean;
       maskedApiKey?: string;
-      cachedStatus?: McodeProviderTestResult["status"];
+      cachedStatus?: RigProviderTestResult["status"];
     };
   }
 
@@ -204,7 +204,7 @@ export class TuiProductAccess {
   }
 
   async createUserModelProvider(
-    input: McodeCreateProviderInput,
+    input: RigCreateProviderInput,
   ): Promise<void> {
     await this.context.service("provider.create").createUserModelProvider({
       ...input,
@@ -213,7 +213,7 @@ export class TuiProductAccess {
   }
 
   discoverUserModelsCandidate(
-    input: import("../../provider/contract.js").McodeDiscoverProviderModelsInput,
+    input: import("../../provider/contract.js").RigDiscoverProviderModelsInput,
   ) {
     return this.context
       .service("provider.discover")
@@ -225,7 +225,7 @@ export class TuiProductAccess {
     saveAndUse,
     skipConnectionTest,
     ...candidate
-  }: McodeSaveProviderCandidateInput): Promise<McodeSaveProviderCandidateResult> {
+  }: RigSaveProviderCandidateInput): Promise<RigSaveProviderCandidateResult> {
     return (await this.context
       .service("provider.save-candidate")
       .saveUserModelProviderCandidate({
@@ -238,11 +238,11 @@ export class TuiProductAccess {
         modelId,
         ...(skipConnectionTest !== undefined ? { skipConnectionTest } : {}),
         ...(saveAndUse !== undefined ? { saveAndUse } : {}),
-      })) as McodeSaveProviderCandidateResult;
+      })) as RigSaveProviderCandidateResult;
   }
 
   async updateUserModelProvider(
-    input: McodeUpdateProviderInput,
+    input: RigUpdateProviderInput,
   ): Promise<void> {
     await this.context.service("provider.update").updateUserModelProvider({
       ...input,
@@ -258,19 +258,19 @@ export class TuiProductAccess {
 
   async testUserModelProvider(
     providerId: string,
-  ): Promise<McodeProviderTestResult> {
+  ): Promise<RigProviderTestResult> {
     return (await this.context
       .service("provider.test")
-      .testUserModelProvider({ providerId })) as McodeProviderTestResult;
+      .testUserModelProvider({ providerId })) as RigProviderTestResult;
   }
 
   async testUserModel(
     providerId: string,
     modelId: string,
-  ): Promise<McodeProviderTestResult> {
+  ): Promise<RigProviderTestResult> {
     return (await this.context
       .service("provider.test-model")
-      .testUserModel({ providerId, modelId })) as McodeProviderTestResult;
+      .testUserModel({ providerId, modelId })) as RigProviderTestResult;
   }
 
   async getSessionUsage(sessionId: string): Promise<TuiSessionUsage> {

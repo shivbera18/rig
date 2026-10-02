@@ -1,6 +1,6 @@
 import type { AuthLeaseStatus } from '@rig/oauth-lease-protocol';
 
-export interface McodeToolsAccessTokenLease {
+export interface RigToolsAccessTokenLease {
   accessToken: string;
   expiresAtMs: number;
   generation: number;
@@ -8,20 +8,20 @@ export interface McodeToolsAccessTokenLease {
   audience: 'agent-backend';
 }
 
-export interface McodeToolsAuthStatusSnapshot {
+export interface RigToolsAuthStatusSnapshot {
   status: AuthLeaseStatus;
   generation: number;
   expiresAtMs?: number;
 }
 
-export interface McodeToolsHostAuthSession {
-  getStatus(): Promise<McodeToolsAuthStatusSnapshot>;
-  getAccessToken(minValidityMs: number): Promise<McodeToolsAccessTokenLease>;
+export interface RigToolsHostAuthSession {
+  getStatus(): Promise<RigToolsAuthStatusSnapshot>;
+  getAccessToken(minValidityMs: number): Promise<RigToolsAccessTokenLease>;
   handleUnauthorized(generation: number): Promise<'retry' | 'logout'>;
-  watch(listener: (status: McodeToolsAuthStatusSnapshot) => void): () => void;
+  watch(listener: (status: RigToolsAuthStatusSnapshot) => void): () => void;
 }
 
-export interface McodeToolsHostLogger {
+export interface RigToolsHostLogger {
   info(message: string): void;
   warn(message: string): void;
 }

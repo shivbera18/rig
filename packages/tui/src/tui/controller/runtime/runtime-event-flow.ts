@@ -36,7 +36,7 @@ import {
 } from '../../../observability/index.js';
 import { formatTuiRuntimeFailure, resolveTuiRuntimeFailure } from './runtime-error-presentation.js';
 import {
-  shouldNotifyMcodeTurnComplete,
+  shouldNotifyRigTurnComplete,
   type TuiTerminalNotificationKind,
 } from '../../platform/terminal-notifications.js';
 import { formatTuiActionFailure, tuiErrorDiagnostic } from '../../../user-facing-failure.js';
@@ -941,7 +941,7 @@ export class TuiRuntimeEventFlow {
     const queuedCount = queue.value.filter(
       (item) => item.status === 'queued' || item.status === 'running',
     ).length;
-    if (!shouldNotifyMcodeTurnComplete({ queuedCount, hasActiveRun })) return;
+    if (!shouldNotifyRigTurnComplete({ queuedCount, hasActiveRun })) return;
     this.options.notify('turn-complete', `turn-complete:${sessionId}:${event.turnId}`);
   }
 

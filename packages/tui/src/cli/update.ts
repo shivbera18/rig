@@ -1,37 +1,37 @@
 import { createInterface } from 'node:readline/promises';
 import { stripVTControlCharacters } from 'node:util';
-import { McodeUpdateApplication, type McodeUpdatePlan } from '../update/application.js';
+import { RigUpdateApplication, type RigUpdatePlan } from '../update/application.js';
 import {
-  mcodePrefixActivationScheduledMessage,
-  mcodePrefixJournalScheduleFailedMessage,
+  rigPrefixActivationScheduledMessage,
+  rigPrefixJournalScheduleFailedMessage,
 } from '../update/messages.js';
-import { schedulePendingMcodePrefixUpdate } from '../update/prefix-update.js';
-import type { McodeUpdatePhase } from '../update/progress.js';
+import { schedulePendingRigPrefixUpdate } from '../update/prefix-update.js';
+import type { RigUpdatePhase } from '../update/progress.js';
 
 const UPDATE_ANIMATION_INTERVAL_MS = 80;
 const UPDATE_ACTIVITY_INTERVAL_MS = 15_000;
 const UPDATE_SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'] as const;
 const UPDATE_OUTPUT_MAX_LENGTH = 72;
 
-export interface RunMcodeUpdateOptions {
-  readonly application?: McodeUpdateApplication;
+export interface RunRigUpdateOptions {
+  readonly application?: RigUpdateApplication;
   readonly interactive?: boolean;
   readonly confirm?: (message: string) => Promise<boolean>;
   readonly write?: (value: string) => void;
   readonly schedulePendingPrefixUpdate?: () => Promise<boolean>;
 }
 
-export async function runMcodeUpdate(
+export async function runRigUpdate(
   currentVersion: string,
-  options: RunMcodeUpdateOptions = {},
+  options: RunRigUpdateOptions = {},
 ): Promise<void> {
-  const application = options.application ?? new McodeUpdateApplication({ currentVersion });
+  const application = options.application ?? new RigUpdateApplication({ currentVersion });
   const interactive = options.interactive ?? Boolean(process.stdin.isTTY && process.stdout.isTTY);
   const write = options.write ?? ((value: string) => process.stdout.write(value));
   const schedulePendingPrefixUpdate =
-    options.schedulePendingPrefixUpdate ?? (() => schedulePendingMcodePrefixUpdate());
+    options.schedulePendingPrefixUpdate ?? (() => schedulePendingRigPrefixUpdate());
   if (await schedulePendingPrefixUpdate()) {
-    write(`${mcodePrefixActivationScheduledMessage()}\n`);
+    write(`${rigPrefixActivationScheduledMessage()}\n`);
     return;
   }
   const plan = await application.inspect();
@@ -72,7 +72,7 @@ export async function runMcodeUpdate(
     return;
   }
 
-  const progress = new McodeUpdateCliProgress(write, updateProcessLabel(plan));
+  const progress = new RigUpdateCliProgress(write, updateProcessLabel(plan));
   progress.start();
   try {
     const outcome = await application.apply(plan, {
@@ -82,7 +82,7 @@ export async function runMcodeUpdate(
     progress.stop();
     write(`${outcome.message}\n`);
     if (outcome.restartRequired && !(await schedulePendingPrefixUpdate())) {
-      throw new Error(mcodePrefixJournalScheduleFailedMessage());
+      throw new Error(rigPrefixJournalScheduleFailedMessage());
     }
   } catch (error) {
     progress.stop();
@@ -90,11 +90,11 @@ export async function runMcodeUpdate(
   }
 }
 
-class McodeUpdateCliProgress {
+class RigUpdateCliProgress {
   private frameIndex = 0;
   private latestOutput = '';
   private latestOutputAtMs: number | undefined;
-  private phase: McodeUpdatePhase | undefined;
+  private phase: RigUpdatePhase | undefined;
   private startedAtMs = 0;
   private animationTimer: ReturnType<typeof setInterval> | undefined;
   private activityTimer: ReturnType<typeof setInterval> | undefined;
@@ -117,7 +117,7 @@ class McodeUpdateCliProgress {
     this.activityTimer.unref?.();
   }
 
-  acceptPhase(phase: McodeUpdatePhase): void {
+  acceptPhase(phase: RigUpdatePhase): void {
     this.phase = phase;
     if (phase === 'completed') {
       this.render();
@@ -174,7 +174,7 @@ class McodeUpdateCliProgress {
   }
 }
 
-function phaseLabel(phase: McodeUpdatePhase): string {
+function phaseLabel(phase: RigUpdatePhase): string {
   if (phase === 'checking') return 'Checking for updates';
   if (phase === 'downloading') return 'Downloading release';
   if (phase === 'staging') return 'Preparing isolated update';
@@ -185,7 +185,7 @@ function phaseLabel(phase: McodeUpdatePhase): string {
 }
 
 function updateProcessLabel(
-  plan: Extract<McodeUpdatePlan, { kind: 'available' | 'package-manager' }>,
+  plan: Extract<RigUpdatePlan, { kind: 'available' | 'package-manager' }>,
 ): string {
   if (plan.kind === 'available') return 'installer';
   if (plan.source === 'npm-prefix') return 'npm';
@@ -198,7 +198,7 @@ function truncateOutput(value: string): string {
 }
 
 function renderAvailableUpdate(
-  plan: Extract<McodeUpdatePlan, { kind: 'available' | 'package-manager' }>,
+  plan: Extract<RigUpdatePlan, { kind: 'available' | 'package-manager' }>,
 ): string {
   if (plan.kind === 'available') {
     return (
@@ -214,7 +214,7 @@ function renderAvailableUpdate(
 }
 
 function renderNonInteractiveInstruction(
-  plan: Extract<McodeUpdatePlan, { kind: 'available' | 'package-manager' }>,
+  plan: Extract<RigUpdatePlan, { kind: 'available' | 'package-manager' }>,
 ): string {
   return plan.kind === 'package-manager'
     ? `No interactive confirmation is available. Run: ${plan.command.display}`

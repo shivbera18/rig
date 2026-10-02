@@ -10,15 +10,15 @@ import {
   type RawTuiInteractiveOptions,
   type TuiInteractiveLaunchRequest,
 } from './contract.js';
-import type { McodeProviderCliRequest } from './provider-command.js';
+import type { RigProviderCliRequest } from './provider-command.js';
 import {
   isModelProviderApiFormat,
-  MCODE_PROVIDER_API_FORMATS,
-  type McodeProviderApiFormat,
+  RIG_PROVIDER_API_FORMATS,
+  type RigProviderApiFormat,
 } from '../provider/contract.js';
-import type { McodePluginCliRequest, McodePluginMarketplace } from '../plugin/contract.js';
+import type { RigPluginCliRequest, RigPluginMarketplace } from '../plugin/contract.js';
 import { resolveTuiManagedBackendLane } from './environment.js';
-import type { McodeTelemetryCliAction } from './telemetry-command.js';
+import type { RigTelemetryCliAction } from './telemetry-command.js';
 
 export type { TuiInteractiveLaunchRequest } from './contract.js';
 
@@ -41,9 +41,9 @@ export interface CreateTuiProgramOptions {
   runLogin: (region?: RigRegion, openBrowser?: boolean, lane?: string) => Promise<void>;
   runLogout: (region?: RigRegion) => Promise<void>;
   runUpdate: () => Promise<void>;
-  runProvider?: (request: McodeProviderCliRequest, lane?: string) => Promise<void>;
-  runPlugin?: (request: McodePluginCliRequest, lane?: string) => Promise<void>;
-  runTelemetry?: (action: McodeTelemetryCliAction) => Promise<void>;
+  runProvider?: (request: RigProviderCliRequest, lane?: string) => Promise<void>;
+  runPlugin?: (request: RigPluginCliRequest, lane?: string) => Promise<void>;
+  runTelemetry?: (action: RigTelemetryCliAction) => Promise<void>;
   resolveLane?: typeof resolveTuiManagedBackendLane;
   allowStartupEnvironmentSelection?: boolean;
   commandContributions?: readonly TuiCliCommandContribution[];
@@ -55,11 +55,11 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     ...request,
     ...(activeLane ? { lane: activeLane } : {}),
   });
-  const runProvider = (request: McodeProviderCliRequest) =>
+  const runProvider = (request: RigProviderCliRequest) =>
     activeLane
       ? requireProviderRunner(options)(request, activeLane)
       : requireProviderRunner(options)(request);
-  const runPlugin = (request: McodePluginCliRequest) =>
+  const runPlugin = (request: RigPluginCliRequest) =>
     activeLane
       ? requirePluginRunner(options)(request, activeLane)
       : requirePluginRunner(options)(request);
@@ -186,7 +186,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     .requiredOption('--base-url <url>', 'provider API base URL')
     .option(
       '--api-format <format>',
-      MCODE_PROVIDER_API_FORMATS.join(', '),
+      RIG_PROVIDER_API_FORMATS.join(', '),
       parseApiFormat,
       'anthropic-messages',
     )
@@ -200,7 +200,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
       (commandOptions: {
         name: string;
         baseUrl: string;
-        apiFormat: McodeProviderApiFormat;
+        apiFormat: RigProviderApiFormat;
         model: string[];
         contextLimit?: number;
         outputLimit?: number;
@@ -285,7 +285,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     .option('--json', 'print a JSON document')
     .action(
       (commandOptions: {
-        marketplace?: McodePluginMarketplace;
+        marketplace?: RigPluginMarketplace;
         available?: boolean;
         json?: boolean;
       }) =>
@@ -307,7 +307,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
       .action(
         (
           selector: string,
-          commandOptions: { marketplace?: McodePluginMarketplace; json?: boolean },
+          commandOptions: { marketplace?: RigPluginMarketplace; json?: boolean },
         ) =>
           runPlugin({
             action,
@@ -382,9 +382,9 @@ function parseLoginRegion(value: string): RigRegion {
   throw new InvalidArgumentError('expected "cn" or "global"');
 }
 
-function parseApiFormat(value: string): McodeProviderApiFormat {
+function parseApiFormat(value: string): RigProviderApiFormat {
   if (isModelProviderApiFormat(value)) return value;
-  throw new InvalidArgumentError(`expected one of: ${MCODE_PROVIDER_API_FORMATS.join(', ')}`);
+  throw new InvalidArgumentError(`expected one of: ${RIG_PROVIDER_API_FORMATS.join(', ')}`);
 }
 
 function parseProviderSource(value: string): 'token_plan' | 'rig_api_key' {
@@ -393,7 +393,7 @@ function parseProviderSource(value: string): 'token_plan' | 'rig_api_key' {
   throw new InvalidArgumentError('expected "token-plan" or "api-key"');
 }
 
-function parsePluginMarketplace(value: string): McodePluginMarketplace {
+function parsePluginMarketplace(value: string): RigPluginMarketplace {
   const normalized = value.trim().toLocaleLowerCase();
   if (normalized === 'official' || normalized === 'local') return normalized;
   throw new InvalidArgumentError('expected "official" or "local"');

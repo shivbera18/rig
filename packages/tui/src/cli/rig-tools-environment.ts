@@ -15,25 +15,25 @@ const HOST_ENVIRONMENT_KEYS = {
 
 const CHILD_ENVIRONMENT_KEYS_TO_CLEAR = [
   'IS_SANDBOX',
-  'MCODE_API_BASE_URL',
-  'MCODE_AUTH_BASE_URL',
-  'MCODE_CLIENT_ID',
-  'MCODE_SCOPE',
-  'MCODE_AUTH_PROVIDER',
-  'MCODE_AUTH_BROKER_ENDPOINT',
-  'MCODE_AUTH_BROKER_CAPABILITY_FILE',
-  'MCODE_EXTRA_HEADERS',
-  'MCODE_REGION',
-  'MCODE_CONFIG_DIR',
+  'RIG_API_BASE_URL',
+  'RIG_AUTH_BASE_URL',
+  'RIG_CLIENT_ID',
+  'RIG_SCOPE',
+  'RIG_AUTH_PROVIDER',
+  'RIG_AUTH_BROKER_ENDPOINT',
+  'RIG_AUTH_BROKER_CAPABILITY_FILE',
+  'RIG_EXTRA_HEADERS',
+  'RIG_REGION',
+  'RIG_CONFIG_DIR',
   '__MAVIS_PARENT_ACCESS_TOKEN',
 ] as const;
 
-export interface TuiMcodeToolsHostEnvironmentActivation {
+export interface TuiRigToolsHostEnvironmentActivation {
   ensureCommandPath(): void;
   restore(): void;
 }
 
-export function activateTuiMcodeToolsHostEnvironment(
+export function activateTuiRigToolsHostEnvironment(
   environment: ProcessEnvironment,
   options: {
     runtimeExecutable: string;
@@ -44,7 +44,7 @@ export function activateTuiMcodeToolsHostEnvironment(
     commandBinDir: string;
     bedrockLane?: string;
   },
-): TuiMcodeToolsHostEnvironmentActivation {
+): TuiRigToolsHostEnvironmentActivation {
   if (!path.isAbsolute(options.runtimeExecutable)) {
     throw new Error('The Rig rig-tools runtime executable must be absolute.');
   }
@@ -90,7 +90,7 @@ export function activateTuiMcodeToolsHostEnvironment(
   };
 }
 
-export function configureMcodeToolsChildEnvironment(
+export function configureRigToolsChildEnvironment(
   environment: ProcessEnvironment = process.env,
 ): boolean {
   const brokerEndpoint = environment[HOST_ENVIRONMENT_KEYS.brokerEndpoint]?.trim();
@@ -120,12 +120,12 @@ export function configureMcodeToolsChildEnvironment(
   }
 
   environment.ELECTRON_RUN_AS_NODE = '1';
-  environment.MCODE_REGION = region;
-  environment.MCODE_CONFIG_DIR = configDir;
-  environment.MCODE_AUTH_PROVIDER = 'shared-broker';
-  environment.MCODE_AUTH_BROKER_ENDPOINT = brokerEndpoint;
-  environment.MCODE_AUTH_BROKER_CAPABILITY_FILE = brokerCapabilityFile;
-  if (extraHeaders) environment.MCODE_EXTRA_HEADERS = extraHeaders;
+  environment.RIG_REGION = region;
+  environment.RIG_CONFIG_DIR = configDir;
+  environment.RIG_AUTH_PROVIDER = 'shared-broker';
+  environment.RIG_AUTH_BROKER_ENDPOINT = brokerEndpoint;
+  environment.RIG_AUTH_BROKER_CAPABILITY_FILE = brokerCapabilityFile;
+  if (extraHeaders) environment.RIG_EXTRA_HEADERS = extraHeaders;
   return true;
 }
 

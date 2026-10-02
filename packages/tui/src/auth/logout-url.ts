@@ -15,7 +15,7 @@ const WEB_ORIGINS: Record<RigRegion, Record<RigBuildEnv, string>> = {
   },
 };
 
-export function buildMcodeLogoutUrl(scope: {
+export function buildRigLogoutUrl(scope: {
   readonly region: RigRegion;
   readonly buildEnv: RigBuildEnv;
 }): string {

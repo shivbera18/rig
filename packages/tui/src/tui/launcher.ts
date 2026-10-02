@@ -33,28 +33,28 @@ import {
   type TuiIncidentReporter,
   type TuiObservability,
 } from '../observability/index.js';
-import { resolveMcodeAuthEnvironment } from '../auth/environment.js';
+import { resolveRigAuthEnvironment } from '../auth/environment.js';
 import { TuiMatrixAccountClient } from '../account/matrix-account-client.js';
 import {
-  createMcodeBusinessTelemetry,
-  resolveMcodeBusinessTelemetryPolicy,
-  type CreateMcodeBusinessTelemetryOptions,
-  type McodeBusinessTelemetry,
+  createRigBusinessTelemetry,
+  resolveRigBusinessTelemetryPolicy,
+  type CreateRigBusinessTelemetryOptions,
+  type RigBusinessTelemetry,
 } from '../analytics/business-telemetry.js';
-import { createDefaultMcodeAuthApplication } from '../auth/factory.js';
-import { createMcodeSharedAuthSession } from '../runtime/auth-session.js';
+import { createDefaultRigAuthApplication } from '../auth/factory.js';
+import { createRigSharedAuthSession } from '../runtime/auth-session.js';
 import {
-  MCODE_OAUTH_SCOPES,
-  resolveMCodeOAuthEndpointConfig,
+  RIG_OAUTH_SCOPES,
+  resolveRigOAuthEndpointConfig,
   type AccessTokenLease,
-  type MCodeOAuthCore,
+  type RigOAuthCore,
 } from '@rig/oauth-core';
 import {
   resolveTuiManagedBackendLane,
   resolveTuiStartupEnvironmentOption,
 } from '../cli/environment.js';
-import { resolveMcodeStartupUpdateNotice } from '../update/startup-notice.js';
-import type { McodeUpdateApplication } from '../update/application.js';
+import { resolveRigStartupUpdateNotice } from '../update/startup-notice.js';
+import type { RigUpdateApplication } from '../update/application.js';
 import { tuiErrorDiagnostic } from '../user-facing-failure.js';
 import { getConfig, resetConfig, writeTuiStatusLineSetting, type RigRegion } from '@rig/config';
 import { markLoginRestartHandoff } from './login-restart-handoff.js';
@@ -64,8 +64,8 @@ import {
   writeTuiModeSetting,
   writeTuiThemeSetting,
 } from '../host/tui-settings.js';
-import { schedulePendingMcodePrefixUpdate } from '../update/prefix-update.js';
-import { MCODE_TUI_RESULT_PATH_ENV } from './automation/result-writer.js';
+import { schedulePendingRigPrefixUpdate } from '../update/prefix-update.js';
+import { RIG_TUI_RESULT_PATH_ENV } from './automation/result-writer.js';
 import { startTuiStartupStatus, type TuiStartupStatus } from './startup-status.js';
 
 const RIG_EXIT_SLOGAN = 'Intelligence with everyone, bye~';
@@ -124,7 +124,7 @@ export interface LaunchTuiDependencies {
   loadRuntimeLifecycle?: () => Promise<RuntimeLifecycleModule>;
   loadUpdateApplication?: (
     currentVersion: string,
-  ) => Promise<Pick<McodeUpdateApplication, 'inspect' | 'apply'>>;
+  ) => Promise<Pick<RigUpdateApplication, 'inspect' | 'apply'>>;
   writeExitMessage?: (message: string) => void;
   prepareDataDir?: typeof prepareTuiDataDir;
   restartProcess?: (
@@ -132,29 +132,29 @@ export interface LaunchTuiDependencies {
     region?: RigRegion,
     initialPrompt?: string,
   ) => Promise<void>;
-  createBusinessTelemetry?: typeof createMcodeBusinessTelemetry;
+  createBusinessTelemetry?: typeof createRigBusinessTelemetry;
   readTelemetryEnabled?: () => boolean;
   createIncidentReporter?: typeof createTuiIncidentReporter;
   readTuiMode?: typeof readTuiModeSetting;
   writeTuiMode?: typeof writeTuiModeSetting;
   readTuiTheme?: typeof readTuiThemeSetting;
   writeTuiTheme?: typeof writeTuiThemeSetting;
-  createSharedAuthSession?: typeof createMcodeSharedAuthSession;
-  createAuthApplication?: typeof createDefaultMcodeAuthApplication;
+  createSharedAuthSession?: typeof createRigSharedAuthSession;
+  createAuthApplication?: typeof createDefaultRigAuthApplication;
 }
 
 export function createConfiguredTuiBusinessTelemetry(options: {
   readonly configEnabled: boolean;
   readonly environment: NodeJS.ProcessEnv;
-  readonly telemetryOptions: CreateMcodeBusinessTelemetryOptions;
-  readonly createTelemetry?: typeof createMcodeBusinessTelemetry;
-}): McodeBusinessTelemetry | undefined {
-  const policy = resolveMcodeBusinessTelemetryPolicy({
+  readonly telemetryOptions: CreateRigBusinessTelemetryOptions;
+  readonly createTelemetry?: typeof createRigBusinessTelemetry;
+}): RigBusinessTelemetry | undefined {
+  const policy = resolveRigBusinessTelemetryPolicy({
     configEnabled: options.configEnabled,
     environment: options.environment,
   });
   if (!policy.enabled) return undefined;
-  return (options.createTelemetry ?? createMcodeBusinessTelemetry)(options.telemetryOptions);
+  return (options.createTelemetry ?? createRigBusinessTelemetry)(options.telemetryOptions);
 }
 
 export async function launchTui(
@@ -178,17 +178,17 @@ export async function launchTui(
   const tuiMode = options.tuiMode ?? (dependencies.readTuiMode ?? readTuiModeSetting)(dataDir);
   const theme = options.theme ?? (dependencies.readTuiTheme ?? readTuiThemeSetting)(dataDir);
   const terminalCapabilities = detectProcessTerminalCapabilities();
-  const authEnvironment = resolveMcodeAuthEnvironment({
+  const authEnvironment = resolveRigAuthEnvironment({
     runtimeRegion: process.env.RIG_REGION === 'en' ? 'en' : 'cn',
   });
   const bedrockLane = resolveTuiManagedBackendLane(options.lane, authEnvironment.buildEnv);
   const routingContext = bedrockLane ? { bedrockLane } : undefined;
-  const sharedAuthCore: MCodeOAuthCore = (
-    dependencies.createSharedAuthSession ?? createMcodeSharedAuthSession
+  const sharedAuthCore: RigOAuthCore = (
+    dependencies.createSharedAuthSession ?? createRigSharedAuthSession
   )({
     dataDir,
     ...authEnvironment,
-    oauthEndpoints: resolveMCodeOAuthEndpointConfig(process.env, authEnvironment),
+    oauthEndpoints: resolveRigOAuthEndpointConfig(process.env, authEnvironment),
   });
   let accountAuthContext: { accessToken: string; realUserID?: string } | undefined;
   const accountIdentityClient = new TuiMatrixAccountClient({
@@ -199,7 +199,7 @@ export async function launchTui(
   const resolveAccessTokenLease = async (): Promise<AccessTokenLease | undefined> => {
     try {
       const lease = await sharedAuthCore.getAccessToken({
-        requiredScopes: [...MCODE_OAUTH_SCOPES],
+        requiredScopes: [...RIG_OAUTH_SCOPES],
         minValidityMs: 30_000,
       });
       if (accountAuthContext?.accessToken !== lease.accessToken) {
@@ -303,8 +303,8 @@ export async function launchTui(
   const loadUpdateApplication =
     dependencies.loadUpdateApplication ??
     (async (currentVersion: string) => {
-      const { McodeUpdateApplication } = await import('../update/application.js');
-      return new McodeUpdateApplication({ currentVersion });
+      const { RigUpdateApplication } = await import('../update/application.js');
+      return new RigUpdateApplication({ currentVersion });
     });
   let updateApplicationPromise: ReturnType<typeof loadUpdateApplication> | undefined;
   const updateApplication = () => {
@@ -403,8 +403,8 @@ export async function launchTui(
         ...(presentationConfig.notifications
           ? { notifications: presentationConfig.notifications }
           : {}),
-        ...(process.env[MCODE_TUI_RESULT_PATH_ENV]
-          ? { automationResultPath: process.env[MCODE_TUI_RESULT_PATH_ENV] }
+        ...(process.env[RIG_TUI_RESULT_PATH_ENV]
+          ? { automationResultPath: process.env[RIG_TUI_RESULT_PATH_ENV] }
           : {}),
         ...(options.workspaceRoots ? { workspaceRoots: options.workspaceRoots } : {}),
         homeDir: homeDirectory,
@@ -419,12 +419,12 @@ export async function launchTui(
         observability,
         incidentReporter,
         ...(businessTelemetry ? { businessTelemetry } : {}),
-        auth: (dependencies.createAuthApplication ?? createDefaultMcodeAuthApplication)({
+        auth: (dependencies.createAuthApplication ?? createDefaultRigAuthApplication)({
           dataDir,
           ...authEnvironment,
           sharedAuthCore,
           ...(businessTelemetry ? { telemetry: businessTelemetry } : {}),
-          telemetrySource: 'mcode_tui',
+          telemetrySource: 'rig_tui',
         }),
         notifyAuthContextChanged: async (authState: 'authenticated' | 'logged_out') => {
           const activeRuntime = await initializingRuntime;
@@ -473,7 +473,7 @@ export async function launchTui(
         },
         ...(options.resumeDraftAfterLogin ? { resumeDraftAfterLogin: true } : {}),
         checkForUpdate: async () =>
-          resolveMcodeStartupUpdateNotice(await (await updateApplication()).inspect()),
+          resolveRigStartupUpdateNotice(await (await updateApplication()).inspect()),
         inspectUpdate: async () => (await updateApplication()).inspect(),
         applyUpdate: async (plan, progress) => (await updateApplication()).apply(plan, progress),
       });
@@ -821,7 +821,7 @@ export async function restartTuiProcess(
   const args = resolveRestartArguments(process.execPath, process.argv, sessionId, initialPrompt);
   const environment = resolveRestartEnvironment(process.env, region);
   if (
-    await schedulePendingMcodePrefixUpdate(
+    await schedulePendingRigPrefixUpdate(
       process.argv[1],
       process.execPath,
       process.pid,

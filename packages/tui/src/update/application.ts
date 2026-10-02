@@ -1,89 +1,89 @@
 import {
-  McodeUpdateService,
-  resolveMcodeInstallRoot,
-  type McodeUpdateApplyResult,
-  type McodeUpdateCheckResult,
-  type McodeUpdateRequest,
+  RigUpdateService,
+  resolveRigInstallRoot,
+  type RigUpdateApplyResult,
+  type RigUpdateCheckResult,
+  type RigUpdateRequest,
 } from './service.js';
 import {
-  buildMcodePackageManagerCommand,
-  bindMcodeNpmCommandToRuntime,
-  createMcodeNpmRuntimeEnvironment,
-  detectMcodeInstallSource,
-  resolveMcodeNpmDistribution,
-  resolveMcodeNpmDistTag,
-  resolveMcodeNpmPrefixInstall,
-  resolveInstalledMcodePackageVersion,
-  resolveLatestMcodeRegistryVersion,
-  runMcodePackageManagerCommand,
-  type McodeInstallSource,
-  type McodeNpmDistTag,
-  type McodeNpmDistribution,
-  type McodeNpmPackageName,
-  type McodeNpmPrefixInstall,
-  type McodePackageManagerCommand,
-  type McodePackageManagerInstallSource,
-  type McodePackageManagerRunOptions,
+  buildRigPackageManagerCommand,
+  bindRigNpmCommandToRuntime,
+  createRigNpmRuntimeEnvironment,
+  detectRigInstallSource,
+  resolveRigNpmDistribution,
+  resolveRigNpmDistTag,
+  resolveRigNpmPrefixInstall,
+  resolveInstalledRigPackageVersion,
+  resolveLatestRigRegistryVersion,
+  runRigPackageManagerCommand,
+  type RigInstallSource,
+  type RigNpmDistTag,
+  type RigNpmDistribution,
+  type RigNpmPackageName,
+  type RigNpmPrefixInstall,
+  type RigPackageManagerCommand,
+  type RigPackageManagerInstallSource,
+  type RigPackageManagerRunOptions,
 } from './install-source.js';
-import { compareMcodeVersions } from './release.js';
-import { reportMcodeUpdatePhase } from './progress.js';
+import { compareRigVersions } from './release.js';
+import { reportRigUpdatePhase } from './progress.js';
 import {
-  mcodePrefixNonPrefixPlanMessage,
-  mcodePrefixNotStagedMessage,
-  mcodePrefixOwnershipMissingMessage,
-  mcodePrefixPendingActivationMessage,
-  mcodePrefixPendingCleanupMessage,
-  mcodePrefixVersionedInstalledMessage,
-  mcodePrefixStagedVersionMismatchMessage,
+  rigPrefixNonPrefixPlanMessage,
+  rigPrefixNotStagedMessage,
+  rigPrefixOwnershipMissingMessage,
+  rigPrefixPendingActivationMessage,
+  rigPrefixPendingCleanupMessage,
+  rigPrefixVersionedInstalledMessage,
+  rigPrefixStagedVersionMismatchMessage,
 } from './messages.js';
 import {
-  countMcodePrefixUpdateBlockers,
-  inspectPendingMcodePrefixUpdate,
-  readMcodePrefixPackageMetadata,
-  removeMcodePrefixUpdateStaging,
-  validateMcodePrefixPackage,
-  type McodePrefixPackageMetadata,
+  countRigPrefixUpdateBlockers,
+  inspectPendingRigPrefixUpdate,
+  readRigPrefixPackageMetadata,
+  removeRigPrefixUpdateStaging,
+  validateRigPrefixPackage,
+  type RigPrefixPackageMetadata,
 } from './prefix-update.js';
 import {
-  acquireMcodeVersionedPrefixUpdateLock,
-  activateMcodeVersionedPrefixInstall,
-  createMcodeVersionedPrefixStagingPrefix,
-  prepareMcodeVersionedPrefixStaging,
-  type McodeVersionedPrefixActivation,
+  acquireRigVersionedPrefixUpdateLock,
+  activateRigVersionedPrefixInstall,
+  createRigVersionedPrefixStagingPrefix,
+  prepareRigVersionedPrefixStaging,
+  type RigVersionedPrefixActivation,
 } from './versioned-prefix.js';
 
 interface ManagedUpdateService {
-  check(request?: McodeUpdateRequest): Promise<McodeUpdateCheckResult>;
-  apply(request?: McodeUpdateRequest): Promise<McodeUpdateApplyResult>;
+  check(request?: RigUpdateRequest): Promise<RigUpdateCheckResult>;
+  apply(request?: RigUpdateRequest): Promise<RigUpdateApplyResult>;
 }
 
-interface McodeManagedUpdatePlan {
+interface RigManagedUpdatePlan {
   readonly source: 'managed-installer';
   readonly currentVersion: string;
   readonly latestVersion: string;
   readonly channel: 'stable' | 'preview';
 }
 
-interface McodePackageManagerVersionPlan {
-  readonly source: McodePackageManagerInstallSource;
+interface RigPackageManagerVersionPlan {
+  readonly source: RigPackageManagerInstallSource;
   readonly currentVersion: string;
   readonly latestVersion: string;
-  readonly packageTag: McodeNpmDistTag;
+  readonly packageTag: RigNpmDistTag;
 }
 
-export type McodeUpdatePlan =
-  | (McodeManagedUpdatePlan & { readonly kind: 'current' })
-  | (McodeManagedUpdatePlan & { readonly kind: 'ahead' })
-  | (McodeManagedUpdatePlan & { readonly kind: 'available' })
-  | (McodePackageManagerVersionPlan & { readonly kind: 'current' })
-  | (McodePackageManagerVersionPlan & { readonly kind: 'ahead' })
+export type RigUpdatePlan =
+  | (RigManagedUpdatePlan & { readonly kind: 'current' })
+  | (RigManagedUpdatePlan & { readonly kind: 'ahead' })
+  | (RigManagedUpdatePlan & { readonly kind: 'available' })
+  | (RigPackageManagerVersionPlan & { readonly kind: 'current' })
+  | (RigPackageManagerVersionPlan & { readonly kind: 'ahead' })
   | {
       readonly kind: 'package-manager';
-      readonly source: McodePackageManagerInstallSource;
+      readonly source: RigPackageManagerInstallSource;
       readonly currentVersion: string;
       readonly latestVersion: string;
-      readonly packageTag: McodeNpmDistTag;
-      readonly command: McodePackageManagerCommand;
+      readonly packageTag: RigNpmDistTag;
+      readonly command: RigPackageManagerCommand;
     }
   | {
       readonly kind: 'manual';
@@ -92,82 +92,82 @@ export type McodeUpdatePlan =
       readonly command: string;
     };
 
-export interface McodeUpdateOutcome {
+export interface RigUpdateOutcome {
   readonly applied: boolean;
   readonly message: string;
   readonly restartRequired?: boolean;
 }
 
-export type McodeUpdateApplyOptions = McodePackageManagerRunOptions;
+export type RigUpdateApplyOptions = RigPackageManagerRunOptions;
 
-export interface McodeUpdateApplicationOptions {
+export interface RigUpdateApplicationOptions {
   readonly currentVersion: string;
   readonly installRoot?: string;
   readonly environment?: NodeJS.ProcessEnv;
   readonly platform?: NodeJS.Platform;
-  readonly packageTag?: McodeNpmDistTag;
-  readonly packageName?: McodeNpmPackageName;
-  readonly prefixInstall?: McodeNpmPrefixInstall;
+  readonly packageTag?: RigNpmDistTag;
+  readonly packageName?: RigNpmPackageName;
+  readonly prefixInstall?: RigNpmPrefixInstall;
   readonly entryFile?: string;
   readonly runtimeExecutable?: string;
 }
 
-export interface McodeUpdateApplicationDependencies {
-  readonly detectInstallSource: () => Promise<McodeInstallSource>;
+export interface RigUpdateApplicationDependencies {
+  readonly detectInstallSource: () => Promise<RigInstallSource>;
   readonly createManagedService: () => ManagedUpdateService;
-  readonly resolveLatestPackageVersion: (tag: McodeNpmDistTag) => Promise<string>;
+  readonly resolveLatestPackageVersion: (tag: RigNpmDistTag) => Promise<string>;
   readonly runPackageManager: (
-    command: McodePackageManagerCommand,
-    options?: McodePackageManagerRunOptions,
+    command: RigPackageManagerCommand,
+    options?: RigPackageManagerRunOptions,
   ) => Promise<void>;
   readonly readInstalledPackageVersion: () => string | undefined;
   readonly readPrefixPackageMetadata: (
     prefix: string,
-    packageName: McodeNpmPackageName,
-  ) => McodePrefixPackageMetadata;
+    packageName: RigNpmPackageName,
+  ) => RigPrefixPackageMetadata;
   readonly validatePrefixPackage: (
     prefix: string,
-    metadata: McodePrefixPackageMetadata,
+    metadata: RigPrefixPackageMetadata,
     expectedVersion: string,
   ) => Promise<void>;
   readonly countPrefixUpdateBlockers: (activePrefix: string) => number | undefined;
   readonly removePrefixStaging: (stagingPrefix: string) => void;
   readonly createVersionedPrefixStaging: (prefix: string, version: string) => string;
   readonly prepareVersionedPrefixStaging: (stagingPrefix: string) => void;
-  readonly activateVersionedPrefix: (activation: McodeVersionedPrefixActivation) => string;
+  readonly activateVersionedPrefix: (activation: RigVersionedPrefixActivation) => string;
   readonly acquirePrefixUpdateLock: (activePrefix: string) => () => void;
 }
 
-export class McodeUpdateApplication {
+export class RigUpdateApplication {
   private readonly currentVersion: string;
-  private readonly packageTag: McodeNpmDistTag;
-  private readonly distribution: McodeNpmDistribution;
+  private readonly packageTag: RigNpmDistTag;
+  private readonly distribution: RigNpmDistribution;
   private readonly platform: NodeJS.Platform;
-  private readonly prefixInstall?: McodeNpmPrefixInstall;
+  private readonly prefixInstall?: RigNpmPrefixInstall;
   private readonly entryFile?: string;
   private readonly runtimeExecutable: string;
   private readonly environment: NodeJS.ProcessEnv;
-  private readonly dependencies: McodeUpdateApplicationDependencies;
+  private readonly dependencies: RigUpdateApplicationDependencies;
 
   constructor(
-    options: McodeUpdateApplicationOptions,
-    dependencies: Partial<McodeUpdateApplicationDependencies> = {},
+    options: RigUpdateApplicationOptions,
+    dependencies: Partial<RigUpdateApplicationDependencies> = {},
   ) {
     this.currentVersion = options.currentVersion;
     const environment = options.environment ?? process.env;
-    const installRoot = options.installRoot ?? resolveMcodeInstallRoot(environment);
+    const installRoot = options.installRoot ?? resolveRigInstallRoot(environment);
     const platform = options.platform ?? process.platform;
     this.platform = platform;
     this.environment = environment;
     this.entryFile = options.entryFile ?? process.argv[1];
     this.runtimeExecutable = options.runtimeExecutable ?? process.execPath;
     this.prefixInstall =
-      options.prefixInstall ?? resolveMcodeNpmPrefixInstall(this.entryFile, platform);
+      options.prefixInstall ?? resolveRigNpmPrefixInstall(this.entryFile, platform);
     const packageManagerEnvironment = this.prefixInstall
-      ? createMcodeNpmRuntimeEnvironment(environment, this.runtimeExecutable, platform)
+      ? createRigNpmRuntimeEnvironment(environment, this.runtimeExecutable, platform)
       : environment;
-    this.packageTag = options.packageTag ?? resolveMcodeNpmDistTag();
-    this.distribution = resolveMcodeNpmDistribution(
+    this.packageTag = options.packageTag ?? resolveRigNpmDistTag();
+    this.distribution = resolveRigNpmDistribution(
       options.packageName,
       this.prefixInstall?.registry,
     );
@@ -175,7 +175,7 @@ export class McodeUpdateApplication {
       detectInstallSource:
         dependencies.detectInstallSource ??
         (() =>
-          detectMcodeInstallSource({
+          detectRigInstallSource({
             installRoot,
             platform,
             prefixInstall: () => this.prefixInstall,
@@ -183,7 +183,7 @@ export class McodeUpdateApplication {
       createManagedService:
         dependencies.createManagedService ??
         (() =>
-          new McodeUpdateService({
+          new RigUpdateService({
             currentVersion: options.currentVersion,
             installRoot,
             environment,
@@ -191,7 +191,7 @@ export class McodeUpdateApplication {
       resolveLatestPackageVersion:
         dependencies.resolveLatestPackageVersion ??
         ((tag) =>
-          resolveLatestMcodeRegistryVersion(tag, {
+          resolveLatestRigRegistryVersion(tag, {
             platform,
             distribution: this.distribution,
             environment: packageManagerEnvironment,
@@ -205,39 +205,39 @@ export class McodeUpdateApplication {
       runPackageManager:
         dependencies.runPackageManager ??
         ((command, progress) =>
-          runMcodePackageManagerCommand(
+          runRigPackageManagerCommand(
             this.prefixInstall
-              ? bindMcodeNpmCommandToRuntime(command, this.runtimeExecutable)
+              ? bindRigNpmCommandToRuntime(command, this.runtimeExecutable)
               : command,
             packageManagerEnvironment,
             progress,
           )),
       readInstalledPackageVersion:
-        dependencies.readInstalledPackageVersion ?? resolveInstalledMcodePackageVersion,
+        dependencies.readInstalledPackageVersion ?? resolveInstalledRigPackageVersion,
       readPrefixPackageMetadata:
         dependencies.readPrefixPackageMetadata ??
-        ((prefix, packageName) => readMcodePrefixPackageMetadata(prefix, packageName, platform)),
+        ((prefix, packageName) => readRigPrefixPackageMetadata(prefix, packageName, platform)),
       validatePrefixPackage:
         dependencies.validatePrefixPackage ??
         ((prefix, metadata, expectedVersion) =>
-          validateMcodePrefixPackage(prefix, metadata, this.runtimeExecutable, expectedVersion)),
+          validateRigPrefixPackage(prefix, metadata, this.runtimeExecutable, expectedVersion)),
       countPrefixUpdateBlockers:
-        dependencies.countPrefixUpdateBlockers ?? countMcodePrefixUpdateBlockers,
-      removePrefixStaging: dependencies.removePrefixStaging ?? removeMcodePrefixUpdateStaging,
+        dependencies.countPrefixUpdateBlockers ?? countRigPrefixUpdateBlockers,
+      removePrefixStaging: dependencies.removePrefixStaging ?? removeRigPrefixUpdateStaging,
       createVersionedPrefixStaging:
         dependencies.createVersionedPrefixStaging ??
-        ((prefix, version) => createMcodeVersionedPrefixStagingPrefix(prefix, version, platform)),
+        ((prefix, version) => createRigVersionedPrefixStagingPrefix(prefix, version, platform)),
       prepareVersionedPrefixStaging:
-        dependencies.prepareVersionedPrefixStaging ?? prepareMcodeVersionedPrefixStaging,
+        dependencies.prepareVersionedPrefixStaging ?? prepareRigVersionedPrefixStaging,
       activateVersionedPrefix:
         dependencies.activateVersionedPrefix ??
-        ((activation) => activateMcodeVersionedPrefixInstall(activation, platform)),
+        ((activation) => activateRigVersionedPrefixInstall(activation, platform)),
       acquirePrefixUpdateLock:
-        dependencies.acquirePrefixUpdateLock ?? acquireMcodeVersionedPrefixUpdateLock,
+        dependencies.acquirePrefixUpdateLock ?? acquireRigVersionedPrefixUpdateLock,
     };
   }
 
-  async inspect(): Promise<McodeUpdatePlan> {
+  async inspect(): Promise<RigUpdatePlan> {
     const source = await this.dependencies.detectInstallSource();
     if (source === 'managed-installer') {
       const result = await this.dependencies.createManagedService().check();
@@ -254,7 +254,7 @@ export class McodeUpdateApplication {
         kind: 'manual',
         source,
         currentVersion: this.currentVersion,
-        command: buildMcodePackageManagerCommand(
+        command: buildRigPackageManagerCommand(
           'npm-global',
           this.packageTag,
           this.platform,
@@ -263,7 +263,7 @@ export class McodeUpdateApplication {
       };
     }
     const pendingUpdate =
-      source === 'npm-prefix' ? inspectPendingMcodePrefixUpdate(this.entryFile) : undefined;
+      source === 'npm-prefix' ? inspectPendingRigPrefixUpdate(this.entryFile) : undefined;
     if (pendingUpdate) {
       const latestVersion = pendingUpdate.activation.expectedVersion;
       return {
@@ -272,7 +272,7 @@ export class McodeUpdateApplication {
         currentVersion: this.currentVersion,
         latestVersion,
         packageTag: this.packageTag,
-        command: buildMcodePackageManagerCommand(
+        command: buildRigPackageManagerCommand(
           source,
           latestVersion,
           this.platform,
@@ -282,7 +282,7 @@ export class McodeUpdateApplication {
       };
     }
     const latestVersion = await this.dependencies.resolveLatestPackageVersion(this.packageTag);
-    const comparison = compareMcodeVersions(this.currentVersion, latestVersion);
+    const comparison = compareRigVersions(this.currentVersion, latestVersion);
     const followsRollingTag = this.packageTag !== 'latest';
     if (comparison === 0) {
       return {
@@ -308,7 +308,7 @@ export class McodeUpdateApplication {
       currentVersion: this.currentVersion,
       latestVersion,
       packageTag: this.packageTag,
-      command: buildMcodePackageManagerCommand(
+      command: buildRigPackageManagerCommand(
         source,
         latestVersion,
         this.platform,
@@ -319,9 +319,9 @@ export class McodeUpdateApplication {
   }
 
   async apply(
-    plan: McodeUpdatePlan,
-    options: McodeUpdateApplyOptions = {},
-  ): Promise<McodeUpdateOutcome> {
+    plan: RigUpdatePlan,
+    options: RigUpdateApplyOptions = {},
+  ): Promise<RigUpdateOutcome> {
     if (plan.kind === 'manual' || plan.kind === 'current' || plan.kind === 'ahead') {
       throw new Error(`Rig update plan ${plan.kind} cannot be applied automatically.`);
     }
@@ -348,7 +348,7 @@ export class McodeUpdateApplication {
       return this.applyNpmPrefixUpdate(plan, options);
     }
 
-    reportMcodeUpdatePhase(options, 'installing', false);
+    reportRigUpdatePhase(options, 'installing', false);
     await this.dependencies.runPackageManager(plan.command, options);
     const installedVersion = this.dependencies.readInstalledPackageVersion();
     if (installedVersion !== plan.latestVersion) {
@@ -356,7 +356,7 @@ export class McodeUpdateApplication {
         `Rig update installed ${installedVersion || '<unknown>'}; expected ${plan.latestVersion}.`,
       );
     }
-    reportMcodeUpdatePhase(options, 'completed', false);
+    reportRigUpdatePhase(options, 'completed', false);
     return {
       applied: true,
       message:
@@ -366,17 +366,17 @@ export class McodeUpdateApplication {
   }
 
   private async applyNpmPrefixUpdate(
-    plan: Extract<McodeUpdatePlan, { kind: 'package-manager' }>,
-    options: McodeUpdateApplyOptions,
-  ): Promise<McodeUpdateOutcome> {
+    plan: Extract<RigUpdatePlan, { kind: 'package-manager' }>,
+    options: RigUpdateApplyOptions,
+  ): Promise<RigUpdateOutcome> {
     if (plan.source !== 'npm-prefix') {
-      throw new Error(mcodePrefixNonPrefixPlanMessage(this.environment));
+      throw new Error(rigPrefixNonPrefixPlanMessage(this.environment));
     }
     const prefixInstall = this.prefixInstall;
     if (!prefixInstall) {
-      throw new Error(mcodePrefixOwnershipMissingMessage(this.environment));
+      throw new Error(rigPrefixOwnershipMissingMessage(this.environment));
     }
-    const pendingUpdate = inspectPendingMcodePrefixUpdate(this.entryFile);
+    const pendingUpdate = inspectPendingRigPrefixUpdate(this.entryFile);
     if (pendingUpdate) {
       const blockingSessionCount = this.dependencies.countPrefixUpdateBlockers(
         pendingUpdate.activation.activePrefix,
@@ -386,11 +386,11 @@ export class McodeUpdateApplication {
         restartRequired: true,
         message:
           pendingUpdate.state === 'activated'
-            ? mcodePrefixPendingCleanupMessage(pendingUpdate.activation.expectedVersion, {
+            ? rigPrefixPendingCleanupMessage(pendingUpdate.activation.expectedVersion, {
                 blockingSessionCount,
                 environment: this.environment,
               })
-            : mcodePrefixPendingActivationMessage(pendingUpdate.activation.expectedVersion, {
+            : rigPrefixPendingActivationMessage(pendingUpdate.activation.expectedVersion, {
                 blockingSessionCount,
                 environment: this.environment,
               }),
@@ -403,25 +403,25 @@ export class McodeUpdateApplication {
         prefixInstall.prefix,
         plan.latestVersion,
       );
-      const stagedCommand = buildMcodePackageManagerCommand(
+      const stagedCommand = buildRigPackageManagerCommand(
         'npm-prefix',
         plan.latestVersion,
         this.platform,
         this.distribution,
         { ...prefixInstall, prefix: stagingPrefix },
       );
-      reportMcodeUpdatePhase(options, 'staging', true);
+      reportRigUpdatePhase(options, 'staging', true);
       this.dependencies.prepareVersionedPrefixStaging(stagingPrefix);
-      reportMcodeUpdatePhase(options, 'installing', false);
+      reportRigUpdatePhase(options, 'installing', false);
       await this.dependencies.runPackageManager(stagedCommand, options);
-      reportMcodeUpdatePhase(options, 'validating', false);
+      reportRigUpdatePhase(options, 'validating', false);
       const stagedPackage = this.dependencies.readPrefixPackageMetadata(
         stagingPrefix,
         prefixInstall.packageName,
       );
       if (stagedPackage.version !== plan.latestVersion) {
         throw new Error(
-          mcodePrefixStagedVersionMismatchMessage(
+          rigPrefixStagedVersionMismatchMessage(
             stagedPackage.version,
             plan.latestVersion,
             this.environment,
@@ -433,7 +433,7 @@ export class McodeUpdateApplication {
         stagedPackage,
         plan.latestVersion,
       );
-      reportMcodeUpdatePhase(options, 'activating', false);
+      reportRigUpdatePhase(options, 'activating', false);
       this.dependencies.activateVersionedPrefix({
         stagingPrefix,
         activePrefix: prefixInstall.prefix,
@@ -443,16 +443,16 @@ export class McodeUpdateApplication {
         npmExecutable: prefixInstall.executable,
         registry: prefixInstall.registry,
       });
-      reportMcodeUpdatePhase(options, 'completed', false);
+      reportRigUpdatePhase(options, 'completed', false);
       return {
         applied: true,
         restartRequired: false,
-        message: mcodePrefixVersionedInstalledMessage(plan.latestVersion, this.environment),
+        message: rigPrefixVersionedInstalledMessage(plan.latestVersion, this.environment),
       };
     } catch (error) {
       if (stagingPrefix) this.dependencies.removePrefixStaging(stagingPrefix);
       throw new Error(
-        mcodePrefixNotStagedMessage(plan.latestVersion, errorMessage(error), this.environment),
+        rigPrefixNotStagedMessage(plan.latestVersion, errorMessage(error), this.environment),
         { cause: error },
       );
     } finally {
@@ -465,7 +465,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function packageManagerName(source: McodePackageManagerInstallSource): string {
+function packageManagerName(source: RigPackageManagerInstallSource): string {
   if (source === 'npm-prefix') return 'npm';
   return source.replace('-global', '');
 }

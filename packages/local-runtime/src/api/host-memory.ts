@@ -1,7 +1,7 @@
 import {
   SystemReminderService,
   createDefaultRegistry,
-  withMcodeToolsMasterReminder,
+  withRigToolsMasterReminder,
   type Logger as SystemReminderLogger,
   type SystemReminderDiagnostic,
 } from '@rig/system-reminder';
@@ -102,7 +102,7 @@ export class LocalSystemReminderService {
       options?.withDiagnostic ? { withDiagnostic: true } : undefined,
     );
     const text =
-      withMcodeToolsMasterReminder({
+      withRigToolsMasterReminder({
         reminderText: result.text,
         modelID: msg.model?.modelID,
         enabled: beta?.rigTools === true,

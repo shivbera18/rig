@@ -25,7 +25,7 @@ export function resolveTuiBrowserProviderOptions(
   env: NodeJS.ProcessEnv = process.env,
 ): HeadlessChromeBrowserProviderOptions | undefined {
   if (config.beta?.browserUseTooling !== true) return undefined;
-  const chromePath = env.MCODE_CHROME_PATH?.trim() || config.browser?.chromePath?.trim();
+  const chromePath = env.RIG_CHROME_PATH?.trim() || config.browser?.chromePath?.trim();
   return {
     dataDir,
     ...(chromePath ? { chromePath } : {}),

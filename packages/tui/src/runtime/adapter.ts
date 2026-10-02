@@ -481,22 +481,22 @@ export class TuiRuntimeAdapter implements TuiRuntime {
     return this.productAccess.upsertRigApiKey(input);
   }
   createUserModelProvider(
-    input: import("../provider/contract.js").McodeCreateProviderInput,
+    input: import("../provider/contract.js").RigCreateProviderInput,
   ) {
     return this.productAccess.createUserModelProvider(input);
   }
   discoverUserModelsCandidate(
-    input: import("../provider/contract.js").McodeDiscoverProviderModelsInput,
+    input: import("../provider/contract.js").RigDiscoverProviderModelsInput,
   ) {
     return this.productAccess.discoverUserModelsCandidate(input);
   }
   saveUserModelProviderCandidate(
-    input: import("../provider/contract.js").McodeSaveProviderCandidateInput,
+    input: import("../provider/contract.js").RigSaveProviderCandidateInput,
   ) {
     return this.productAccess.saveUserModelProviderCandidate(input);
   }
   updateUserModelProvider(
-    input: import("../provider/contract.js").McodeUpdateProviderInput,
+    input: import("../provider/contract.js").RigUpdateProviderInput,
   ) {
     return this.productAccess.updateUserModelProvider(input);
   }

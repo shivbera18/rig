@@ -1,12 +1,12 @@
-import type { McodeUpdatePlan } from './application.js';
+import type { RigUpdatePlan } from './application.js';
 
-export interface McodeStartupUpdateNotice {
+export interface RigStartupUpdateNotice {
   readonly latestVersion: string;
 }
 
-export function resolveMcodeStartupUpdateNotice(
-  plan: McodeUpdatePlan,
-): McodeStartupUpdateNotice | undefined {
+export function resolveRigStartupUpdateNotice(
+  plan: RigUpdatePlan,
+): RigStartupUpdateNotice | undefined {
   if (plan.kind !== 'available' && plan.kind !== 'package-manager') return undefined;
   const latestVersion = plan.latestVersion.trim();
   return latestVersion ? { latestVersion } : undefined;

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { McodeProviderModel, McodeProviderView } from '../../src/provider/contract.js';
+import type { RigProviderModel, RigProviderView } from '../../src/provider/contract.js';
 import { RigProviderApplication } from '../../src/provider/application.js';
 
 function createPort() {
   return {
-    discoverUserModelsCandidate: vi.fn(async (): Promise<readonly McodeProviderModel[]> => []),
+    discoverUserModelsCandidate: vi.fn(async (): Promise<readonly RigProviderModel[]> => []),
     listProviderPresets: vi.fn(async () => []),
     getCodexOAuthStatus: vi.fn(async () => ({
       state: 'disconnected' as const,
@@ -282,7 +282,7 @@ describe('RigProviderApplication', () => {
 
 
 describe('saved provider model refresh', () => {
-  const provider: McodeProviderView = {
+  const provider: RigProviderView = {
     providerId: 'custom_provider:work', name: 'Work', kind: 'custom',
     enabled: true, readOnly: false, active: true, hasApiKey: true,
     configRevision: 'rev-1', baseUrl: 'https://models.example/v1',

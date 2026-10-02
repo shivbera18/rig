@@ -5,7 +5,7 @@ import { visibleWidth } from '../../rendering/text.js';
 import { SelectList } from '../../widgets/select-list.js';
 import { sanitizeTerminalText } from '../../rendering/terminal-text.js';
 import type { TuiModel } from '../../../runtime/port.js';
-import type { McodeCodexOAuthState } from '../../../provider/contract.js';
+import type { RigCodexOAuthState } from '../../../provider/contract.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 import {
   tuiChalk as chalk,
@@ -74,7 +74,7 @@ export class TuiModelPicker implements Component, Focusable {
       onUnavailable?: (model: TuiModel) => void;
       unavailableHint?: string;
       codexOAuth?: {
-        readonly state: Exclude<McodeCodexOAuthState, 'hidden'>;
+        readonly state: Exclude<RigCodexOAuthState, 'hidden'>;
         readonly onConnect: () => void;
       };
       onAddProvider?: () => void;
@@ -604,7 +604,7 @@ export class TuiModelPicker implements Component, Focusable {
   }
 }
 
-function codexOAuthAction(state: Exclude<McodeCodexOAuthState, 'hidden'>): {
+function codexOAuthAction(state: Exclude<RigCodexOAuthState, 'hidden'>): {
   readonly label: string;
   readonly description: string;
 } {

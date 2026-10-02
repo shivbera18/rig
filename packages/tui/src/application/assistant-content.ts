@@ -33,7 +33,7 @@ export function projectAssistantContentForTerminal(rawContent: string): Terminal
   const segments = splitMarkdownProtectedSegments(content);
   const protectedContent: string[] = [];
   const assets: DeliverAssetItem[] = [];
-  let markerPrefix = '\uE000mcode-protected';
+  let markerPrefix = '\uE000rig-protected';
   while (content.includes(markerPrefix)) markerPrefix += '-';
   let changed = false;
   const simplified = segments

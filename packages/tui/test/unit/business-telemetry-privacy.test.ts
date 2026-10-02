@@ -1,29 +1,29 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  createMcodeBusinessTelemetry,
-  createMcodeBusinessTelemetryPreview,
-  resolveMcodeBusinessTelemetryPolicy,
+  createRigBusinessTelemetry,
+  createRigBusinessTelemetryPreview,
+  resolveRigBusinessTelemetryPolicy,
   type SensorsPayload,
 } from '../../src/analytics/business-telemetry.js';
 import { createTuiProgram } from '../../src/cli/program.js';
-import { runMcodeTelemetryCommand } from '../../src/cli/telemetry-command.js';
+import { runRigTelemetryCommand } from '../../src/cli/telemetry-command.js';
 import { createConfiguredTuiBusinessTelemetry } from '../../src/tui/launcher.js';
 
 describe('business telemetry privacy', () => {
   it('is disabled until configured and honors both environment opt-outs', () => {
-    expect(resolveMcodeBusinessTelemetryPolicy({ environment: {} })).toEqual({
+    expect(resolveRigBusinessTelemetryPolicy({ environment: {} })).toEqual({
       enabled: false,
       configured: false,
     });
     expect(
-      resolveMcodeBusinessTelemetryPolicy({
+      resolveRigBusinessTelemetryPolicy({
         configEnabled: true,
         environment: {},
       }),
     ).toEqual({ enabled: true, configured: true });
     expect(
-      resolveMcodeBusinessTelemetryPolicy({
+      resolveRigBusinessTelemetryPolicy({
         configEnabled: true,
         environment: { RIG_DISABLE_TELEMETRY: '1' },
       }),
@@ -33,7 +33,7 @@ describe('business telemetry privacy', () => {
       blockedBy: 'RIG_DISABLE_TELEMETRY',
     });
     expect(
-      resolveMcodeBusinessTelemetryPolicy({
+      resolveRigBusinessTelemetryPolicy({
         configEnabled: true,
         environment: { DO_NOT_TRACK: 'true' },
       }),
@@ -43,7 +43,7 @@ describe('business telemetry privacy', () => {
   it('sends only the documented low-sensitivity fields and uses a new ID per event', async () => {
     const requests: RequestInit[] = [];
     const ids = ['event-1', 'event-2'];
-    const telemetry = createMcodeBusinessTelemetry({
+    const telemetry = createRigBusinessTelemetry({
       region: 'en',
       buildEnv: 'prod',
       version: '0.4.12',
@@ -104,7 +104,7 @@ describe('business telemetry privacy', () => {
 
   it('previews the decoded request without sending it', () => {
     const fetchRequest = vi.fn();
-    const preview = createMcodeBusinessTelemetryPreview(
+    const preview = createRigBusinessTelemetryPreview(
       'tui_launch',
       { launch_type: 'cold' },
       {
@@ -150,7 +150,7 @@ describe('business telemetry privacy', () => {
     expect(
       createConfiguredTuiBusinessTelemetry({
         configEnabled: true,
-        environment: { MCODE_DISABLE_TELEMETRY: '1' },
+        environment: { RIG_DISABLE_TELEMETRY: '1' },
         telemetryOptions,
         createTelemetry,
       }),
@@ -177,7 +177,7 @@ describe('business telemetry privacy', () => {
   });
 
   it('distinguishes disabled usage previews from enabled metrics and diagnostics', () => {
-    const output = JSON.parse(runMcodeTelemetryCommand('preview', '0.4.12', {
+    const output = JSON.parse(runRigTelemetryCommand('preview', '0.4.12', {
       environment: {},
       readConfig: () => ({ telemetry: { enabled: false, metrics: true, diagnostics: true } }),
       readConfigPath: () => '/tmp/config.yaml',
@@ -194,13 +194,13 @@ describe('business telemetry privacy', () => {
   });
 
   it('reports disabled status and exposes status and preview CLI subcommands', async () => {
-    const output = runMcodeTelemetryCommand('preview', '0.4.12', {
+    const output = runRigTelemetryCommand('preview', '0.4.12', {
       environment: {},
       readConfig: () => ({ telemetry: { enabled: false } }),
       readConfigPath: () => '/tmp/config.yaml',
     });
     expect(JSON.parse(output)).toMatchObject({ enabled: false, request: null });
-    const enabledOutput = runMcodeTelemetryCommand('preview', '0.4.12', {
+    const enabledOutput = runRigTelemetryCommand('preview', '0.4.12', {
       environment: {},
       readConfig: () => ({ telemetry: { enabled: true } }),
       readConfigPath: () => '/tmp/config.yaml',

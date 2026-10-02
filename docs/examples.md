@@ -34,15 +34,15 @@ Before adding a custom provider, set a key in your current shell rather than put
 
 ```bash
 # POSIX shell: read the key interactively without echoing it.
-read -s MCODE_PROVIDER_API_KEY
-export MCODE_PROVIDER_API_KEY
+read -s RIG_PROVIDER_API_KEY
+export RIG_PROVIDER_API_KEY
 ```
 
 In PowerShell, use a process environment variable and treat the input as sensitive:
 
 ```powershell
 $secureKey = Read-Host 'API Key' -AsSecureString
-$env:MCODE_PROVIDER_API_KEY = [System.Net.NetworkCredential]::new('', $secureKey).Password
+$env:RIG_PROVIDER_API_KEY = [System.Net.NetworkCredential]::new('', $secureKey).Password
 ```
 
 Add, inspect, and test the provider:
@@ -50,7 +50,7 @@ Add, inspect, and test the provider:
 ```bash
 pnpm rig provider add --name my-provider --base-url https://example.com/v1 \
   --api-format openai-completions --model my-model \
-  --api-key-env MCODE_PROVIDER_API_KEY --use
+  --api-key-env RIG_PROVIDER_API_KEY --use
 pnpm rig provider list
 pnpm rig provider test <provider-id> --model <model-id>
 pnpm rig exec "Explain this project's test entry points" --model <provider-id>/<model-id>
@@ -63,7 +63,7 @@ For a local server, configure its actual token limits explicitly:
 ```bash
 pnpm rig provider add --name local-models --base-url http://localhost:8080/v1 \
   --api-format openai-completions --model local-model --model another-model \
-  --api-key-env MCODE_PROVIDER_API_KEY \
+  --api-key-env RIG_PROVIDER_API_KEY \
   --context-limit 32768 --output-limit 4096 --use
 pnpm rig provider list --json
 ```
@@ -122,7 +122,7 @@ provider. Use this only if the selected provider endpoint and model accept image
 ```bash
 pnpm rig provider add --name my-vision-provider --base-url https://example.com/v1 \
   --api-format openai-completions --model my-vision-model \
-  --api-key-env MCODE_PROVIDER_API_KEY --support-image --use
+  --api-key-env RIG_PROVIDER_API_KEY --support-image --use
 ```
 
 `--support-image` applies to every repeated `--model` and saves

@@ -13,8 +13,8 @@ const LEGACY_MANIFEST_LITERAL = './liveboard/liveboard.json';
 const LEGACY_MANIFEST_PATH = 'liveboard/liveboard.json';
 const MINIAPP_MANIFEST_LITERAL = './miniapp/miniapp.json';
 const MINIAPP_MANIFEST_PATH = 'miniapp/miniapp.json';
-const MCODE_V1_FIELDS = new Set(['schemaVersion', 'liveboard']);
-const MCODE_V2_FIELDS = new Set(['schemaVersion', 'miniApp']);
+const RIG_V1_FIELDS = new Set(['schemaVersion', 'liveboard']);
+const RIG_V2_FIELDS = new Set(['schemaVersion', 'miniApp']);
 
 export async function readOptionalMiniAppContribution(
   packageRoot: string,
@@ -23,7 +23,7 @@ export async function readOptionalMiniAppContribution(
   const root = await canonicalizePluginRoot(packageRoot, { rejectSymlink: true });
   const packageJson = await readOptionalPackageJson(root);
   if (!packageJson || packageJson.rig === undefined) return undefined;
-  const manifestRelativePath = readMiniAppMcode(packageJson.rig);
+  const manifestRelativePath = readMiniAppRig(packageJson.rig);
   const { path: manifestPath, value } = await readMiniAppJson(root, manifestRelativePath);
   const payloadDirectory = manifestRelativePath === LEGACY_MANIFEST_PATH ? 'liveboard' : 'miniapp';
   return {
@@ -55,32 +55,32 @@ async function readOptionalPackageJson(
 }
 
 /** Reads the strict package authoring declaration shared by package scan and workspace update. */
-export function readMiniAppMcode(value: unknown): string {
-  if (!isRecord(value)) invalidMcode();
+export function readMiniAppRig(value: unknown): string {
+  if (!isRecord(value)) invalidRig();
   if (value.schemaVersion === 1) {
-    if (hasUnknownField(value, MCODE_V1_FIELDS)) invalidMcode();
+    if (hasUnknownField(value, RIG_V1_FIELDS)) invalidRig();
     if (value.liveboard !== LEGACY_MANIFEST_LITERAL) {
       miniAppFail(
-        'MCODE_SCHEMA_INVALID',
+        'RIG_SCHEMA_INVALID',
         `package.json#rig.liveboard must equal ${LEGACY_MANIFEST_LITERAL}`,
       );
     }
     return LEGACY_MANIFEST_PATH;
   }
   if (value.schemaVersion === 2) {
-    if (hasUnknownField(value, MCODE_V2_FIELDS)) invalidMcode();
+    if (hasUnknownField(value, RIG_V2_FIELDS)) invalidRig();
     if (value.miniApp === MINIAPP_MANIFEST_LITERAL) return MINIAPP_MANIFEST_PATH;
     if (value.miniApp === LEGACY_MANIFEST_LITERAL) return LEGACY_MANIFEST_PATH;
     miniAppFail(
-      'MCODE_SCHEMA_INVALID',
+      'RIG_SCHEMA_INVALID',
       `package.json#rig.miniApp must equal ${MINIAPP_MANIFEST_LITERAL} or ${LEGACY_MANIFEST_LITERAL}`,
     );
   }
-  invalidMcode();
+  invalidRig();
 }
 
-function invalidMcode(): never {
-  miniAppFail('MCODE_SCHEMA_INVALID', 'package.json#rig must use strict schemaVersion 1 or 2');
+function invalidRig(): never {
+  miniAppFail('RIG_SCHEMA_INVALID', 'package.json#rig must use strict schemaVersion 1 or 2');
 }
 
 function hasUnknownField(value: Record<string, unknown>, fields: ReadonlySet<string>): boolean {

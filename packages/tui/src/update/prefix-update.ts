@@ -11,7 +11,7 @@ import {
 } from 'node:fs';
 import path from 'node:path';
 import spawn from 'cross-spawn';
-import { resolveMcodeNpmPrefixInstall, type McodeNpmPackageName } from './install-source.js';
+import { resolveRigNpmPrefixInstall, type RigNpmPackageName } from './install-source.js';
 
 const PENDING_UPDATE_FILE = '.rig-update-pending.json';
 const ACTIVE_PROCESS_DIRECTORY = '.rig-active';
@@ -21,35 +21,35 @@ const PENDING_UPDATE_SCHEMA_VERSION = 1;
 const ACTIVATOR_LEASE_SCHEMA_VERSION = 1;
 const ACTIVATION_STATUS_SCHEMA_VERSION = 1;
 const RESTART_PARENT_WAIT_TIMEOUT_MS = 30_000;
-export const MCODE_UPDATE_PARENT_PID_ENV = 'MCODE_UPDATE_PARENT_PID';
+export const RIG_UPDATE_PARENT_PID_ENV = 'RIG_UPDATE_PARENT_PID';
 
-type McodePlatformPath = typeof path.posix | typeof path.win32;
+type RigPlatformPath = typeof path.posix | typeof path.win32;
 
-export interface McodePrefixPackageMetadata {
+export interface RigPrefixPackageMetadata {
   readonly packageRoot: string;
   readonly version: string;
   readonly binEntry: string;
-  readonly mcodeToolsBinEntry: string;
+  readonly rigToolsBinEntry: string;
 }
 
-export interface McodePrefixLauncherPair {
+export interface RigPrefixLauncherPair {
   readonly activePath: string;
   readonly stagedPath: string;
   readonly backupPath: string;
 }
 
-export interface McodePrefixUpdateActivation {
+export interface RigPrefixUpdateActivation {
   readonly stagingPrefix: string;
   readonly activePrefix: string;
   readonly activeModulesRoot: string;
   readonly stagedModulesRoot: string;
   readonly backupModulesRoot: string;
-  readonly packageName: McodeNpmPackageName;
+  readonly packageName: RigNpmPackageName;
   readonly expectedVersion: string;
-  readonly launchers: readonly McodePrefixLauncherPair[];
+  readonly launchers: readonly RigPrefixLauncherPair[];
 }
 
-export function createMcodePrefixUpdateStagingPrefix(
+export function createRigPrefixUpdateStagingPrefix(
   activePrefix: string,
   version: string,
   platform: NodeJS.Platform = process.platform,
@@ -61,7 +61,7 @@ export function createMcodePrefixUpdateStagingPrefix(
   );
 }
 
-export function resolveMcodePrefixModulesRoot(
+export function resolveRigPrefixModulesRoot(
   prefix: string,
   platform: NodeJS.Platform = process.platform,
 ): string {
@@ -71,23 +71,23 @@ export function resolveMcodePrefixModulesRoot(
     : platformPath.join(prefix, 'lib', 'node_modules');
 }
 
-export function resolveMcodePrefixPackageRoot(
+export function resolveRigPrefixPackageRoot(
   prefix: string,
-  packageName: McodeNpmPackageName,
+  packageName: RigNpmPackageName,
   platform: NodeJS.Platform = process.platform,
 ): string {
   const platformPath = platformPathFor(platform);
   return platformPath.join(
-    resolveMcodePrefixModulesRoot(prefix, platform),
+    resolveRigPrefixModulesRoot(prefix, platform),
     ...packageName.split('/'),
   );
 }
 
-export function resolveMcodePrefixLauncherPairs(
+export function resolveRigPrefixLauncherPairs(
   activePrefix: string,
   stagingPrefix: string,
   platform: NodeJS.Platform = process.platform,
-): readonly McodePrefixLauncherPair[] {
+): readonly RigPrefixLauncherPair[] {
   const platformPath = platformPathFor(platform);
   const names = platform === 'win32' ? ['rig.cmd', 'rig.ps1'] : ['rig'];
   const directory = platform === 'win32' ? '' : 'bin';
@@ -101,72 +101,72 @@ export function resolveMcodePrefixLauncherPairs(
   });
 }
 
-export function prepareMcodePrefixUpdateStaging(
+export function prepareRigPrefixUpdateStaging(
   activePrefix: string,
   stagingPrefix: string,
   platform: NodeJS.Platform = process.platform,
 ): void {
-  const activeModulesRoot = resolveMcodePrefixModulesRoot(activePrefix, platform);
-  const stagedModulesRoot = resolveMcodePrefixModulesRoot(stagingPrefix, platform);
+  const activeModulesRoot = resolveRigPrefixModulesRoot(activePrefix, platform);
+  const stagedModulesRoot = resolveRigPrefixModulesRoot(stagingPrefix, platform);
   if (!existsSync(activeModulesRoot)) {
     throw new Error(`Active Rig modules directory is missing: ${activeModulesRoot}`);
   }
   cpSync(activeModulesRoot, stagedModulesRoot, { recursive: true, dereference: false });
-  for (const launcher of resolveMcodePrefixLauncherPairs(activePrefix, stagingPrefix, platform)) {
+  for (const launcher of resolveRigPrefixLauncherPairs(activePrefix, stagingPrefix, platform)) {
     if (!existsSync(launcher.activePath)) continue;
     mkdirSync(path.dirname(launcher.stagedPath), { recursive: true });
     cpSync(launcher.activePath, launcher.stagedPath, { dereference: false, force: true });
   }
 }
 
-export function readMcodePrefixPackageMetadata(
+export function readRigPrefixPackageMetadata(
   prefix: string,
-  packageName: McodeNpmPackageName,
+  packageName: RigNpmPackageName,
   platform: NodeJS.Platform = process.platform,
-): McodePrefixPackageMetadata {
-  const packageRoot = resolveMcodePrefixPackageRoot(prefix, packageName, platform);
+): RigPrefixPackageMetadata {
+  const packageRoot = resolveRigPrefixPackageRoot(prefix, packageName, platform);
   const manifestFile = path.join(packageRoot, 'package.json');
   const manifest = JSON.parse(readFileSync(manifestFile, 'utf8')) as {
     name?: unknown;
     version?: unknown;
     bin?: unknown;
   };
-  const binEntry = readMcodeBinEntry(manifest.bin, 'rig');
-  const mcodeToolsBinEntry = readMcodeBinEntry(manifest.bin, 'rig-tools');
+  const binEntry = readRigBinEntry(manifest.bin, 'rig');
+  const rigToolsBinEntry = readRigBinEntry(manifest.bin, 'rig-tools');
   if (
     manifest.name !== packageName ||
     typeof manifest.version !== 'string' ||
     !binEntry ||
-    !mcodeToolsBinEntry
+    !rigToolsBinEntry
   ) {
     throw new Error(`Rig package metadata is invalid at ${manifestFile}.`);
   }
-  return { packageRoot, version: manifest.version, binEntry, mcodeToolsBinEntry };
+  return { packageRoot, version: manifest.version, binEntry, rigToolsBinEntry };
 }
 
-export async function validateMcodePrefixPackage(
+export async function validateRigPrefixPackage(
   prefix: string,
-  metadata: McodePrefixPackageMetadata,
+  metadata: RigPrefixPackageMetadata,
   runtimeExecutable: string,
   expectedVersion: string,
 ): Promise<void> {
-  await validateMcodePrefixEntry(
+  await validateRigPrefixEntry(
     prefix,
     runtimeExecutable,
     [path.join(metadata.packageRoot, ...metadata.binEntry.split('/')), '--version'],
     'Rig',
     (output) => output === expectedVersion,
   );
-  await validateMcodePrefixEntry(
+  await validateRigPrefixEntry(
     prefix,
     runtimeExecutable,
-    [path.join(metadata.packageRoot, ...metadata.mcodeToolsBinEntry.split('/')), '--version'],
+    [path.join(metadata.packageRoot, ...metadata.rigToolsBinEntry.split('/')), '--version'],
     'rig-tools',
     (output) => output.length > 0,
   );
   // --version does not load the native runtime. Validate it with the exact Node
   // executable that the new release launcher will use, independently of npm's Node.
-  await validateMcodePrefixEntry(
+  await validateRigPrefixEntry(
     prefix,
     runtimeExecutable,
     [
@@ -190,7 +190,7 @@ export async function validateMcodePrefixPackage(
   );
 }
 
-function validateMcodePrefixEntry(
+function validateRigPrefixEntry(
   prefix: string,
   runtimeExecutable: string,
   args: readonly string[],
@@ -225,7 +225,7 @@ function validateMcodePrefixEntry(
   });
 }
 
-export function writeMcodePrefixUpdatePending(activation: McodePrefixUpdateActivation): string {
+export function writeRigPrefixUpdatePending(activation: RigPrefixUpdateActivation): string {
   const pendingFile = path.join(activation.activePrefix, PENDING_UPDATE_FILE);
   const temporaryFile = `${pendingFile}.tmp-${process.pid}-${randomUUID()}`;
   const contents = `${JSON.stringify(
@@ -243,7 +243,7 @@ export function writeMcodePrefixUpdatePending(activation: McodePrefixUpdateActiv
   return pendingFile;
 }
 
-export async function scheduleMcodePrefixUpdate(
+export async function scheduleRigPrefixUpdate(
   pendingFile: string,
   runtimeExecutable = process.execPath,
   parentPid = process.pid,
@@ -257,10 +257,10 @@ export async function scheduleMcodePrefixUpdate(
   }
   const pendingDigest = createHash('sha256').update(pendingContents).digest('hex');
   const leaseFile = path.join(pending.activePrefix, ACTIVATOR_LEASE_FILE);
-  if (!acquireMcodePrefixActivatorLease(leaseFile, pendingDigest)) return;
+  if (!acquireRigPrefixActivatorLease(leaseFile, pendingDigest)) return;
   const helperFile = path.join(pending.activePrefix, '.rig-update-activator.cjs');
   try {
-    writeMcodePrefixActivationStatus(pending.activePrefix, pendingDigest, 'scheduled');
+    writeRigPrefixActivationStatus(pending.activePrefix, pendingDigest, 'scheduled');
     writeFileSync(helperFile, prefixActivatorSource(), { mode: 0o700 });
     const child = spawn(
       runtimeExecutable,
@@ -280,16 +280,16 @@ export async function scheduleMcodePrefixUpdate(
     child.unref();
   } catch (error) {
     try {
-      writeMcodePrefixActivationStatus(pending.activePrefix, pendingDigest, 'failed', error);
+      writeRigPrefixActivationStatus(pending.activePrefix, pendingDigest, 'failed', error);
     } catch {
       // Preserve the scheduling failure when its diagnostic sidecar cannot be written.
     }
-    removeMcodePrefixActivatorLease(leaseFile, pendingDigest, process.pid);
+    removeRigPrefixActivatorLease(leaseFile, pendingDigest, process.pid);
     throw error;
   }
 }
 
-export async function schedulePendingMcodePrefixUpdate(
+export async function schedulePendingRigPrefixUpdate(
   entryFile = process.argv[1],
   runtimeExecutable = process.execPath,
   parentPid = process.pid,
@@ -300,7 +300,7 @@ export async function schedulePendingMcodePrefixUpdate(
   if (!prefix) return false;
   const pendingFile = path.join(prefix, PENDING_UPDATE_FILE);
   if (!existsSync(pendingFile)) return false;
-  await scheduleMcodePrefixUpdate(
+  await scheduleRigPrefixUpdate(
     pendingFile,
     runtimeExecutable,
     parentPid,
@@ -310,23 +310,23 @@ export async function schedulePendingMcodePrefixUpdate(
   return true;
 }
 
-export function removeMcodePrefixUpdatePending(pendingFile: string): void {
+export function removeRigPrefixUpdatePending(pendingFile: string): void {
   rmSync(pendingFile, { force: true });
 }
 
-export function removeMcodePrefixUpdateStaging(stagingPrefix: string): void {
+export function removeRigPrefixUpdateStaging(stagingPrefix: string): void {
   rmSync(stagingPrefix, { recursive: true, force: true, maxRetries: 4, retryDelay: 50 });
 }
 
-export interface McodePendingPrefixUpdateInspection {
+export interface RigPendingPrefixUpdateInspection {
   readonly pendingFile: string;
-  readonly activation: McodePrefixUpdateActivation;
+  readonly activation: RigPrefixUpdateActivation;
   readonly state: 'staged' | 'activated';
 }
 
-export function inspectPendingMcodePrefixUpdate(
+export function inspectPendingRigPrefixUpdate(
   entryFile = process.argv[1],
-): McodePendingPrefixUpdateInspection | undefined {
+): RigPendingPrefixUpdateInspection | undefined {
   const prefix = resolvePrefixFromEntryFile(entryFile);
   if (!prefix) return undefined;
   const pendingFile = path.join(prefix, PENDING_UPDATE_FILE);
@@ -335,7 +335,7 @@ export function inspectPendingMcodePrefixUpdate(
   if (path.resolve(pendingFile) !== path.resolve(pending.activePrefix, PENDING_UPDATE_FILE)) {
     throw new Error(`Rig pending update file is outside its active prefix: ${pendingFile}`);
   }
-  const state = classifyRecoverableMcodePrefixUpdateArtifacts(pending);
+  const state = classifyRecoverableRigPrefixUpdateArtifacts(pending);
   if (!state) {
     throw new Error(`Rig pending update artifacts are incomplete at ${pendingFile}.`);
   }
@@ -346,8 +346,8 @@ export function inspectPendingMcodePrefixUpdate(
   };
 }
 
-function classifyRecoverableMcodePrefixUpdateArtifacts(
-  pending: McodePrefixUpdateActivation,
+function classifyRecoverableRigPrefixUpdateArtifacts(
+  pending: RigPrefixUpdateActivation,
 ): 'staged' | 'activated' | undefined {
   if (pending.launchers.length === 0) return undefined;
   const activeMatches = pendingPackageMatches(
@@ -382,7 +382,7 @@ function classifyRecoverableMcodePrefixUpdateArtifacts(
 
 function pendingPackageMatches(
   modulesRoot: string,
-  packageName: McodeNpmPackageName,
+  packageName: RigNpmPackageName,
   expectedVersion: string,
 ): boolean {
   try {
@@ -395,18 +395,18 @@ function pendingPackageMatches(
   }
 }
 
-export interface McodePrefixProcessPreparation {
+export interface RigPrefixProcessPreparation {
   readonly remove: () => void;
 }
 
-export async function prepareMcodePrefixProcess(
+export async function prepareRigPrefixProcess(
   entryFile = process.argv[1],
   environment: NodeJS.ProcessEnv = process.env,
-): Promise<McodePrefixProcessPreparation> {
-  const parentPid = Number(environment[MCODE_UPDATE_PARENT_PID_ENV]);
+): Promise<RigPrefixProcessPreparation> {
+  const parentPid = Number(environment[RIG_UPDATE_PARENT_PID_ENV]);
   if (Number.isSafeInteger(parentPid) && parentPid > 0) await waitForProcessExit(parentPid);
   return {
-    remove: registerMcodePrefixProcess(entryFile) ?? (() => undefined),
+    remove: registerRigPrefixProcess(entryFile) ?? (() => undefined),
   };
 }
 
@@ -429,16 +429,16 @@ function isProcessAlive(pid: number): boolean {
   }
 }
 
-interface McodePrefixActivatorLease {
+interface RigPrefixActivatorLease {
   readonly schemaVersion: number;
   readonly journalDigest: string;
   readonly pid: number;
   readonly startedAtMs: number;
 }
 
-function acquireMcodePrefixActivatorLease(leaseFile: string, journalDigest: string): boolean {
+function acquireRigPrefixActivatorLease(leaseFile: string, journalDigest: string): boolean {
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    const lease: McodePrefixActivatorLease = {
+    const lease: RigPrefixActivatorLease = {
       schemaVersion: ACTIVATOR_LEASE_SCHEMA_VERSION,
       journalDigest,
       pid: process.pid,
@@ -451,7 +451,7 @@ function acquireMcodePrefixActivatorLease(leaseFile: string, journalDigest: stri
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
     }
 
-    const existing = readMcodePrefixActivatorLease(leaseFile);
+    const existing = readRigPrefixActivatorLease(leaseFile);
     if (existing && isProcessAlive(existing.pid)) {
       if (existing.journalDigest === journalDigest) return false;
       throw new Error('Another Rig prefix activator is running for a different journal.');
@@ -461,9 +461,9 @@ function acquireMcodePrefixActivatorLease(leaseFile: string, journalDigest: stri
   throw new Error(`Rig prefix activator lease could not be acquired at ${leaseFile}.`);
 }
 
-function readMcodePrefixActivatorLease(leaseFile: string): McodePrefixActivatorLease | undefined {
+function readRigPrefixActivatorLease(leaseFile: string): RigPrefixActivatorLease | undefined {
   try {
-    const value = JSON.parse(readFileSync(leaseFile, 'utf8')) as Partial<McodePrefixActivatorLease>;
+    const value = JSON.parse(readFileSync(leaseFile, 'utf8')) as Partial<RigPrefixActivatorLease>;
     if (
       value.schemaVersion !== ACTIVATOR_LEASE_SCHEMA_VERSION ||
       typeof value.journalDigest !== 'string' ||
@@ -473,23 +473,23 @@ function readMcodePrefixActivatorLease(leaseFile: string): McodePrefixActivatorL
     ) {
       return undefined;
     }
-    return value as McodePrefixActivatorLease;
+    return value as RigPrefixActivatorLease;
   } catch {
     return undefined;
   }
 }
 
-function removeMcodePrefixActivatorLease(
+function removeRigPrefixActivatorLease(
   leaseFile: string,
   journalDigest: string,
   pid: number,
 ): void {
-  const lease = readMcodePrefixActivatorLease(leaseFile);
+  const lease = readRigPrefixActivatorLease(leaseFile);
   if (lease?.journalDigest !== journalDigest || lease.pid !== pid) return;
   rmSync(leaseFile, { force: true });
 }
 
-function writeMcodePrefixActivationStatus(
+function writeRigPrefixActivationStatus(
   activePrefix: string,
   journalDigest: string,
   state: 'scheduled' | 'failed',
@@ -516,7 +516,7 @@ function writeMcodePrefixActivationStatus(
   }
 }
 
-export function registerMcodePrefixProcess(entryFile = process.argv[1]): (() => void) | undefined {
+export function registerRigPrefixProcess(entryFile = process.argv[1]): (() => void) | undefined {
   const prefix = resolvePrefixFromEntryFile(entryFile);
   if (!prefix) return undefined;
   const directory = path.join(prefix, ACTIVE_PROCESS_DIRECTORY);
@@ -537,7 +537,7 @@ export function registerMcodePrefixProcess(entryFile = process.argv[1]): (() => 
   return remove;
 }
 
-export function countMcodePrefixUpdateBlockers(
+export function countRigPrefixUpdateBlockers(
   activePrefix: string,
   currentPid = process.pid,
 ): number | undefined {
@@ -570,7 +570,7 @@ export function countMcodePrefixUpdateBlockers(
 function resolvePrefixFromEntryFile(entryFile: string | undefined): string | undefined {
   if (!entryFile) return undefined;
   try {
-    const detected = resolveMcodeNpmPrefixInstall(entryFile);
+    const detected = resolveRigNpmPrefixInstall(entryFile);
     if (detected) return detected.prefix;
   } catch {
     // Fall through to pending-journal recovery for legacy prefixes whose receipt is missing.
@@ -608,17 +608,17 @@ function resolvePrefixFromEntryFile(entryFile: string | undefined): string | und
   }
 }
 
-function readPendingUpdate(file: string): McodePrefixUpdateActivation & { schemaVersion: number } {
+function readPendingUpdate(file: string): RigPrefixUpdateActivation & { schemaVersion: number } {
   return readPendingUpdateFile(file).pending;
 }
 
 function readPendingUpdateFile(file: string): {
   readonly contents: string;
-  readonly pending: McodePrefixUpdateActivation & { schemaVersion: number };
+  readonly pending: RigPrefixUpdateActivation & { schemaVersion: number };
 } {
   const contents = readFileSync(file, 'utf8');
   const value = JSON.parse(contents) as Partial<
-    McodePrefixUpdateActivation & { schemaVersion: number }
+    RigPrefixUpdateActivation & { schemaVersion: number }
   >;
   if (
     value.schemaVersion !== PENDING_UPDATE_SCHEMA_VERSION ||
@@ -644,16 +644,16 @@ function readPendingUpdateFile(file: string): {
   ) {
     throw new Error(`Rig pending update metadata is invalid at ${file}.`);
   }
-  const pending = value as McodePrefixUpdateActivation & { schemaVersion: number };
-  const expectedActiveModulesRoot = resolveMcodePrefixModulesRoot(
+  const pending = value as RigPrefixUpdateActivation & { schemaVersion: number };
+  const expectedActiveModulesRoot = resolveRigPrefixModulesRoot(
     pending.activePrefix,
     process.platform,
   );
-  const expectedStagedModulesRoot = resolveMcodePrefixModulesRoot(
+  const expectedStagedModulesRoot = resolveRigPrefixModulesRoot(
     pending.stagingPrefix,
     process.platform,
   );
-  const expectedLaunchers = resolveMcodePrefixLauncherPairs(
+  const expectedLaunchers = resolveRigPrefixLauncherPairs(
     pending.activePrefix,
     pending.stagingPrefix,
     process.platform,
@@ -700,11 +700,11 @@ function sameResolvedPath(left: string, right: string): boolean {
   return path.resolve(left) === path.resolve(right);
 }
 
-function platformPathFor(platform: NodeJS.Platform): McodePlatformPath {
+function platformPathFor(platform: NodeJS.Platform): RigPlatformPath {
   return platform === 'win32' ? path.win32 : path.posix;
 }
 
-export function readMcodeBinEntry(value: unknown, name: 'rig' | 'rig-tools'): string | undefined {
+export function readRigBinEntry(value: unknown, name: 'rig' | 'rig-tools'): string | undefined {
   const entry =
     typeof value === 'string' && name === 'rig'
       ? value

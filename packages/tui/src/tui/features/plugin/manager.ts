@@ -1,4 +1,4 @@
-import type { McodePluginView } from '../../../plugin/contract.js';
+import type { RigPluginView } from '../../../plugin/contract.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 import { Input, matchesKey, VStack } from '../../engine/public.js';
 import type { Component, Focusable } from '../../rendering/component.js';
@@ -16,12 +16,12 @@ type PluginTab = 'all' | 'installed' | 'official' | 'local';
 const TABS: readonly PluginTab[] = ['all', 'installed', 'official', 'local'];
 
 export interface TuiPluginManagerOptions {
-  readonly plugins: readonly McodePluginView[];
+  readonly plugins: readonly RigPluginView[];
   readonly initialQuery?: string;
-  readonly onInstall: (plugin: McodePluginView) => Promise<McodePluginView>;
-  readonly onRemove: (plugin: McodePluginView) => Promise<McodePluginView>;
-  readonly onSetEnabled: (plugin: McodePluginView, enabled: boolean) => Promise<McodePluginView>;
-  readonly onRefresh: () => Promise<readonly McodePluginView[]>;
+  readonly onInstall: (plugin: RigPluginView) => Promise<RigPluginView>;
+  readonly onRemove: (plugin: RigPluginView) => Promise<RigPluginView>;
+  readonly onSetEnabled: (plugin: RigPluginView, enabled: boolean) => Promise<RigPluginView>;
+  readonly onRefresh: () => Promise<readonly RigPluginView[]>;
   readonly onCancel: () => void;
   readonly requestRender: () => void;
 }
@@ -30,7 +30,7 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
   readonly id = 'plugins';
   readonly layoutRoot: Component;
   focused = false;
-  private plugins: McodePluginView[];
+  private plugins: RigPluginView[];
   private tab: PluginTab = 'all';
   private readonly searchInput = new Input({ prompt: '' });
   private readonly bodyViewport: TuiSelectionScrollView;
@@ -181,7 +181,7 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
     ].map((line) => truncateToWidth(line, safeWidth, '…'));
   }
 
-  private visiblePlugins(): McodePluginView[] {
+  private visiblePlugins(): RigPluginView[] {
     const query = this.searchInput.getValue().trim().toLocaleLowerCase();
     return this.plugins.filter((plugin) => {
       const inTab =
@@ -195,7 +195,7 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
     });
   }
 
-  private selected(): McodePluginView | undefined {
+  private selected(): RigPluginView | undefined {
     return this.visiblePlugins()[this.selectedIndex];
   }
 
@@ -221,8 +221,8 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
   }
 
   private async mutate(
-    plugin: McodePluginView,
-    operation: () => Promise<McodePluginView>,
+    plugin: RigPluginView,
+    operation: () => Promise<RigPluginView>,
   ): Promise<void> {
     this.busy = true;
     this.status = `Updating ${plugin.displayName}…`;
@@ -299,7 +299,7 @@ function renderTabs(tab: PluginTab, installedCount: number): string {
     .join('  ');
 }
 
-function renderPluginRow(plugin: McodePluginView, selected: boolean, width: number): string {
+function renderPluginRow(plugin: RigPluginView, selected: boolean, width: number): string {
   const marker = plugin.enabled ? '[*]' : plugin.installed ? '[-]' : '[ ]';
   const state = plugin.installed ? (plugin.enabled ? 'Enabled' : 'Disabled') : 'Available';
   const left = `${selected ? '›' : ' '} ${marker} ${sanitizeTerminalText(plugin.displayName)}`;
@@ -308,7 +308,7 @@ function renderPluginRow(plugin: McodePluginView, selected: boolean, width: numb
   return `${selected ? chalk.bold.hex(colors.signal)(left) : chalk.hex(colors.text)(left)}${' '.repeat(gap)}${chalk.hex(colors.muted)(detail)}`;
 }
 
-function capabilitySummary(plugin: McodePluginView): string {
+function capabilitySummary(plugin: RigPluginView): string {
   const { appCount, mcpServerCount, skillCount } = plugin.capabilities;
   return `${appCount} apps · ${mcpServerCount} MCP · ${skillCount} skills`;
 }

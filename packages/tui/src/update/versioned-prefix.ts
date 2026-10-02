@@ -10,10 +10,10 @@ import {
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
-import type { McodeNpmPackageName } from './install-source.js';
+import type { RigNpmPackageName } from './install-source.js';
 import {
-  readMcodePrefixPackageMetadata,
-  type McodePrefixPackageMetadata,
+  readRigPrefixPackageMetadata,
+  type RigPrefixPackageMetadata,
 } from './prefix-update.js';
 
 const RELEASES_DIRECTORY = 'releases';
@@ -21,19 +21,19 @@ const CURRENT_FILE = 'current';
 const UPDATE_LOCK_DIRECTORY = '.rig-update.lock';
 const LAYOUT_VERSION = 2;
 
-type McodePlatformPath = typeof path.posix | typeof path.win32;
+type RigPlatformPath = typeof path.posix | typeof path.win32;
 
-export interface McodeVersionedPrefixActivation {
+export interface RigVersionedPrefixActivation {
   readonly stagingPrefix: string;
   readonly activePrefix: string;
-  readonly packageName: McodeNpmPackageName;
+  readonly packageName: RigNpmPackageName;
   readonly expectedVersion: string;
   readonly runtimeExecutable: string;
   readonly npmExecutable: string;
   readonly registry: string;
 }
 
-export function createMcodeVersionedPrefixStagingPrefix(
+export function createRigVersionedPrefixStagingPrefix(
   activePrefix: string,
   version: string,
   platform: NodeJS.Platform = process.platform,
@@ -46,11 +46,11 @@ export function createMcodeVersionedPrefixStagingPrefix(
   );
 }
 
-export function prepareMcodeVersionedPrefixStaging(stagingPrefix: string): void {
+export function prepareRigVersionedPrefixStaging(stagingPrefix: string): void {
   mkdirSync(stagingPrefix, { recursive: true, mode: 0o700 });
 }
 
-export function acquireMcodeVersionedPrefixUpdateLock(activePrefix: string): () => void {
+export function acquireRigVersionedPrefixUpdateLock(activePrefix: string): () => void {
   const lockDirectory = path.join(activePrefix, UPDATE_LOCK_DIRECTORY);
   mkdirSync(lockDirectory, { recursive: true, mode: 0o700 });
   const claimName = `${String(process.pid)}-${randomUUID()}.claim`;
@@ -83,8 +83,8 @@ export function acquireMcodeVersionedPrefixUpdateLock(activePrefix: string): () 
   };
 }
 
-export function activateMcodeVersionedPrefixInstall(
-  activation: McodeVersionedPrefixActivation,
+export function activateRigVersionedPrefixInstall(
+  activation: RigVersionedPrefixActivation,
   platform: NodeJS.Platform = process.platform,
 ): string {
   const platformPath = platformPathFor(platform);
@@ -128,10 +128,10 @@ export function activateMcodeVersionedPrefixInstall(
 
 function readExpectedMetadata(
   prefix: string,
-  activation: McodeVersionedPrefixActivation,
+  activation: RigVersionedPrefixActivation,
   platform: NodeJS.Platform,
-): McodePrefixPackageMetadata {
-  const metadata = readMcodePrefixPackageMetadata(prefix, activation.packageName, platform);
+): RigPrefixPackageMetadata {
+  const metadata = readRigPrefixPackageMetadata(prefix, activation.packageName, platform);
   if (metadata.version !== activation.expectedVersion) {
     throw new Error(
       `Rig release contains ${metadata.version}; expected ${activation.expectedVersion}.`,
@@ -142,7 +142,7 @@ function readExpectedMetadata(
 
 function assertVersionedRelease(
   releasePrefix: string,
-  activation: McodeVersionedPrefixActivation,
+  activation: RigVersionedPrefixActivation,
   platform: NodeJS.Platform,
 ): void {
   const metadata = readExpectedMetadata(releasePrefix, activation, platform);
@@ -161,7 +161,7 @@ function assertVersionedRelease(
 
 function writeVersionedReleaseLaunchers(
   releasePrefix: string,
-  metadata: McodePrefixPackageMetadata,
+  metadata: RigPrefixPackageMetadata,
   runtimeExecutable: string,
   platform: NodeJS.Platform,
 ): void {
@@ -177,7 +177,7 @@ function writeVersionedReleaseLaunchers(
 
 function versionedReleaseLauncherContents(
   releasePrefix: string,
-  metadata: McodePrefixPackageMetadata,
+  metadata: RigPrefixPackageMetadata,
   runtimeExecutable: string,
   platform: NodeJS.Platform,
 ): ReadonlyMap<string, string> {
@@ -248,7 +248,7 @@ function versionedRootLauncherContents(
     for (const command of versionedCommands()) {
       launchers.set(
         platformPath.join(activePrefix, `${command.name}.cmd`),
-        `@ECHO off\r\nSETLOCAL\r\nSET /P MCODE_RELEASE=<"%~dp0current"\r\nECHO(%MCODE_RELEASE%| %SystemRoot%\\System32\\findstr.exe /R /X "[0-9A-Za-z][0-9A-Za-z._-]*" >NUL || EXIT /B 1\r\nCALL "%~dp0releases\\%MCODE_RELEASE%\\${command.releaseLauncher}.cmd" %*\r\nEXIT /B %ERRORLEVEL%\r\n`,
+        `@ECHO off\r\nSETLOCAL\r\nSET /P RIG_RELEASE=<"%~dp0current"\r\nECHO(%RIG_RELEASE%| %SystemRoot%\\System32\\findstr.exe /R /X "[0-9A-Za-z][0-9A-Za-z._-]*" >NUL || EXIT /B 1\r\nCALL "%~dp0releases\\%RIG_RELEASE%\\${command.releaseLauncher}.cmd" %*\r\nEXIT /B %ERRORLEVEL%\r\n`,
       );
       launchers.set(
         platformPath.join(activePrefix, `${command.name}.ps1`),
@@ -266,15 +266,15 @@ function versionedRootLauncherContents(
   return launchers;
 }
 
-interface McodeVersionedCommand {
+interface RigVersionedCommand {
   readonly name: 'rig' | 'rig-tools';
   readonly releaseLauncher: '.rig-launcher' | '.rig-tools-launcher';
   readonly binEntry?: string;
 }
 
 function versionedCommands(
-  metadata?: McodePrefixPackageMetadata,
-): readonly McodeVersionedCommand[] {
+  metadata?: RigPrefixPackageMetadata,
+): readonly RigVersionedCommand[] {
   return [
     {
       name: 'rig',
@@ -284,13 +284,13 @@ function versionedCommands(
     {
       name: 'rig-tools',
       releaseLauncher: '.rig-tools-launcher',
-      ...(metadata ? { binEntry: metadata.mcodeToolsBinEntry } : {}),
+      ...(metadata ? { binEntry: metadata.rigToolsBinEntry } : {}),
     },
   ];
 }
 
 function writeVersionedInstallReceipt(
-  activation: McodeVersionedPrefixActivation,
+  activation: RigVersionedPrefixActivation,
   platform: NodeJS.Platform,
 ): void {
   const platformPath = platformPathFor(platform);
@@ -358,7 +358,7 @@ function isProcessAlive(pid: number): boolean {
   }
 }
 
-function platformPathFor(platform: NodeJS.Platform): McodePlatformPath {
+function platformPathFor(platform: NodeJS.Platform): RigPlatformPath {
   return platform === 'win32' ? path.win32 : path.posix;
 }
 

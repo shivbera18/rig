@@ -12,7 +12,7 @@ import { TuiComposerImagePreview } from './features/composer/image-preview.js';
 import { createTuiExternalTargetOpener } from '../host/open-external.js';
 import { readTuiClipboardText, writeTuiClipboardText } from '../host/clipboard-text.js';
 import { formatTuiActionFailure } from '../user-facing-failure.js';
-import type { McodeBusinessTelemetry } from '../analytics/business-telemetry.js';
+import type { RigBusinessTelemetry } from '../analytics/business-telemetry.js';
 import type { TuiBackgroundTask } from '../runtime/port.js';
 import { TuiBusinessEventTracker } from '../analytics/tui-business-event-tracker.js';
 import type {
@@ -63,7 +63,7 @@ import {
   type TUI,
   type TuiMode,
 } from './engine/public.js';
-import { McodeInteractiveRenderer } from './renderer/index.js';
+import { RigInteractiveRenderer } from './renderer/index.js';
 import type { TuiRunProjection } from './state/run-projection.js';
 import type { TuiStateStore } from './state/index.js';
 import { TuiThemeController } from './theme/controller.js';
@@ -113,9 +113,9 @@ export function createTuiChatControllerComposition(options: CreateTuiAppOptions)
 // ---------------------------------------------------------------------------
 
 /**
- * Build the `ProcessTerminal` + `McodeInteractiveRenderer` + `TuiThemeController`
+ * Build the `ProcessTerminal` + `RigInteractiveRenderer` + `TuiThemeController`
  * triad. Returned `themeController` is held by the caller so that
- * `McodeInteractiveRenderer.onRendererChanged` can rebind it after a
+ * `RigInteractiveRenderer.onRendererChanged` can rebind it after a
  * main/fullscreen mode switch.
  */
 export function createTuiApplicationRenderer(options: CreateTuiAppOptions) {
@@ -133,7 +133,7 @@ export function createTuiApplicationRenderer(options: CreateTuiAppOptions) {
   const readClipboardText = options.readClipboardText ?? readTuiClipboardText;
   let themeController: TuiThemeController | undefined;
   const styleSearchMatch = (text: string): string => tuiChalk.hex(tuiColors.signal)(text);
-  const renderer = new McodeInteractiveRenderer({
+  const renderer = new RigInteractiveRenderer({
     terminal,
     initialMode: options.tuiMode ?? 'regular',
     logDirectory: options.runtimeLogDirectory,
@@ -502,7 +502,7 @@ export function createTuiApplicationSurface(options: {
  * sink was provided so the caller can skip wiring.
  */
 export function createTuiBusinessEventTracker(options: {
-  readonly telemetry?: McodeBusinessTelemetry;
+  readonly telemetry?: RigBusinessTelemetry;
   readonly workspaceDir: string;
   readonly controller: TuiChatController;
   readonly featureFlow: TuiFeatureFlow;

@@ -8,7 +8,7 @@ description: >-
   multimodal generation and understanding, including images/photos, video/audio/music, and
   documents. For an ordinary direct call to a connected plugin or MCP tool already in the model's
   tool list, call that tool directly and do not load this skill solely for access.
-requiresBeta: mcodeTools
+requiresBeta: rigTools
 
 
 ---

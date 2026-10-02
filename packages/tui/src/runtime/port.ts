@@ -16,8 +16,8 @@ import type {
 import type { TuiRuntimeEvent } from '../types/runtime-events.js';
 import type { TuiPermissionMode } from '../application/permission-mode.js';
 import type { TuiMessage, TuiStreamEvent } from './stream-events.js';
-import type { McodeProviderRuntimePort } from '../provider/contract.js';
-import type { McodePluginRuntimeAccess } from '../plugin/contract.js';
+import type { RigProviderRuntimePort } from '../provider/contract.js';
+import type { RigPluginRuntimeAccess } from '../plugin/contract.js';
 import type { TuiDailyCheckinOutcome } from '../checkin/application.js';
 import type {
   AbortSessionReq,
@@ -261,7 +261,7 @@ export interface TuiSessionForkPort {
   forkSession(input: ForkTuiSessionInput): Promise<TuiSessionForkResult>;
 }
 
-export interface TuiConfigurationPort extends McodeProviderRuntimePort {
+export interface TuiConfigurationPort extends RigProviderRuntimePort {
   getRuntimeDiagnostics(): Promise<TuiRuntimeDiagnostics>;
   getInstructionSources(workspaceDir: string): Promise<readonly TuiInstructionSource[]>;
   getAccountStatus(
@@ -627,7 +627,7 @@ export type TuiRuntime = TuiSessionPort &
   TuiBackgroundTaskCapability &
   TuiActiveRunControlPort &
   TuiWorkspaceGitPort &
-  McodePluginRuntimeAccess &
+  RigPluginRuntimeAccess &
   Partial<TuiSessionForkPort> &
   Partial<TuiWorkspaceFilePort>;
 

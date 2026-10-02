@@ -94,7 +94,7 @@ export {
   type TodoStatus,
 } from './todo-state.js';
 export { boundMap, getEvolutionReminder, type EvolutionState } from './evolution.js';
-export { withMcodeToolsMasterReminder } from './rig-tools-master-reminder.js';
+export { withRigToolsMasterReminder } from './rig-tools-master-reminder.js';
 // Block builders — exported so cloud-runtime and adjacent surfaces can render
 // individual blocks outside the registry/service pipeline.
 export {

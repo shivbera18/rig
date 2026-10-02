@@ -6,7 +6,7 @@ import type {
 import type { CliService } from '@rig/local-runtime-v2/cli-service';
 import { resolveTuiReviewPromptDir } from './review-assets.js';
 import type { ProductBuildIdentity } from '@rig/shared/product-build-identity';
-import { resolveMcodeBuildIdentity } from '../auth/environment.js';
+import { resolveRigBuildIdentity } from '../auth/environment.js';
 
 export type EmbeddedRuntimeHostOptions = Omit<
   CreateLocalRuntimeHostOptions,
@@ -34,8 +34,8 @@ type EmbeddedRuntimeConfig = ReturnType<NonNullable<CreateLocalRuntimeHostOption
 
 export function projectEmbeddedRuntimeConfig(
   config: EmbeddedRuntimeConfig,
-  buildIdentity: Pick<ProductBuildIdentity, 'isInternalBuild'> = resolveMcodeBuildIdentity(),
-  mcodeToolsEnabled = false,
+  buildIdentity: Pick<ProductBuildIdentity, 'isInternalBuild'> = resolveRigBuildIdentity(),
+  rigToolsEnabled = false,
 ): EmbeddedRuntimeConfig {
   return {
     ...config,
@@ -49,7 +49,7 @@ export function projectEmbeddedRuntimeConfig(
     beta: {
       ...config.beta,
       codexOAuth: buildIdentity.isInternalBuild,
-      rigTools: mcodeToolsEnabled && config.beta?.rigTools === true,
+      rigTools: rigToolsEnabled && config.beta?.rigTools === true,
     },
     memory: {
       ...config.memory,
@@ -78,7 +78,7 @@ export async function createEmbeddedRuntimeHost(
     configGetter: () =>
       projectEmbeddedRuntimeConfig(
         configGetter(),
-        resolveMcodeBuildIdentity(),
+        resolveRigBuildIdentity(),
         productCapabilities?.rigTools === true,
       ),
     runtimeOwnerKind: 'tui',

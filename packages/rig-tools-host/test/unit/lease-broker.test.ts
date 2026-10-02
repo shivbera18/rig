@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { createNodeAuthLeaseClient } from '@rig/oauth-lease-protocol';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { startMcodeToolsAuthLeaseBroker } from '../../src/lease-broker.js';
+import { startRigToolsAuthLeaseBroker } from '../../src/lease-broker.js';
 
 const cleanups: Array<() => Promise<void>> = [];
 
@@ -17,7 +17,7 @@ describe('rig-tools auth lease broker', () => {
   it('serves fixed leases and removes the private capability on dispose', async () => {
     const dataDir = await mkdtemp(path.join(tmpdir(), 'mtb-'));
     const stopWatching = vi.fn();
-    const broker = await startMcodeToolsAuthLeaseBroker({
+    const broker = await startRigToolsAuthLeaseBroker({
       dataDir,
       session: {
         getStatus: async () => ({ status: 'authenticated', generation: 3 }),
@@ -57,7 +57,7 @@ describe('rig-tools auth lease broker', () => {
 
   it('rejects a lease outside the fixed audience contract', async () => {
     const dataDir = await mkdtemp(path.join(tmpdir(), 'mtb-'));
-    const broker = await startMcodeToolsAuthLeaseBroker({
+    const broker = await startRigToolsAuthLeaseBroker({
       dataDir,
       session: {
         getStatus: async () => ({ status: 'authenticated', generation: 1 }),

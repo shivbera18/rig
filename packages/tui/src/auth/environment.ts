@@ -11,28 +11,28 @@ export type RigDataEnvironment = TuiBuildEnvironment | 'dev';
 declare const __TUI_BUILD_ENV__: TuiBuildEnvironment | undefined;
 declare const __TUI_BUILD_VARIANT__: TuiBuildVariant | undefined;
 
-export interface ResolveMcodeAuthEnvironmentOptions {
+export interface ResolveRigAuthEnvironmentOptions {
   readonly embeddedBuildEnvironment?: TuiBuildEnvironment;
   readonly embeddedBuildVariant?: TuiBuildVariant;
   readonly runtimeRegion?: RigRegion;
   readonly runtimeBuildEnv?: RigBuildEnv;
 }
 
-export interface McodeAuthEnvironment {
+export interface RigAuthEnvironment {
   readonly region: RigRegion;
   readonly buildEnv: RigBuildEnv;
 }
 
 let startupBuildEnvironment: TuiBuildEnvironment | undefined;
 
-export function setMcodeStartupBuildEnvironment(
+export function setRigStartupBuildEnvironment(
   environment: TuiBuildEnvironment | undefined,
 ): void {
   startupBuildEnvironment = environment;
 }
 
-export function resolveMcodeBuildIdentity(
-  options: ResolveMcodeAuthEnvironmentOptions = {},
+export function resolveRigBuildIdentity(
+  options: ResolveRigAuthEnvironmentOptions = {},
 ): ProductBuildIdentity {
   const embeddedBuildEnvironment =
     options.embeddedBuildEnvironment ?? readEmbeddedBuildEnvironment();
@@ -45,10 +45,10 @@ export function resolveMcodeBuildIdentity(
   });
 }
 
-export function resolveMcodeAuthEnvironment(
-  options: ResolveMcodeAuthEnvironmentOptions = {},
-): McodeAuthEnvironment {
-  const buildIdentity = resolveMcodeBuildIdentity(options);
+export function resolveRigAuthEnvironment(
+  options: ResolveRigAuthEnvironmentOptions = {},
+): RigAuthEnvironment {
+  const buildIdentity = resolveRigBuildIdentity(options);
 
   return {
     region: options.runtimeRegion ?? 'cn',

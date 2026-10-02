@@ -69,9 +69,9 @@ import { TuiModelState } from './model-state.js';
 import { isRuntimeErrorCode, isRuntimeMethodNotImplemented } from '../support.js';
 import { resolveTuiThinkingChoice } from '../../features/model/thinking.js';
 import { RigProviderApplication } from '../../../provider/application.js';
-import type { McodeCodexOAuthStatus, McodeProviderTemplate } from '../../../provider/contract.js';
-import { McodePluginApplication } from '../../../plugin/application.js';
-import type { McodePluginRuntimeAccess, McodePluginView } from '../../../plugin/contract.js';
+import type { RigCodexOAuthStatus, RigProviderTemplate } from '../../../provider/contract.js';
+import { RigPluginApplication } from '../../../plugin/application.js';
+import type { RigPluginRuntimeAccess, RigPluginView } from '../../../plugin/contract.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 import type { TuiTranscriptExporter } from '../../../host/transcript-export.js';
 import { TuiSessionForkFlow } from '../session-fork-flow.js';
@@ -91,7 +91,7 @@ type FeatureRuntime = TuiSessionPort &
   TuiInspectionPort &
   TuiInteractionPort &
   TuiWorkspaceGitPort &
-  McodePluginRuntimeAccess &
+  RigPluginRuntimeAccess &
   Partial<TuiSessionForkPort>;
 
 type AppendLocalCell = (
@@ -136,7 +136,7 @@ export interface TuiFeatureFlowOptions {
   readonly refreshAutocomplete: () => void;
   /** Starts the `/login` sign-in flow; absent when the host has no auth. */
   readonly onStartRigLogin?: () => void;
-  readonly loadProviderTemplates?: () => Promise<readonly McodeProviderTemplate[]>;
+  readonly loadProviderTemplates?: () => Promise<readonly RigProviderTemplate[]>;
   readonly isStopped?: () => boolean;
   readonly hasLiveRun?: () => boolean;
 }
@@ -149,7 +149,7 @@ export interface TuiSessionManagerOpenOptions {
 export class TuiFeatureFlow {
   private readonly modelState: TuiModelState;
   private readonly providerApplication: RigProviderApplication;
-  private readonly pluginApplication: McodePluginApplication;
+  private readonly pluginApplication: RigPluginApplication;
   private readonly sessionForkFlow: TuiSessionForkFlow;
   private skillCommandsValue: TuiCommand[] = [];
   private inspectionPanel: Component | undefined;
@@ -183,7 +183,7 @@ export class TuiFeatureFlow {
       isStopped: () => this.isStopped(),
     });
     this.providerApplication = new RigProviderApplication(options.runtime);
-    this.pluginApplication = new McodePluginApplication(options.runtime);
+    this.pluginApplication = new RigPluginApplication(options.runtime);
     this.sessionForkFlow = new TuiSessionForkFlow({
       runtime: options.runtime,
       currentSession: () => options.controller.snapshot().session,
@@ -585,13 +585,13 @@ export class TuiFeatureFlow {
     const loadSequence = ++this.modelLoadSequence;
     let models: TuiModel[];
     let managedTokenPresent = false;
-    let codexOAuthStatus: McodeCodexOAuthStatus;
+    let codexOAuthStatus: RigCodexOAuthStatus;
     try {
       const [modelCatalog, account, codexStatus] = await Promise.all([
         this.options.runtime.listModels(sessionId),
         this.options.runtime.getAccountStatus(sessionId),
         this.options.runtime.getCodexOAuthStatus().catch(
-          (): McodeCodexOAuthStatus => ({
+          (): RigCodexOAuthStatus => ({
             state: 'hidden',
             providerId: 'openai-codex',
           }),
@@ -780,7 +780,7 @@ export class TuiFeatureFlow {
     const loadSequence = ++this.providerLoadSequence;
     this.options.setHint('Loading provider catalog…');
     this.options.onChanged();
-    let templates: readonly McodeProviderTemplate[] = [];
+    let templates: readonly RigProviderTemplate[] = [];
     let catalogWarning: string | undefined;
     try {
       templates = await (
@@ -1045,8 +1045,8 @@ export class TuiFeatureFlow {
       }
     };
     const refreshSkillsAfterMutation = async (
-      operation: () => Promise<McodePluginView>,
-    ): Promise<McodePluginView> => {
+      operation: () => Promise<RigPluginView>,
+    ): Promise<RigPluginView> => {
       const plugin = await operation();
       await refreshSkills();
       return plugin;

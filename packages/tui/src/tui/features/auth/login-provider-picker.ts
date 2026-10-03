@@ -1,13 +1,13 @@
-import type { RigLoginProviderDef } from "../../login/provider-login-registry.js";
-import { RIG_LOGIN_ORDER, getRigLoginProvider } from "../../login/provider-login-registry.js";
-import { panelLayout } from "../widgets/panel-frame.js";
-import type { Component } from "../rendering/component.js";
+import type { RigLoginProviderDef } from "../../../login/provider-login-registry.js";
+import { RIG_LOGIN_ORDER, getRigLoginProvider } from "../../../login/provider-login-registry.js";
+import { panelLayout } from "../../widgets/panel-frame.js";
+import type { Component } from "../../rendering/component.js";
 import {
   tuiChalk as chalk,
   tuiColors as colors,
   tuiSelectListTheme as theme,
-} from "../theme/runtime.js";
-import { SelectList } from "../widgets/select-list.js";
+} from "../../theme/runtime.js";
+import { SelectList } from "../../widgets/select-list.js";
 
 /** `/login` provider roster (Step 3): same SelectList + panelLayout pattern as the region picker. */
 export class TuiLoginProviderPicker implements Component {

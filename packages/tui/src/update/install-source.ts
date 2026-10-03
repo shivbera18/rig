@@ -392,12 +392,8 @@ function resolveNodeAdjacentNpm(
   environment: NodeJS.ProcessEnv = process.env,
 ): string | undefined {
   if (platform !== 'win32') return undefined;
-  try {
-    const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
-    if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
-  } catch {
-    // Fall through below.
-  }
+  // A wrapper-root npm.cmd on PATH (installer-owned or test shim) wins over
+  // the runtime-adjacent copy, matching cross-spawn PATH resolution.
   for (const key of Object.keys(environment)) {
     if (key.toLowerCase() !== 'path') continue;
     const entry = String(environment[key] ?? '')
@@ -411,6 +407,12 @@ function resolveNodeAdjacentNpm(
         }
       });
     if (entry) return entry;
+  }
+  try {
+    const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
+    if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
+  } catch {
+    // Fall through to undefined below.
   }
   return undefined;
 }

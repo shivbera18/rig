@@ -342,13 +342,9 @@ async function defaultFetchBytes(
 
 function resolveAdjacentOrShimNpm(environment: NodeJS.ProcessEnv = process.env): string {
   if (process.platform === 'win32') {
-    try {
-      const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
-      if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
-    } catch {
-      // Fall through below: the wrapper-root npm.cmd on PATH (test) wins
-      // over a bare name, which cross-spawn cannot resolve there.
-    }
+    // A wrapper-root npm.cmd on PATH (installer-owned or test shim) wins over
+    // the runtime-adjacent copy: cross-spawn resolves bare names via PATH, and
+    // preferring the adjacent copy here would bypass the wrapper entirely.
     for (const key of Object.keys(environment)) {
       if (key.toLowerCase() !== 'path') continue;
       const entry = String(environment[key] ?? '')
@@ -362,6 +358,12 @@ function resolveAdjacentOrShimNpm(environment: NodeJS.ProcessEnv = process.env):
           }
         });
       if (entry) return entry;
+    }
+    try {
+      const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
+      if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
+    } catch {
+      // Fall through to the PATH shim below.
     }
     return 'npm.cmd';
   }

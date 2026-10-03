@@ -185,4 +185,22 @@ describe('Rig auth commands', () => {
     expect(runProviderLogin).toHaveBeenCalledOnce();
     expect(runProviderLogin.mock.calls[0]?.[0]).toBe('together');
   });
+
+  it('rejects an unknown provider id on logout with the roster error', async () => {
+    await expect(runTuiLogout({ provider: 'nope' })).rejects.toThrow(
+      "Unknown provider 'nope'. Run 'rig login' to pick one.",
+    );
+  });
+
+  it('keeps rig login on the legacy device flow when no provider is given', async () => {
+    const login = vi.fn(async () => ({ message: 'Signed in with Rig.' }));
+    await expect(
+      runTuiLogin({
+        createApplication: () => ({ login, logout: vi.fn() }),
+        writeError: () => undefined,
+        openBrowser: false,
+      }),
+    ).resolves.toBe('Signed in with Rig.');
+    expect(login).toHaveBeenCalledOnce();
+  });
 });

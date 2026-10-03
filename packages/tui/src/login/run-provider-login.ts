@@ -65,10 +65,13 @@ export async function runProviderLogin(
     tokenUrl: endpoints.tokenUrl,
     ...(endpoints.exchangeBody ? { exchangeBody: endpoints.exchangeBody } : {}),
   });
-  await saveLoginCredential(writer, providerId, credential);
+  // OpenRouter mints a durable key (`result "api-key"`): store the key, not
+  // the OAuth envelope, so /provider rows and validation see a plain api_key.
   if (providerId === "openrouter") {
     await saveLoginCredential(writer, providerId, credential.access);
+    return { provider: def, credential: credential.access, message: `Logged in to ${def.name}.` };
   }
+  await saveLoginCredential(writer, providerId, credential);
   const who = formatLoginIdentity(credential);
   return {
     provider: def,

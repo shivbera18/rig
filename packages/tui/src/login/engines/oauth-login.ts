@@ -54,53 +54,88 @@ export async function runOAuthCodeLogin(
 ): Promise<RigOAuthCredentials> {
   throwIfCancelled(options.signal);
   if (!def.authorizeUrl) throw new Error(`${def.name} OAuth login is not configured`);
-  const port = def.callbackPort ?? 0;
   const path = def.callbackPath ?? "/callback";
   const { verifier, challenge } = await generatePKCE();
   const state = crypto.randomUUID();
-  const uri = redirectUri(port, path);
-  const authorize = new URL(def.authorizeUrl);
-  if (def.clientId) authorize.searchParams.set("client_id", def.clientId);
-  authorize.searchParams.set("redirect_uri", uri);
-  authorize.searchParams.set("response_type", "code");
-  if (def.scopes?.length) authorize.searchParams.set("scope", def.scopes.join(" "));
-  authorize.searchParams.set("code_challenge", challenge);
-  authorize.searchParams.set("code_challenge_method", "S256");
-  authorize.searchParams.set("state", state);
-
-  if (def.instructions) options.onProgress?.(def.instructions);
-  options.onAuth?.({ url: authorize.toString(), instructions: def.instructions ?? "" });
-
-  const code = await waitForOAuthCallback({
-    port,
+  const listening = await startOAuthCallbackListener({
+    port: def.callbackPort ?? 0,
     path,
     expectedState: state,
-    openUrl: authorize.toString(),
     openBrowser: options.openBrowser,
-    portFallback: def.portFallback ?? true,
-    manualOnly: def.manualOnly ?? false,
-    onManualCodeInput: options.onManualCodeInput ?? options.onPrompt
-      ? async (signal) =>
-          options.onPrompt?.({
-            message: "Paste the authorization code (or full redirect URL)",
-          }).then((answer) => {
-            if (signal?.aborted) throw new RigLoginCancelledError();
-            return answer;
-          }) ?? ""
-      : undefined,
     signal: options.signal,
   });
-  throwIfCancelled(options.signal);
+  try {
+    const uri = redirectUri(listening.port, path);
+    const authorize = buildAuthorizeUrl(def, { challenge, state, redirectUri: uri });
+    if (def.instructions) options.onProgress?.(def.instructions);
+    options.onAuth?.({ url: authorize.toString(), instructions: def.instructions ?? "" });
+    try {
+      listening.open(authorize.toString());
+    } catch {
+      // Best-effort browser open; URL is already shown via onAuth.
+    }
+    const code = await listening.waitForCode({
+      manualOnly: def.manualOnly ?? false,
+      onManualCodeInput:
+        options.onManualCodeInput ?? options.onPrompt
+          ? async (signal) =>
+              options.onPrompt?.({
+                message: "Paste the authorization code (or full redirect URL)",
+              }).then((answer) => {
+                if (signal?.aborted) throw new RigLoginCancelledError();
+                return answer;
+              }) ?? ""
+          : undefined,
+      portFallback: def.portFallback ?? true,
+      signal: options.signal,
+    });
+    throwIfCancelled(options.signal);
+    return exchangeOAuthCode(def, code, { verifier, redirectUri: uri }, options);
+  } finally {
+    listening.close();
+  }
+}
 
+function buildAuthorizeUrl(
+  def: RigLoginProviderDef,
+  params: { challenge: string; state: string; redirectUri: string },
+): URL {
+  const authorize = new URL(def.authorizeUrl ?? "");
+  if (def.clientId) authorize.searchParams.set("client_id", def.clientId);
+  for (const [key, value] of Object.entries(def.authorizeParams ?? {})) {
+    authorize.searchParams.set(key, value);
+  }
+  authorize.searchParams.set("redirect_uri", params.redirectUri);
+  authorize.searchParams.set("response_type", "code");
+  if (def.scopes?.length) authorize.searchParams.set("scope", def.scopes.join(" "));
+  authorize.searchParams.set("code_challenge", params.challenge);
+  authorize.searchParams.set("code_challenge_method", "S256");
+  authorize.searchParams.set("state", params.state);
+  return authorize;
+}
+
+async function exchangeOAuthCode(
+  def: RigLoginProviderDef,
+  code: string,
+  params: { verifier: string; redirectUri: string },
+  options: RigLoginController & {
+    readonly tokenUrl: string;
+    readonly exchangeBody?: (params: {
+      code: string;
+      verifier: string;
+      redirectUri: string;
+    }) => Record<string, string>;
+  },
+): Promise<RigOAuthCredentials> {
   const fetchImpl = options.fetch ?? fetch;
   const body = options.exchangeBody
-    ? options.exchangeBody({ code, verifier, redirectUri: uri })
+    ? options.exchangeBody({ code, verifier: params.verifier, redirectUri: params.redirectUri })
     : {
         grant_type: "authorization_code",
         code,
-        redirect_uri: uri,
+        redirect_uri: params.redirectUri,
         client_id: def.clientId ?? "",
-        code_verifier: verifier,
+        code_verifier: params.verifier,
       };
   const tokenResponse = await fetchImpl(options.tokenUrl, {
     method: "POST",
@@ -116,9 +151,18 @@ export async function runOAuthCodeLogin(
         : `${def.name} token exchange failed (${tokenResponse.status})`,
     );
   }
-  const tokenBody = (await tokenResponse.json()) as Record<string, unknown>;
+  const tokenText = await tokenResponse.text().catch(() => "");
+  let tokenBody: Record<string, unknown>;
+  try {
+    tokenBody = (tokenText ? JSON.parse(tokenText) : {}) as Record<string, unknown>;
+  } catch {
+    throw new Error(
+      tokenText.trim()
+        ? `${def.name} token exchange returned invalid JSON: ${tokenText.trim().slice(0, 200)}`
+        : `${def.name} token exchange returned an empty response`,
+    );
+  }
   const access = tokenBody["access_token"];
-  if (typeof access !== "string" || !access) throw new Error(`${def.name} token exchange returned no access token`);
   const refresh = tokenBody["refresh_token"];
   const expiresIn = tokenBody["expires_in"];
   return {
@@ -127,29 +171,6 @@ export async function runOAuthCodeLogin(
     expires:
       typeof expiresIn === "number" && Number.isFinite(expiresIn) ? Date.now() + expiresIn * 1000 : NEVER_EXPIRES,
   };
-}
-
-async function waitForOAuthCallback(options: {
-  port: number;
-  path: string;
-  expectedState: string;
-  openUrl: string;
-  openBrowser?: (url: string) => void;
-  portFallback: boolean;
-  manualOnly: boolean;
-  onManualCodeInput?: (signal?: AbortSignal) => Promise<string>;
-  signal?: AbortSignal;
-}): Promise<string> {
-  if (options.manualOnly) {
-    if (!options.onManualCodeInput) throw new Error("This provider needs a manual redirect-URL paste");
-    return extractCode(await options.onManualCodeInput(options.signal));
-  }
-  try {
-    return await listenForOAuthCallback(options);
-  } catch (error) {
-    if (!options.portFallback || !options.onManualCodeInput) throw error;
-    return extractCode(await options.onManualCodeInput(options.signal));
-  }
 }
 
 function extractCode(input: string): string {
@@ -165,62 +186,115 @@ function extractCode(input: string): string {
   return trimmed;
 }
 
-async function listenForOAuthCallback(options: {
+interface OAuthCallbackListener {
+  readonly port: number;
+  readonly open: (url: string) => void;
+  readonly waitForCode: (options: {
+    manualOnly: boolean;
+    onManualCodeInput?: (signal?: AbortSignal) => Promise<string>;
+    portFallback: boolean;
+    signal?: AbortSignal;
+  }) => Promise<string>;
+  readonly close: () => void;
+}
+
+async function startOAuthCallbackListener(options: {
   port: number;
   path: string;
   expectedState: string;
-  openUrl: string;
   openBrowser?: (url: string) => void;
   signal?: AbortSignal;
-}): Promise<string> {
+}): Promise<OAuthCallbackListener> {
   const address = options.port === 0 ? "127.0.0.1" : "localhost";
-  return new Promise<string>((resolve, reject) => {
-    const server = createServer((req, res) => {
-      try {
-        const url = new URL(req.url ?? "/", "http://localhost");
-        if (url.pathname !== options.path) {
-          res.writeHead(404, { "Content-Type": "text/plain" }).end("Not found");
-          return;
-        }
-        const code = url.searchParams.get("code");
-        const state = url.searchParams.get("state");
-        if (!code || (state !== null && state !== options.expectedState)) {
-          res.writeHead(400, { "Content-Type": "text/plain" }).end("Invalid callback");
-          return;
-        }
-        res.writeHead(200, { "Content-Type": "text/html" }).end("<h1>Signed in. Return to Rig.</h1>");
-        cleanup();
-        resolve(code);
-      } catch (error) {
-        cleanup();
-        reject(error);
+  let settled = false;
+  let resolveCode!: (code: string) => void;
+  let rejectCode!: (error: unknown) => void;
+  const codePromise = new Promise<string>((resolve, reject) => {
+    resolveCode = resolve;
+    rejectCode = reject;
+  });
+  // Swallow unhandled rejection when the listener closes before a callback.
+  codePromise.catch(() => undefined);
+  const server = createServer((req, res) => {
+    try {
+      const url = new URL(req.url ?? "/", "http://localhost");
+      if (url.pathname !== options.path) {
+        res.writeHead(404, { "Content-Type": "text/plain" }).end("Not found");
+        return;
       }
-    });
-    const cleanup = () => {
-      server.close();
+      const code = url.searchParams.get("code");
+      const state = url.searchParams.get("state");
+      if (!code || (state !== null && state !== options.expectedState)) {
+        res.writeHead(400, { "Content-Type": "text/plain" }).end("Invalid callback");
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "text/html" }).end("<h1>Signed in. Return to Rig.</h1>");
+      if (settled) return;
+      settled = true;
       options.signal?.removeEventListener("abort", onAbort);
-    };
-    const onAbort = () => {
-      cleanup();
-      reject(new RigLoginCancelledError());
-    };
-    if (options.signal?.aborted) {
-      onAbort();
-      return;
+      resolveCode(code);
+    } catch (error) {
+      if (settled) return;
+      settled = true;
+      options.signal?.removeEventListener("abort", onAbort);
+      rejectCode(error);
     }
-    options.signal?.addEventListener("abort", onAbort, { once: true });
-    server.on("error", (error) => {
-      cleanup();
-      reject(error);
-    });
+  });
+  const onAbort = () => {
+    if (settled) return;
+    settled = true;
+    server.close();
+    rejectCode(new RigLoginCancelledError());
+  };
+  if (options.signal?.aborted) onAbort();
+  else options.signal?.addEventListener("abort", onAbort, { once: true });
+  const onListenError = (error: unknown) => {
+    if (settled) return;
+    settled = true;
+    options.signal?.removeEventListener("abort", onAbort);
+    rejectCode(error);
+  };
+  server.on("error", onListenError);
+  const boundPort = await new Promise<number>((resolve, reject) => {
+    server.once("error", reject);
     server.listen(options.port === 0 ? 0 : options.port, address, () => {
-      try {
-        options.openBrowser?.(options.openUrl);
-      } catch {
-        // Best-effort browser open; URL is already shown via onAuth.
+      const actual = server.address();
+      if (actual && typeof actual === "object" && typeof actual.port === "number") {
+        resolve(actual.port);
+      } else {
+        reject(new Error("OAuth callback listener bound to an unknown address"));
       }
     });
   });
+  return {
+    port: boundPort,
+    open: (url: string) => options.openBrowser?.(url),
+    waitForCode: async (waitOptions) => {
+      if (waitOptions.manualOnly) {
+        if (!waitOptions.onManualCodeInput) {
+          throw new Error("This provider needs a manual redirect-URL paste");
+        }
+        try {
+          return extractCode(await waitOptions.onManualCodeInput(waitOptions.signal));
+        } finally {
+          server.close();
+          options.signal?.removeEventListener("abort", onAbort);
+        }
+      }
+      try {
+        return await codePromise;
+      } catch (error) {
+        if (!waitOptions.portFallback || !waitOptions.onManualCodeInput) throw error;
+        server.close();
+        options.signal?.removeEventListener("abort", onAbort);
+        return extractCode(await waitOptions.onManualCodeInput(waitOptions.signal));
+      }
+    },
+    close: () => {
+      server.close();
+      options.signal?.removeEventListener("abort", onAbort);
+    },
+  };
 }
 
 /**
@@ -257,20 +331,26 @@ export async function runDeviceCodeLogin(
         : `${def.name} device authorization failed (${deviceResponse.status})`,
     );
   }
-  const device = (await deviceResponse.json()) as Record<string, unknown>;
+  let device: Record<string, unknown>;
+  try {
+    const text = await deviceResponse.text().catch(() => "");
+    device = ((text ? JSON.parse(text) : {}) ?? {}) as Record<string, unknown>;
+  } catch {
+    throw new Error(`${def.name} device authorization returned invalid JSON`);
+  }
   const userCode = device["user_code"];
   const deviceCode = device["device_code"];
   const verificationUri = device["verification_uri"];
-  const verificationUriComplete = device["verification_uri_complete"];
   if (typeof userCode !== "string" || !userCode || typeof deviceCode !== "string" || !deviceCode) {
     throw new Error(`${def.name} device authorization returned an invalid response`);
+  }
+  if (typeof verificationUri !== "string" || !verificationUri) {
+    throw new Error(`${def.name} device authorization returned no verification URI`);
   }
   const shownUri =
     typeof verificationUriComplete === "string" && verificationUriComplete
       ? verificationUriComplete
-      : typeof verificationUri === "string"
-        ? verificationUri
-        : "";
+      : verificationUri;
   options.onAuth?.({
     url: shownUri,
     instructions: (def.instructions ?? "Enter code: {user_code}").replace("{user_code}", userCode),
@@ -289,11 +369,20 @@ export async function runDeviceCodeLogin(
   while (Date.now() < deadline) {
     if (options.signal?.aborted) throw new RigLoginCancelledError();
     await new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(resolve, Math.min(intervalMs, Math.max(0, deadline - Date.now())));
-      options.signal?.addEventListener("abort", () => {
+      const onAbort = () => {
         clearTimeout(timer);
         reject(new RigLoginCancelledError());
-      }, { once: true });
+      };
+      const timer = setTimeout(() => {
+        options.signal?.removeEventListener("abort", onAbort);
+        resolve();
+      }, Math.min(intervalMs, Math.max(0, deadline - Date.now())));
+      if (options.signal?.aborted) {
+        clearTimeout(timer);
+        reject(new RigLoginCancelledError());
+        return;
+      }
+      options.signal?.addEventListener("abort", onAbort, { once: true });
     });
     const poll = await fetchImpl(options.tokenUrl, {
       method: "POST",
@@ -305,7 +394,13 @@ export async function runDeviceCodeLogin(
       }).toString(),
       signal: options.signal,
     });
-    const body = (await poll.json().catch(() => ({}))) as Record<string, unknown>;
+    let body: Record<string, unknown>;
+    try {
+      const text = await poll.text().catch(() => "");
+      body = ((text ? JSON.parse(text) : {}) ?? {}) as Record<string, unknown>;
+    } catch {
+      throw new Error(`${def.name} device grant returned invalid JSON (${poll.status})`);
+    }
     if (poll.ok) {
       const access = body["access_token"];
       if (typeof access !== "string" || !access) throw new Error(`${def.name} device grant returned no access token`);
@@ -323,6 +418,12 @@ export async function runDeviceCodeLogin(
     if (errorCode === "slow_down") {
       intervalMs = Math.max(1000, intervalMs + 5000);
       continue;
+    }
+    if (errorCode === "expired_token") {
+      throw new Error(`${def.name} device code expired; restart the login`);
+    }
+    if (errorCode === "access_denied") {
+      throw new Error(`${def.name} device authorization was denied`);
     }
     const description = typeof body["error_description"] === "string" ? body["error_description"] : "";
     throw new Error(

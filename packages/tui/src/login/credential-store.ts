@@ -1,8 +1,8 @@
 /** Multi-provider credential persistence (Step 2).
  * api-key results go through the existing `RigProviderRuntimePort` ModelProvider
- * API; OAuth results go through the existing oauth-core `FileStore` at
- * `<authHome>/auth.json` keyed `providerId\0account` with a provider field
- * (schema extension, not a second store). No SQLite `agent.db` port.
+ * API; OAuth results persist as provider records in the existing
+ * `<authHome>/auth.json` file (same envelope, separate record key per
+ * provider). No SQLite `agent.db` port.
  */
 
 import { createHash } from "node:crypto";
@@ -67,7 +67,7 @@ function providerKey(providerId: string): { service: string; account: string } {
 /**
  * Routes a validated login result to existing storage: `rig_api` key via
  * `upsertRigApiKey`, other api-key providers via create/update of the
- * `custom_provider:*` entry, OAuth tokens via FileStore `auth.json`.
+ * `custom_provider:*` entry, OAuth tokens as provider records in `auth.json`.
  */
 export async function saveLoginCredential(
   writer: RigLoginCredentialWriter,

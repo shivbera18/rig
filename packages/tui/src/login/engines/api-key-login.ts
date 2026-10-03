@@ -96,6 +96,7 @@ export async function validateOpenAICompatibleApiKey(options: {
   apiKey: string;
   baseUrl: string;
   model: string;
+  tolerateModelDenied?: boolean;
   signal?: AbortSignal;
   fetch?: typeof fetch;
 }): Promise<void> {
@@ -112,6 +113,14 @@ export async function validateOpenAICompatibleApiKey(options: {
     signal: timeoutSignal(options.signal),
   });
   if (response.ok) return;
+  if (options.tolerateModelDenied && response.status === 401) {
+    try {
+      const envelope = JSON.parse(await readValidationBody(response)) as { code?: unknown };
+      if (envelope.code === "invalid_model") return;
+    } catch {
+      // Fall through to the validation error below.
+    }
+  }
   const details = await readValidationBody(response);
   throw new RigApiKeyValidationError(
     details
@@ -169,39 +178,55 @@ async function runValidation(
       if (!validate.baseUrl || !validate.model) {
         throw new RigApiKeyValidationError(`${provider} API key validation is misconfigured`, 500);
       }
-      await validateOpenAICompatibleApiKey({
-        provider,
-        apiKey,
-        baseUrl: validate.baseUrl,
-        model: validate.model,
-        signal: options.signal,
-        fetch: options.fetch,
-      });
+      try {
+        await validateOpenAICompatibleApiKey({
+          provider,
+          apiKey,
+          baseUrl: validate.baseUrl,
+          model: validate.model,
+          ...(validate.tolerateModelDenied ? { tolerateModelDenied: true } : {}),
+          signal: options.signal,
+          fetch: options.fetch,
+        });
+      } catch (error) {
+        if (!validate.optional) throw error;
+        options.onProgress?.("Validation unavailable; keeping the supplied key.");
+      }
       return;
     case "anthropic-messages":
       if (!validate.baseUrl || !validate.model) {
         throw new RigApiKeyValidationError(`${provider} API key validation is misconfigured`, 500);
       }
-      await validateAnthropicCompatibleApiKey({
-        provider,
-        apiKey,
-        baseUrl: validate.baseUrl,
-        model: validate.model,
-        signal: options.signal,
-        fetch: options.fetch,
-      });
+      try {
+        await validateAnthropicCompatibleApiKey({
+          provider,
+          apiKey,
+          baseUrl: validate.baseUrl,
+          model: validate.model,
+          signal: options.signal,
+          fetch: options.fetch,
+        });
+      } catch (error) {
+        if (!validate.optional) throw error;
+        options.onProgress?.("Validation unavailable; keeping the supplied key.");
+      }
       return;
     case "models-endpoint":
       if (!validate.url) {
         throw new RigApiKeyValidationError(`${provider} API key validation is misconfigured`, 500);
       }
-      await validateApiKeyAgainstModelsEndpoint({
-        provider,
-        apiKey,
-        modelsUrl: validate.url,
-        signal: options.signal,
-        fetch: options.fetch,
-      });
+      try {
+        await validateApiKeyAgainstModelsEndpoint({
+          provider,
+          apiKey,
+          modelsUrl: validate.url,
+          signal: options.signal,
+          fetch: options.fetch,
+        });
+      } catch (error) {
+        if (!validate.optional) throw error;
+        options.onProgress?.("Validation unavailable; keeping the supplied key.");
+      }
       return;
   }
 }

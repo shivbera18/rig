@@ -418,6 +418,7 @@ export class TuiProviderManager implements Component, Focusable {
       return;
     }
     const apiKey = value.trim();
+    this.secretInput.setValue('');
     await this.perform(
       async () => {
         await this.options.onLoginProvider?.({ providerId, apiKey });

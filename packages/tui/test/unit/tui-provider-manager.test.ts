@@ -480,6 +480,7 @@ it("signs a custom row in through the roster login and masks the key", async () 
   expect(stripAnsi(manager.render(100).join("\n"))).toContain("Sign in to OpenAI");
   manager.handleInput("replacement-secret");
   manager.handleInput("\r");
+  await vi.waitFor(() => expect(onLoginProvider).toHaveBeenCalledOnce());
   expect(onLoginProvider).toHaveBeenCalledWith(
     expect.objectContaining({ providerId: "openai", apiKey: "replacement-secret" }),
   );

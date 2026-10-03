@@ -60,6 +60,12 @@ The full profile is the local default. `platform` omits only duplicate type chec
 
 Source export reads committed `HEAD` and rejects uncommitted tracked changes. During editing, run the relevant individual gates; run the complete applicable profile on the reviewed commit with a clean tracked working tree before opening a PR. Report the checks actually run and any blocked or untested boundaries. Offline tests do not establish live-service or cross-platform acceptance.
 
+## CI and releases
+
+CI runs `pnpm verify` on every PR and main push; the same command reproduces any CI gate locally, so reproduce failures locally instead of pushing blind retries. Workflow files live in `.github/workflows/`; never add verification steps to a workflow file — add gates to `scripts/verify.mjs` instead.
+
+Releases are version-driven, not tag-driven. To ship a new version, bump `version` in **both** `package.json` and `packages/tui/package.json` together (they must match; `scripts/lib/cli-release.mjs` enforces this). Or use `pnpm release:cli --version X.Y.Z [--dry-run]`, which bumps both files, commits, tags, and opens the version PR. Merging the bump to `main` is all it takes: the `release` workflow's `auto-tag` job creates and pushes the `vX.Y.Z` tag, and `publish-npm` then builds, verifies, and publishes to npm with provenance. Merges without a version change publish nothing. Never move or recreate an already distributed tag; start the next version from the latest `origin/main`.
+
 ## Boundaries
 
 Do not reference internal hosts, generated IDL, or private services; `check:source` catches known patterns but does not replace publication review. Do not restore paths listed in `scripts/lib/retired-sources.mjs` or remove supported capabilities to make standalone checks pass. Do not commit account data, sessions, logs, credentials, or real user content; use temporary data directories and synthetic test inputs. Documentation and commit messages are written in English; preserve the required languages of localized product strings and bundled runtime prompts. See `CONTRIBUTING.md`.

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import path from 'node:path';
 import spawn from 'cross-spawn';
 import { retryWindowsFileSystemOperation } from '@rig/shared';
@@ -339,8 +340,25 @@ async function defaultFetchBytes(
   }
 }
 
-function resolveAdjacentOrShimNpm(): string {
+function resolveAdjacentOrShimNpm(environment: NodeJS.ProcessEnv = process.env): string {
   if (process.platform === 'win32') {
+    // A wrapper-root npm.cmd on PATH (installer-owned or test shim) wins over
+    // the runtime-adjacent copy: cross-spawn resolves bare names via PATH, and
+    // preferring the adjacent copy here would bypass the wrapper entirely.
+    for (const key of Object.keys(environment)) {
+      if (key.toLowerCase() !== 'path') continue;
+      const entry = String(environment[key] ?? '')
+        .split(path.delimiter)
+        .map((part) => path.join(part, 'npm.cmd'))
+        .find((candidate) => {
+          try {
+            return existsSync(candidate) && statSync(candidate).isFile();
+          } catch {
+            return false;
+          }
+        });
+      if (entry) return entry;
+    }
     try {
       const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
       if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
@@ -358,7 +376,7 @@ async function defaultInstallArtifact(input: {
   registry: string;
   proxyEnvironment: NodeJS.ProcessEnv;
 }): Promise<void> {
-  const npm = resolveAdjacentOrShimNpm();
+  const npm = resolveAdjacentOrShimNpm(input.proxyEnvironment);
   await runRigUpdateCommand(
     npm,
     [

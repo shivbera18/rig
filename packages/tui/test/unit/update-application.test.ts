@@ -1199,7 +1199,7 @@ describe('Rig update install-source commands', () => {
     ]);
   });
 
-  it('prefers the node-adjacent npm.cmd when the owning runtime ships one', async () => {
+  it('prefers the injected npm executable for the registry lookup', async () => {
     const run = vi.fn(async () => '"1.2.4"');
 
     await expect(
@@ -1207,10 +1207,19 @@ describe('Rig update install-source commands', () => {
         platform: 'win32',
         run,
         distribution: resolveRigNpmDistribution('@shivcdhry/rig'),
+        npmExecutable: 'C:\\tools\\nodejs\\npm.cmd',
       }),
     ).resolves.toBe('1.2.4');
-    const [executable] = run.mock.calls[0] ?? [];
-    expect(String(executable).toLowerCase().endsWith('npm.cmd')).toBe(true);
+    expect(run).toHaveBeenCalledWith('C:\\tools\\nodejs\\npm.cmd', [
+      'view',
+      '@shivcdhry/rig@latest',
+      'version',
+      '--json',
+      '--registry',
+      'https://registry.npmjs.org/',
+      '--fetch-timeout',
+      '30000',
+    ]);
   });
 
   it('uses installer-owned npm for a prefix installation registry lookup', async () => {

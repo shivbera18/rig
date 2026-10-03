@@ -6,6 +6,7 @@ import type { RigUpdateOperationOptions } from './progress.js';
 
 export const RIG_INTERNAL_NPM_REGISTRY = 'https://npmmirror.example.invalid/';
 export const RIG_PUBLIC_NPM_REGISTRY = 'https://registry.npmjs.org/';
+export const RIG_PUBLIC_NPM_MIRROR_REGISTRY = 'https://registry.npmmirror.com/';
 const REGISTRY_FETCH_TIMEOUT_MS = 30_000;
 const RIG_PACKAGE_BASENAME = 'rig';
 const RIG_INTERNAL_SCOPE = '@rig';
@@ -74,6 +75,7 @@ export type RigInstallSourceDetection =
 export interface DetectRigInstallSourceDependencies {
   readonly installRoot: string;
   readonly platform: NodeJS.Platform;
+  readonly environment: NodeJS.ProcessEnv;
   readonly packageRoot: () => string | undefined;
   readonly npmGlobalPrefix: () => Promise<string>;
   readonly managedInstall: (installRoot: string) => boolean;
@@ -94,17 +96,20 @@ export async function detectRigInstallSource(
   dependencies: Partial<DetectRigInstallSourceDependencies> & { installRoot: string },
 ): Promise<RigInstallSourceDetection> {
   const platform = dependencies.platform ?? process.platform;
+  const environment = dependencies.environment ?? process.env;
   const resolved: DetectRigInstallSourceDependencies = {
     installRoot: dependencies.installRoot,
     platform,
+    environment,
     packageRoot: dependencies.packageRoot ?? resolveRigPackageRoot,
     npmGlobalPrefix:
       dependencies.npmGlobalPrefix ??
       (() =>
-        runText(resolveNodeAdjacentNpm(platform) ?? (platform === 'win32' ? 'npm.cmd' : 'npm'), [
-          'prefix',
-          '--global',
-        ])),
+        runText(
+          resolveNodeAdjacentNpm(platform, environment) ?? (platform === 'win32' ? 'npm.cmd' : 'npm'),
+          ['prefix', '--global'],
+          environment,
+        )),
     managedInstall: dependencies.managedInstall ?? isManagedRigInstallRoot,
     prefixInstall: dependencies.prefixInstall ?? resolveRigNpmPrefixInstall,
   };
@@ -316,10 +321,13 @@ export async function resolveLatestRigRegistryVersion(
   // npm call even when node.exe sits next to npm.cmd. Prefer the adjacent
   // runtime first, then the npm.cmd shim, then bare `npm` from PATH.
   const npmExecutable =
-    dependencies.npmExecutable ?? resolveNodeAdjacentNpm(platform) ?? (platform === 'win32' ? 'npm.cmd' : 'npm');
+    dependencies.npmExecutable ??
+    resolveNodeAdjacentNpm(platform, dependencies.environment) ??
+    (platform === 'win32' ? 'npm.cmd' : 'npm');
   const output = await run(npmExecutable, [
     'view',
     `${distribution.packageName}@${tag}`,
+    'version',
     '--json',
     '--registry',
     distribution.registry,
@@ -379,13 +387,32 @@ export function bindRigNpmCommandToRuntime(
   return { ...command, executable: runtimeExecutable, args: [npmCli, ...command.args] };
 }
 
-function resolveNodeAdjacentNpm(platform: NodeJS.Platform): string | undefined {
+function resolveNodeAdjacentNpm(
+  platform: NodeJS.Platform,
+  environment: NodeJS.ProcessEnv = process.env,
+): string | undefined {
   if (platform !== 'win32') return undefined;
+  // A wrapper-root npm.cmd on PATH (installer-owned or test shim) wins over
+  // the runtime-adjacent copy, matching cross-spawn PATH resolution.
+  for (const key of Object.keys(environment)) {
+    if (key.toLowerCase() !== 'path') continue;
+    const entry = String(environment[key] ?? '')
+      .split(path.delimiter)
+      .map((part) => path.join(part, 'npm.cmd'))
+      .find((candidate) => {
+        try {
+          return existsSync(candidate) && statSync(candidate).isFile();
+        } catch {
+          return false;
+        }
+      });
+    if (entry) return entry;
+  }
   try {
     const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
     if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
   } catch {
-    // Fall through to PATH-based resolution below.
+    // Fall through to undefined below.
   }
   return undefined;
 }

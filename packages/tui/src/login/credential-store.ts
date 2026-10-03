@@ -38,9 +38,9 @@ async function atomicWritePrivateFile(path: string, content: string): Promise<vo
 }
 
 export interface RigLoginCredentialWriter {
-  readonly saveApiKey(providerId: string, apiKey: string): Promise<void>;
-  readonly saveOAuth(providerId: string, credential: RigOAuthCredentials): Promise<void>;
-  readonly deleteCredential(providerId: string): Promise<void>;
+  readonly saveApiKey: (providerId: string, apiKey: string) => Promise<void>;
+  readonly saveOAuth: (providerId: string, credential: RigOAuthCredentials) => Promise<void>;
+  readonly deleteCredential: (providerId: string) => Promise<void>;
 }
 
 export interface RigLoginOAuthPaths {

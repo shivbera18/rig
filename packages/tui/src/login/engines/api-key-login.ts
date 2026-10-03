@@ -1,7 +1,8 @@
 /** API-key login engine (Step 2).
- * Ported line-for-line from OMP `oh-my-pi/packages/ai/src/registry/engine/api-key.ts`
- * (`createApiKeyLogin`) + `registry/api-key-validation.ts` probes, adapted to the
- * Rig login roster (`RigLoginProviderDef`) and dependency-free (global fetch).
+ * OMP `engine/api-key.ts` (`createApiKeyLogin`) semantics plus the
+ * `registry/api-key-validation.ts` probes, adapted to the Rig login roster
+ * (`RigLoginProviderDef`) and dependency-free (global fetch). Adds OMP's
+ * `optional`/`tolerate-model-denied` KDL validation flags.
  */
 
 import type { RigLoginProviderDef, RigLoginValidation } from "../provider-login-registry.js";

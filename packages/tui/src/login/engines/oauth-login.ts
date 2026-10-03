@@ -1,10 +1,11 @@
 /** OAuth authorization-code + device-code engines (Step 2).
  * Simplified generic port of OMP `engine/oauth-code.ts` + `engine/device-code.ts`:
  * same PKCE S256 / loopback-callback / device-poll semantics, driven by the
- * static `RigLoginProviderDef` table instead of compiled KDL. Provider-specific
- * extras (custom authorize params, token-body shapes, after-exchange hooks) are
- * intentionally NOT ported: each OAuth provider keeps a manual `hookId` row
- * until its exact exchange is verified against the live endpoint.
+ * static `RigLoginProviderDef` table instead of compiled KDL. Per-provider
+ * authorize params, client secrets aside, are transcribed into the table;
+ * provider-specific token-body shapes and after-exchange hooks are
+ * intentionally NOT ported: unwired OAuth providers keep pointing at
+ * manual setup until their exact exchange is verified live.
  */
 
 import { createServer } from "node:http";

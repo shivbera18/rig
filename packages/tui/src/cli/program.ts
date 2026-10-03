@@ -39,7 +39,7 @@ export interface CreateTuiProgramOptions {
   ) => Promise<void>;
   runAcp?: (lane?: string) => Promise<void>;
   runLogin: (region?: RigRegion, openBrowser?: boolean, lane?: string, provider?: string) => Promise<void>;
-  runLogout: (region?: RigRegion) => Promise<void>;
+  runLogout: (region?: RigRegion, provider?: string) => Promise<void>;
   runUpdate: () => Promise<void>;
   runProvider?: (request: RigProviderCliRequest, lane?: string) => Promise<void>;
   runPlugin?: (request: RigPluginCliRequest, lane?: string) => Promise<void>;
@@ -141,9 +141,12 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
   program
     .command('logout')
     .description('Sign out of the Rig account used by this CLI')
+    .argument('[provider]', 'provider id from the /login roster (default: Rig Token Plan)')
     .option('--region <region>', 'account region: cn or global', parseLoginRegion)
     .allowExcessArguments(false)
-    .action((commandOptions: { region?: RigRegion }) => options.runLogout(commandOptions.region));
+    .action((provider: string | undefined, commandOptions: { region?: RigRegion }) =>
+      options.runLogout(commandOptions.region, provider),
+    );
 
   program
     .command('update')

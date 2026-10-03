@@ -98,17 +98,19 @@ export function createPortCredentialWriter(
       if (providerId === "rig") {
         await port.upsertRigApiKey({ apiKey, saveAndUse: true });
       } else {
+        const def = getRigLoginProvider(providerId);
         const existing = await port.listUserModelProviders();
         const match = existing.find(
           (provider) =>
-            provider.providerId === `custom_provider:${providerId}` || provider.providerId === providerId,
+            provider.providerId === `custom_provider:${providerId}` ||
+            provider.providerId === providerId ||
+            (def?.name && provider.name === def.name),
         );
         if (match) {
           await port.updateUserModelProvider({ providerId: match.providerId, apiKey, saveAndUse: false });
         } else {
           const templates = (await options.listTemplates?.()) ?? [];
           const template = templates.find((candidate) => candidate.providerId === providerId);
-          const def = getRigLoginProvider(providerId);
           const name = template?.name ?? def?.name ?? providerId;
           const baseUrl = template?.baseUrl ?? deriveLoginBaseUrl(providerId, def);
           const apiFormat =
@@ -138,10 +140,13 @@ export function createPortCredentialWriter(
     },
     async deleteCredential(providerId: string): Promise<void> {
       if (providerId !== "rig") {
+        const def = getRigLoginProvider(providerId);
         const existing = await port.listUserModelProviders();
         const match = existing.find(
           (provider) =>
-            provider.providerId === `custom_provider:${providerId}` || provider.providerId === providerId,
+            provider.providerId === `custom_provider:${providerId}` ||
+            provider.providerId === providerId ||
+            (def?.name && provider.name === def.name),
         );
         if (match) await port.deleteUserModelProvider(match.providerId);
         try {

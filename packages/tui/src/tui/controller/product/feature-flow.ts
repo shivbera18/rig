@@ -70,7 +70,7 @@ import { isRuntimeErrorCode, isRuntimeMethodNotImplemented } from '../support.js
 import { resolveTuiThinkingChoice } from '../../features/model/thinking.js';
 import { RigProviderApplication } from '../../../provider/application.js';
 import type { RigCodexOAuthStatus, RigProviderTemplate } from '../../../provider/contract.js';
-import { getRigLoginProvider } from '../../../login/provider-login-registry.js';
+import { RIG_LOGIN_PROVIDERS, getRigLoginProvider } from '../../../login/provider-login-registry.js';
 import { runApiKeyLogin } from '../../../login/engines/api-key-login.js';
 import { RigPluginApplication } from '../../../plugin/application.js';
 import type { RigPluginRuntimeAccess, RigPluginView } from '../../../plugin/contract.js';
@@ -948,7 +948,11 @@ export class TuiFeatureFlow {
       onSetRigSource: (source) =>
         this.providerApplication.setRigSource(source).then(() => undefined),
       onLoginProvider: async ({ providerId, apiKey }) => {
-        const def = getRigLoginProvider(providerId);
+        const def =
+          getRigLoginProvider(providerId) ??
+          RIG_LOGIN_PROVIDERS.find(
+            (candidate) => candidate.name.toLowerCase() === providerId.toLowerCase(),
+          );
         const validated = def
           ? await runApiKeyLogin(def.kind === 'custom' ? { ...def, kind: 'api-key' } : def, {
               onPrompt: async () => apiKey,
@@ -962,7 +966,7 @@ export class TuiFeatureFlow {
             ? ('anthropic-messages' as const)
             : ('openai-completions' as const);
         await this.providerApplication.loginProvider({
-          providerId,
+          providerId: def?.id ?? providerId,
           apiKey: validated,
           ...(def?.name ? { name: def.name } : {}),
           ...(baseUrl ? { baseUrl } : {}),

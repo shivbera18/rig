@@ -15,6 +15,7 @@ import type {
   RigUpdateProviderInput,
 } from './contract.js';
 import { isModelProviderApiFormat } from './contract.js';
+import { getRigLoginProvider } from '../login/provider-login-registry.js';
 
 export class RigProviderApplication {
   constructor(private readonly port: RigProviderRuntimePort) {}
@@ -97,11 +98,14 @@ export class RigProviderApplication {
     if (providerId === 'rig' || providerId === 'rig_api') {
       await this.setRigApiKey(apiKey);
     } else {
+      const def = getRigLoginProvider(providerId);
       const existing = await this.port.listUserModelProviders();
       const match = existing.find(
         (provider) =>
           provider.providerId === `custom_provider:${providerId}` ||
-          provider.providerId === providerId,
+          provider.providerId === providerId ||
+          (def?.name && provider.name === def.name) ||
+          (input.name && provider.name === input.name),
       );
       if (match) {
         await this.port.updateUserModelProvider({

@@ -1199,6 +1199,20 @@ describe('Rig update install-source commands', () => {
     ]);
   });
 
+  it('prefers the node-adjacent npm.cmd when the owning runtime ships one', async () => {
+    const run = vi.fn(async () => '"1.2.4"');
+
+    await expect(
+      resolveLatestRigRegistryVersion('latest', {
+        platform: 'win32',
+        run,
+        distribution: resolveRigNpmDistribution('@shivcdhry/rig'),
+      }),
+    ).resolves.toBe('1.2.4');
+    const [executable] = run.mock.calls[0] ?? [];
+    expect(String(executable).toLowerCase().endsWith('npm.cmd')).toBe(true);
+  });
+
   it('uses installer-owned npm for a prefix installation registry lookup', async () => {
     const distribution = resolveRigNpmDistribution('@shivcdhry/rig');
     const run = vi.fn(async () => '"1.2.4"');

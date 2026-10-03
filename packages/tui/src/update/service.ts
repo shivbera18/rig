@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import spawn from 'cross-spawn';
 import { retryWindowsFileSystemOperation } from '@rig/shared';
@@ -340,13 +339,26 @@ async function defaultFetchBytes(
   }
 }
 
+function resolveAdjacentOrShimNpm(): string {
+  if (process.platform === 'win32') {
+    try {
+      const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
+      if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
+    } catch {
+      // Fall through to the PATH shim below.
+    }
+    return 'npm.cmd';
+  }
+  return 'npm';
+}
+
 async function defaultInstallArtifact(input: {
   artifact: string;
   prefix: string;
   registry: string;
   proxyEnvironment: NodeJS.ProcessEnv;
 }): Promise<void> {
-  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const npm = resolveAdjacentOrShimNpm();
   await runRigUpdateCommand(
     npm,
     [

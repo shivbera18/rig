@@ -6,6 +6,7 @@ import type { RigUpdateOperationOptions } from './progress.js';
 
 export const RIG_INTERNAL_NPM_REGISTRY = 'https://npmmirror.example.invalid/';
 export const RIG_PUBLIC_NPM_REGISTRY = 'https://registry.npmjs.org/';
+export const RIG_PUBLIC_NPM_MIRROR_REGISTRY = 'https://registry.npmmirror.com/';
 const REGISTRY_FETCH_TIMEOUT_MS = 30_000;
 const RIG_PACKAGE_BASENAME = 'rig';
 const RIG_INTERNAL_SCOPE = '@rig';
@@ -320,6 +321,7 @@ export async function resolveLatestRigRegistryVersion(
   const output = await run(npmExecutable, [
     'view',
     `${distribution.packageName}@${tag}`,
+    'version',
     '--json',
     '--registry',
     distribution.registry,

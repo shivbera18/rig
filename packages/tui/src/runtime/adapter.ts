@@ -62,6 +62,7 @@ import type {
   TuiSessionMcpServer,
   TuiSessionPage,
   TuiSessionUsage,
+  TuiShakeResult,
   TuiSkillList,
   TuiRuntime,
   TuiWorkspaceFileCandidate,
@@ -72,6 +73,7 @@ import type {
   WatchTuiSessionTurnOptions,
 } from "./port.js";
 import type { TuiPermissionMode } from "../application/permission-mode.js";
+import type { ShakeMode } from "../application/shake-modes.js";
 import { resolveTuiEffortChoice } from "../application/model-effort.js";
 import type { TuiObservability } from "../observability/index.js";
 import type { TuiTokenPlanAccountStatus } from "../account/matrix-account-client.js";
@@ -528,6 +530,13 @@ export class TuiRuntimeAdapter implements TuiRuntime {
       agentName,
       customInstructions,
     );
+  }
+  requestShake(
+    sessionId: string,
+    agentName?: string,
+    mode?: ShakeMode,
+  ): Promise<TuiShakeResult> {
+    return this.productAccess.requestShake(sessionId, agentName, mode);
   }
   getContextSnapshot(sessionId: string) {
     return this.productAccess.getContextSnapshot(sessionId);

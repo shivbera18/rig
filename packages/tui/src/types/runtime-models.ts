@@ -1,3 +1,5 @@
+import type { ShakeMode } from "../application/shake-modes.js";
+
 export interface TuiAttachmentView {
   meta?: {
     attachmentType?: string;
@@ -236,6 +238,20 @@ export interface TuiCompactionResult {
   messagesAfter?: number;
   tokensBefore?: number;
   tokensAfter?: number;
+  error?: string;
+  code?: string;
+}
+
+export interface TuiShakeResult {
+  success: boolean;
+  mode?: ShakeMode;
+  toolResultsDropped?: number;
+  blocksDropped?: number;
+  imagesDropped?: number;
+  thinkingBlocksDropped?: number;
+  tokensFreed?: number;
+  messagesBefore?: number;
+  messagesAfter?: number;
   error?: string;
   code?: string;
 }

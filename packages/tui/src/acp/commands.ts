@@ -1,8 +1,9 @@
 import * as acp from '@agentclientprotocol/sdk';
 
 import { TUI_COMMAND_DESCRIPTORS } from '../application/command-descriptors.js';
+import { formatShakeSummary, parseShakeMode } from '../application/shake-modes.js';
 import { sanitizeTerminalText } from '../tui/rendering/terminal-text.js';
-import type { TuiModel, TuiSkillList } from '../runtime/port.js';
+import type { TuiModel, TuiShakeResult, TuiSkillList } from '../runtime/port.js';
 import type { TuiAcpRuntime } from './runtime.js';
 
 export const TUI_ACP_AVAILABLE_COMMANDS = [
@@ -39,6 +40,10 @@ export const TUI_ACP_AVAILABLE_COMMANDS = [
   {
     ...TUI_COMMAND_DESCRIPTORS.compact,
     input: { hint: '[instructions]' },
+  },
+  {
+    ...TUI_COMMAND_DESCRIPTORS.shake,
+    input: { hint: '[elide|images|thinking]' },
   },
 ] satisfies readonly acp.AvailableCommand[];
 
@@ -88,6 +93,7 @@ export async function executeTuiAcpCommand(options: {
     | 'listModels'
     | 'listSkills'
     | 'requestCompaction'
+    | 'requestShake'
     | 'selectModel'
   >;
   readonly sessionId: string;
@@ -183,6 +189,21 @@ export async function executeTuiAcpCommand(options: {
       result.error ?? result.code ?? 'Runtime rejected the compaction request.',
     );
   }
+  if (command.name === 'shake') {
+    const parsed = parseShakeMode(command.input);
+    if (typeof parsed !== 'string') {
+      throw acp.RequestError.invalidParams(undefined, parsed.error);
+    }
+    const result = await options.runtime.requestShake(options.sessionId, options.agentName, parsed);
+    if (result.success) return { handled: true, output: formatShake(result) };
+    if (result.code === 'NOTHING_TO_SHAKE') {
+      return { handled: true, output: formatShake({ success: false, code: result.code, mode: parsed }) };
+    }
+    throw acp.RequestError.internalError(
+      undefined,
+      result.error ?? result.code ?? 'Runtime rejected the shake request.',
+    );
+  }
   if (command.name !== 'model') return { handled: false };
 
   const models = await options.runtime.listModels(options.sessionId);
@@ -213,6 +234,19 @@ function formatCompaction(result: Awaited<ReturnType<TuiAcpRuntime['requestCompa
       ? [`Tokens: ${formatInteger(result.tokensBefore)} → ${formatInteger(result.tokensAfter)}`]
       : []),
   ].join('\n');
+}
+
+function formatShake(result: TuiShakeResult): string {
+  return formatShakeSummary({
+    mode: result.mode ?? 'elide',
+    toolResultsDropped: result.toolResultsDropped ?? 0,
+    blocksDropped: result.blocksDropped ?? 0,
+    tokensFreed: result.tokensFreed ?? 0,
+    ...(result.imagesDropped !== undefined ? { imagesDropped: result.imagesDropped } : {}),
+    ...(result.thinkingBlocksDropped !== undefined
+      ? { thinkingBlocksDropped: result.thinkingBlocksDropped }
+      : {}),
+  });
 }
 
 function requireNoInput(command: { readonly input: string }, name: string): void {

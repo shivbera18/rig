@@ -276,6 +276,20 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
     unavailableReason: 'Start or resume a Session before compacting it.',
   },
   {
+    ...TUI_COMMAND_DESCRIPTORS.shake,
+    category: 'Session',
+    argumentHint: '[elide | images | thinking]',
+    discoverability: 'contextual',
+    runAvailability: 'idle',
+    visibleWhen: (context) => context.hasSession,
+    unavailableReason: 'Start or resume a Session before shaking it.',
+    getArgumentCompletions: argumentCompleter([
+      ['elide', 'Strip tool results + large blocks (default)'],
+      ['images', 'Strip image blocks'],
+      ['thinking', 'Drop all thinking blocks'],
+    ]),
+  },
+  {
     ...TUI_COMMAND_DESCRIPTORS.status,
     category: 'Runtime',
     readiness: 'controller',

@@ -17,8 +17,10 @@ import type {
   TuiRuntimeDiagnostics,
   TuiSessionUsage,
   TuiSessionUsageSummary,
+  TuiShakeResult,
   TuiSkillList,
 } from "../port.js";
+import type { ShakeMode } from "../../application/shake-modes.js";
 import type { TuiRuntimeAccessContext } from "./access-context.js";
 import type {
   RigCreateProviderInput,
@@ -313,6 +315,19 @@ export class TuiProductAccess {
         ? { tokensAfter: Number(response.tokensAfter) }
         : {}),
     };
+  }
+
+  async requestShake(
+    sessionId: string,
+    agentName = this.defaultAgentName,
+    mode?: ShakeMode,
+  ): Promise<TuiShakeResult> {
+    const response = await this.context.service("session.shake").requestShake({
+      name: agentName,
+      id: sessionId,
+      ...(mode ? { mode } : {}),
+    });
+    return response as TuiShakeResult;
   }
 
   async getContextSnapshot(

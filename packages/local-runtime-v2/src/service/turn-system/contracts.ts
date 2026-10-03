@@ -369,6 +369,39 @@ export type RequestCompactionResult =
     }
   | { readonly accepted: false; readonly reason: 'duplicate'; readonly turnId: string };
 
+export type ShakeMode = 'elide' | 'images' | 'thinking';
+
+export interface RequestShakeInput {
+  readonly sessionId: string;
+  readonly requestedTurnId?: string;
+  readonly candidateCreatedAtMs?: number;
+  readonly mode?: ShakeMode;
+  readonly onStarted?: () => Promise<void>;
+}
+
+export interface ShakeCompletedOutcome {
+  readonly status: 'completed';
+  readonly shakeId: string;
+  readonly mode: ShakeMode;
+  readonly toolResultsDropped: number;
+  readonly blocksDropped: number;
+  readonly imagesDropped: number;
+  readonly thinkingBlocksDropped: number;
+  readonly tokensFreed: number;
+  readonly messagesBefore: number;
+  readonly messagesAfter: number;
+}
+
+export type ShakeOutcome =
+  | ShakeCompletedOutcome
+  | { readonly status: 'unchanged'; readonly reason: 'nothing-to-shake' }
+  | { readonly status: 'failed'; readonly error: unknown };
+
+export type RequestShakeResult =
+  | { readonly accepted: true; readonly turnId: string; readonly outcome: ShakeOutcome }
+  | { readonly accepted: false; readonly reason: TurnAdmissionRejectionReason }
+  | { readonly accepted: false; readonly reason: 'duplicate'; readonly turnId: string };
+
 export interface SteerSessionInput extends TurnMessageSubmission {
   readonly createdAt?: number;
   readonly producerId: string;
@@ -520,6 +553,7 @@ export interface TurnService {
   steer(input: SteerSessionInput): Promise<SteerSessionResult>;
   abort(input: AbortTurnInput): Promise<AbortTurnResult>;
   requestCompaction(input: RequestCompactionInput): Promise<RequestCompactionResult>;
+  requestShake(input: RequestShakeInput): Promise<RequestShakeResult>;
   /** Explicit user command: wake FIFO Queue draining without resuming a persisted Turn. */
   dispatchSessionQueue(sessionId: string): Promise<QueueSteerDispatchResult>;
   /** Internal Queue mutation/release wake used by compatibility composition. */
@@ -553,7 +587,7 @@ export interface TurnSystemHostCapabilities {
 export interface TurnSystemSessionCapabilities {
   readonly canonicalHistory: Pick<
     SessionSystemCanonicalHistoryProvider,
-    'inspectActive' | 'append'
+    'inspectActive' | 'append' | 'read' | 'replace'
   >;
   readonly sessions: {
     readonly repository: {

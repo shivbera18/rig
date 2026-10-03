@@ -12,11 +12,16 @@ import type {
   DirectTurnSubmission,
   QueueTurnSubmission,
   RequestCompactionResult,
+  RequestShakeInput,
+  RequestShakeResult,
+  ShakeMode,
+  ShakeOutcome,
   TurnSubmissionPreparation,
   TurnSubmissionPreparationResult,
 } from '../contracts.js';
 import type {
   AcceptedAgentTurn,
+  AcceptedCompactionTurn,
   ExecutionCoordinator,
   TurnController,
   TurnExecutionService,
@@ -35,9 +40,14 @@ export interface TurnExecutionServiceOptions {
   readonly operations: Pick<SessionOperationGate, 'tryRun' | 'tryAcquireExclusive'>;
   readonly onInterruptSendReleased?: (sessionId: string) => Promise<void>;
   readonly sessions: Pick<TurnSessionCapabilities, 'has'>;
+  readonly shake: ShakeExecutor;
   readonly submissionPreparation?: TurnSubmissionPreparation;
   readonly nowMs?: () => number;
   readonly makeTurnId?: () => string;
+}
+
+export interface ShakeExecutor {
+  execute(input: { readonly sessionId: string; readonly mode: ShakeMode }): Promise<ShakeOutcome>;
 }
 
 /** Durable admission, in-process ownership, and AgentHost execution only. */
@@ -66,6 +76,19 @@ export function createTurnExecutionService(
     requestCompaction: async (input) => {
       const result = await options.operations.tryRun(input.sessionId, () =>
         beginCompaction(options, input, nowMs, makeTurnId),
+      );
+      if (!result.entered) return { accepted: false, reason: 'session-deleting' };
+      const handoff = result.value;
+      if (!handoff.accepted) return handoff;
+      return {
+        accepted: true,
+        turnId: handoff.turnId,
+        outcome: await handoff.run(),
+      };
+    },
+    requestShake: async (input) => {
+      const result = await options.operations.tryRun(input.sessionId, () =>
+        beginShake(options, input, nowMs, makeTurnId),
       );
       if (!result.entered) return { accepted: false, reason: 'session-deleting' };
       const handoff = result.value;
@@ -632,6 +655,65 @@ async function runCompaction(
   return options.coordinator.compact(compactionInput(turn, input));
 }
 
+type ShakeHandoff =
+  | Exclude<RequestShakeResult, { readonly accepted: true }>
+  | { readonly accepted: true; readonly turnId: string; readonly run: () => Promise<ShakeOutcome> };
+
+async function beginShake(
+  options: TurnExecutionServiceOptions,
+  input: RequestShakeInput,
+  nowMs: () => number,
+  makeTurnId: () => string,
+): Promise<ShakeHandoff> {
+  const unavailable = await sessionUnavailable(options, input.sessionId);
+  if (unavailable) return unavailable;
+  const turnId = input.requestedTurnId ?? makeTurnId();
+  const admitted = await options.repository.admit(
+    shakeAdmission(input, turnId, input.candidateCreatedAtMs ?? nowMs()),
+  );
+  if (admitted.status !== 'accepted') return rejection(admitted);
+  const admission = {
+    sessionId: input.sessionId,
+    turnId,
+    leaseId: admitted.leaseId,
+    acceptedSequence: admitted.acceptedSequence,
+    acceptedAtMs: admitted.acceptedAtMs,
+    busyReason: 'compaction' as const,
+  };
+  let turn;
+  try {
+    turn = options.controller.register(admission);
+  } catch (error) {
+    return {
+      accepted: true,
+      turnId,
+      run: async () => {
+        const failed = await options.coordinator.failAdmission({ admission, error });
+        return { status: 'failed', error: failed.completion } as ShakeOutcome;
+      },
+    };
+  }
+  return { accepted: true, turnId, run: () => runShake(options, input, turn) };
+}
+
+async function runShake(
+  options: TurnExecutionServiceOptions,
+  input: RequestShakeInput,
+  turn: AcceptedCompactionTurn,
+): Promise<ShakeOutcome> {
+  try {
+    await input.onStarted?.();
+  } catch {
+    // Delivery acknowledgement is observational and cannot strand an admitted shake lease.
+  }
+  try {
+    return await options.shake.execute({ sessionId: input.sessionId, mode: input.mode ?? 'elide' });
+  } finally {
+    options.controller.complete(turn);
+    await settleShakeLease(options, input.sessionId, turn.turnId, turn.leaseId);
+  }
+}
+
 async function sessionUnavailable(
   options: TurnExecutionServiceOptions,
   sessionId: string,
@@ -793,6 +875,31 @@ function compactionInput(
     ...(input.reason ? { reason: input.reason } : {}),
     ...(input.customInstructions ? { customInstructions: input.customInstructions } : {}),
   };
+}
+
+function shakeAdmission(input: RequestShakeInput, turnId: string, candidateCreatedAtMs: number): AdmitTurnInput {
+  return {
+    sessionId: input.sessionId,
+    turnId,
+    busyReason: 'compaction',
+    inputDigest: digestTurnInput({ text: `shake:${input.mode ?? 'elide'}`, origin: '' }),
+    inputMetadata: { attachmentCount: 0, hasContent: true },
+    candidateCreatedAtMs,
+    priority: { kind: 'fifo', candidateCreatedAtMs },
+  };
+}
+
+async function settleShakeLease(
+  options: TurnExecutionServiceOptions,
+  sessionId: string,
+  turnId: string,
+  leaseId: string,
+): Promise<void> {
+  try {
+    await options.repository.settle({ sessionId, turnId, leaseId, outcome: 'completed' });
+  } catch {
+    // Best-effort lease release; the write already landed or the lane will retry.
+  }
 }
 
 function hostRequest(input: TurnExecutionSubmission): AgentHostExecutionRequest {

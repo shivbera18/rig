@@ -131,19 +131,20 @@ export function createPortCredentialWriter(
       await writeProviderRecord(credentialPath, providerKey(providerId), stored);
     },
     async deleteCredential(providerId: string): Promise<void> {
-      if (providerId === "rig") return;
-      const existing = await port.listUserModelProviders();
-      const match = existing.find(
-        (provider) =>
-          provider.providerId === `custom_provider:${providerId}` || provider.providerId === providerId,
-      );
-      if (match) await port.deleteUserModelProvider(match.providerId);
-      try {
-        const dataDir = await options.prepareDataDir();
-        const { credentialPath } = resolveRigLoginOAuthPaths(dataDir);
-        await deleteProviderRecord(credentialPath, providerKey(providerId));
-      } catch {
-        // OAuth file is best-effort on logout; port deletion already ran.
+      if (providerId !== "rig") {
+        const existing = await port.listUserModelProviders();
+        const match = existing.find(
+          (provider) =>
+            provider.providerId === `custom_provider:${providerId}` || provider.providerId === providerId,
+        );
+        if (match) await port.deleteUserModelProvider(match.providerId);
+        try {
+          const dataDir = await options.prepareDataDir();
+          const { credentialPath } = resolveRigLoginOAuthPaths(dataDir);
+          await deleteProviderRecord(credentialPath, providerKey(providerId));
+        } catch {
+          // OAuth file is best-effort on logout; port deletion already ran.
+        }
       }
     },
   };

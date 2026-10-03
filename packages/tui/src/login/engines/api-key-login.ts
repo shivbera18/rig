@@ -38,13 +38,15 @@ export class RigApiKeyRequiredError extends Error {
 }
 
 export class RigApiKeyValidationError extends Error {
-  readonly code: string;
   readonly status: number;
-  constructor(message: string, status: number, code = "API_KEY_VALIDATION_FAILED") {
+  constructor(
+    message: string,
+    status: number,
+    readonly code = "API_KEY_VALIDATION_FAILED",
+  ) {
     super(message);
     this.name = "RigApiKeyValidationError";
     this.status = status;
-    this.code = code;
   }
 }
 

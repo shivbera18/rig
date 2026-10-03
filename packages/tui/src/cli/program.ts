@@ -38,7 +38,7 @@ export interface CreateTuiProgramOptions {
     lane?: string,
   ) => Promise<void>;
   runAcp?: (lane?: string) => Promise<void>;
-  runLogin: (region?: RigRegion, openBrowser?: boolean, lane?: string) => Promise<void>;
+  runLogin: (region?: RigRegion, openBrowser?: boolean, lane?: string, provider?: string) => Promise<void>;
   runLogout: (region?: RigRegion) => Promise<void>;
   runUpdate: () => Promise<void>;
   runProvider?: (request: RigProviderCliRequest, lane?: string) => Promise<void>;
@@ -115,25 +115,27 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
   acp
     .command('login')
     .description('Sign in to use Rig Agent features')
+    .argument('[provider]', 'provider id from the /login roster (default: Rig Token Plan)')
     .option('--region <region>', 'account region: cn or global', parseLoginRegion)
     .option('--no-browser', 'print the authorization URL without opening a browser')
     .allowExcessArguments(false)
-    .action((commandOptions: { region?: RigRegion; browser?: boolean }) =>
+    .action((provider: string | undefined, commandOptions: { region?: RigRegion; browser?: boolean }) =>
       activeLane
-        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane)
-        : options.runLogin(commandOptions.region, commandOptions.browser !== false),
+        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane, provider)
+        : options.runLogin(commandOptions.region, commandOptions.browser !== false, undefined, provider),
     );
 
   program
     .command('login')
     .description('Sign in to use Rig Agent features')
+    .argument('[provider]', 'provider id from the /login roster (default: Rig Token Plan)')
     .option('--region <region>', 'account region: cn or global', parseLoginRegion)
     .option('--no-browser', 'print the authorization URL without opening a browser')
     .allowExcessArguments(false)
-    .action((commandOptions: { region?: RigRegion; browser?: boolean }) =>
+    .action((provider: string | undefined, commandOptions: { region?: RigRegion; browser?: boolean }) =>
       activeLane
-        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane)
-        : options.runLogin(commandOptions.region, commandOptions.browser !== false),
+        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane, provider)
+        : options.runLogin(commandOptions.region, commandOptions.browser !== false, undefined, provider),
     );
 
   program

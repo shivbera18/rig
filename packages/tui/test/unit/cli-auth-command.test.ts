@@ -165,4 +165,24 @@ describe('Rig auth commands', () => {
       ),
     );
   });
+  it('rejects an unknown provider id with the roster error', async () => {
+    await expect(runTuiLogin({ provider: 'nope' })).rejects.toThrow(
+      "Unknown provider 'nope'. Run 'rig login' to pick one.",
+    );
+  });
+
+  it('stores an api-key provider login through the injected runner', async () => {
+    const runProviderLogin = vi.fn(async () => ({ message: 'Logged in to Together.' }));
+    await expect(
+      runTuiLogin({
+        provider: 'together',
+        runProviderLogin,
+        writeError: () => undefined,
+        writeOut: () => undefined,
+        openExternalTarget: async () => undefined,
+      }),
+    ).resolves.toBe('Logged in to Together.');
+    expect(runProviderLogin).toHaveBeenCalledOnce();
+    expect(runProviderLogin.mock.calls[0]?.[0]).toBe('together');
+  });
 });

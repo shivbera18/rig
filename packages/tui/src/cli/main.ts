@@ -55,6 +55,7 @@ export interface RunTuiCliDependencies {
     region?: RigRegion,
     openBrowser?: boolean,
     lane?: string,
+    provider?: string,
   ) => Promise<string>;
   readonly runLogout?: (region?: RigRegion) => Promise<string>;
   readonly runUpdate?: (version: string) => Promise<void>;
@@ -140,9 +141,9 @@ export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promi
         await runAcp(RIG_VERSION, lane);
         completedCommandExitMode = 'natural';
       },
-      runLogin: async (region, openBrowser, lane) => {
+      runLogin: async (region, openBrowser, lane, provider) => {
         const runLogin = dependencies.runLogin ?? defaultRunLogin;
-        processRef.stdout.write(`${await runLogin(region, openBrowser, lane)}\n`);
+        processRef.stdout.write(`${await runLogin(region, openBrowser, lane, provider)}\n`);
         completedCommandExitMode = 'natural';
       },
       runLogout: async (region) => {
@@ -269,9 +270,10 @@ async function defaultRunLogin(
   region?: RigRegion,
   openBrowser = true,
   lane?: string,
+  provider?: string,
 ): Promise<string> {
   const { runTuiLogin } = await import('./auth-command.js');
-  return runTuiLogin({ region, openBrowser, lane });
+  return runTuiLogin({ region, openBrowser, lane, ...(provider ? { provider } : {}) });
 }
 
 async function defaultRunLogout(region?: RigRegion): Promise<string> {

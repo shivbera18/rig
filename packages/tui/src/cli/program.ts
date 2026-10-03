@@ -38,8 +38,8 @@ export interface CreateTuiProgramOptions {
     lane?: string,
   ) => Promise<void>;
   runAcp?: (lane?: string) => Promise<void>;
-  runLogin: (region?: RigRegion, openBrowser?: boolean, lane?: string) => Promise<void>;
-  runLogout: (region?: RigRegion) => Promise<void>;
+  runLogin: (region?: RigRegion, openBrowser?: boolean, lane?: string, provider?: string) => Promise<void>;
+  runLogout: (region?: RigRegion, provider?: string) => Promise<void>;
   runUpdate: () => Promise<void>;
   runProvider?: (request: RigProviderCliRequest, lane?: string) => Promise<void>;
   runPlugin?: (request: RigPluginCliRequest, lane?: string) => Promise<void>;
@@ -115,33 +115,38 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
   acp
     .command('login')
     .description('Sign in to use Rig Agent features')
+    .argument('[provider]', 'provider id from the /login roster (default: Rig Token Plan)')
     .option('--region <region>', 'account region: cn or global', parseLoginRegion)
     .option('--no-browser', 'print the authorization URL without opening a browser')
     .allowExcessArguments(false)
-    .action((commandOptions: { region?: RigRegion; browser?: boolean }) =>
+    .action((provider: string | undefined, commandOptions: { region?: RigRegion; browser?: boolean }) =>
       activeLane
-        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane)
-        : options.runLogin(commandOptions.region, commandOptions.browser !== false),
+        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane, provider)
+        : options.runLogin(commandOptions.region, commandOptions.browser !== false, undefined, provider),
     );
 
   program
     .command('login')
     .description('Sign in to use Rig Agent features')
+    .argument('[provider]', 'provider id from the /login roster (default: Rig Token Plan)')
     .option('--region <region>', 'account region: cn or global', parseLoginRegion)
     .option('--no-browser', 'print the authorization URL without opening a browser')
     .allowExcessArguments(false)
-    .action((commandOptions: { region?: RigRegion; browser?: boolean }) =>
+    .action((provider: string | undefined, commandOptions: { region?: RigRegion; browser?: boolean }) =>
       activeLane
-        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane)
-        : options.runLogin(commandOptions.region, commandOptions.browser !== false),
+        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane, provider)
+        : options.runLogin(commandOptions.region, commandOptions.browser !== false, undefined, provider),
     );
 
   program
     .command('logout')
     .description('Sign out of the Rig account used by this CLI')
+    .argument('[provider]', 'provider id from the /login roster (default: Rig Token Plan)')
     .option('--region <region>', 'account region: cn or global', parseLoginRegion)
     .allowExcessArguments(false)
-    .action((commandOptions: { region?: RigRegion }) => options.runLogout(commandOptions.region));
+    .action((provider: string | undefined, commandOptions: { region?: RigRegion }) =>
+      options.runLogout(commandOptions.region, provider),
+    );
 
   program
     .command('update')

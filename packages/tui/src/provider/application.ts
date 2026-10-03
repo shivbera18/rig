@@ -15,6 +15,7 @@ import type {
   RigUpdateProviderInput,
 } from './contract.js';
 import { isModelProviderApiFormat } from './contract.js';
+import { getRigLoginProvider } from '../login/provider-login-registry.js';
 
 export class RigProviderApplication {
   constructor(private readonly port: RigProviderRuntimePort) {}
@@ -80,6 +81,59 @@ export class RigProviderApplication {
 
   async setRigApiKey(apiKey: string, saveAndUse = true): Promise<void> {
     await this.port.upsertRigApiKey({ apiKey, saveAndUse });
+  }
+
+  /** Step-5 roster login: validated api-key in, existing port writes out. */
+  async loginProvider(input: {
+    readonly providerId: string;
+    readonly apiKey: string;
+    readonly baseUrl?: string;
+    readonly apiFormat?: 'anthropic-messages' | 'openai-completions' | 'openai-responses';
+    readonly name?: string;
+  }): Promise<void> {
+    const providerId = input.providerId.trim();
+    const apiKey = input.apiKey.trim();
+    if (!providerId) throw new Error('Provider id is required.');
+    if (!apiKey) throw new Error('API key is required.');
+    if (providerId === 'rig' || providerId === 'rig_api') {
+      await this.setRigApiKey(apiKey);
+    } else {
+      const def = getRigLoginProvider(providerId);
+      const existing = await this.port.listUserModelProviders();
+      const match = existing.find(
+        (provider) =>
+          provider.providerId === `custom_provider:${providerId}` ||
+          provider.providerId === providerId ||
+          (def?.name && provider.name === def.name) ||
+          (input.name && provider.name === input.name),
+      );
+      if (match) {
+        await this.port.updateUserModelProvider({
+          providerId: match.providerId,
+          apiKey,
+          saveAndUse: false,
+        });
+      } else {
+        const templates = await this.port.listProviderPresets();
+        const template = templates.find((candidate) => candidate.providerId === providerId);
+        const baseUrl = template?.baseUrl ?? input.baseUrl;
+        if (!baseUrl) {
+          throw new Error(`No endpoint configured for provider '${providerId}'.`);
+        }
+        await this.port.createUserModelProvider({
+          ...(template
+            ? { name: template.name, baseUrl: template.baseUrl, apiFormat: template.apiFormat }
+            : {
+                ...(input.name ? { name: input.name } : {}),
+                baseUrl,
+                ...(input.apiFormat ? { apiFormat: input.apiFormat } : { apiFormat: 'openai-completions' as const }),
+              }),
+          apiKey,
+          models: [],
+          saveAndUse: false,
+        });
+      }
+    }
   }
 
   async create(input: RigCreateProviderInput): Promise<void> {

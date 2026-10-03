@@ -2379,7 +2379,7 @@ describe("createTuiApp", () => {
 
     await app.submit("/login");
     app.interaction.current()?.handleInput("\r");
-
+    app.interaction.current()?.handleInput("\r");
     expect(runtime.sendMessage).not.toHaveBeenCalled();
     app.editor.handleInput("\r");
     await vi.waitFor(() => expect(runtime.sendMessage).toHaveBeenCalledOnce());
@@ -2680,9 +2680,9 @@ describe("createTuiApp", () => {
     );
 
     await app.submit("/login");
+    app.interaction.current()?.handleInput("\r");
     app.interaction.current()?.handleInput("\u001b[B");
     app.interaction.current()?.handleInput("\r");
-
     await vi.waitFor(() => expect(auth.login).toHaveBeenCalledOnce());
     expect(auth.login).toHaveBeenCalledWith(expect.any(Function), "en");
     expect(runtime.sendMessage).not.toHaveBeenCalled();
@@ -5740,6 +5740,9 @@ describe("createTuiApp", () => {
     await app.submit("/login");
 
     expect(auth.login).not.toHaveBeenCalled();
+    expect(app.interaction.render(80).join("\n")).toContain("Choose login provider");
+    expect(app.interaction.render(80).join("\n")).toContain("Rig Token Plan");
+    app.interaction.current()?.handleInput("\r");
     expect(app.interaction.render(80).join("\n")).toContain("China (CN)");
     expect(app.interaction.render(80).join("\n")).toContain("Global");
     app.interaction.current()?.handleInput("\u001b[B");
@@ -5922,9 +5925,9 @@ describe("createTuiApp", () => {
     await app.ready;
     expect(app.tui.render(80).join("\n")).toContain("Sign in with /login");
     await app.submit("/login");
+    app.interaction.current()?.handleInput("\r");
     app.interaction.current()?.handleInput("\u001b[B");
     app.interaction.current()?.handleInput("\r");
-
     await vi.waitFor(() => expect(auth.login).toHaveBeenCalledOnce());
     expect(notifyAuthContextChanged).toHaveBeenCalledOnce();
     expect(notifyAuthContextChanged).toHaveBeenCalledWith("authenticated");

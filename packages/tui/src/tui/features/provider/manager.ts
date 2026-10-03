@@ -16,17 +16,17 @@ import type {
   RigSaveProviderCandidateInput,
   RigSaveProviderCandidateResult,
 } from '../../../provider/contract.js';
-import { TuiProviderEditor } from './editor.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 
 /**
  * `/provider` owns the independent Codex connect action and Rig credential
  * source. The Rig API Key can be replaced and OAuth can start a fresh
- * sign-in. Custom connections are edited through revision-checked candidate saves.
+ * sign-in. Custom rows sign in through the roster login engine.
  */
 type ProviderManagerMode =
   | { readonly kind: 'list' }
-  | { readonly kind: 'rig-key'; readonly replacing: boolean };
+  | { readonly kind: 'rig-key'; readonly replacing: boolean }
+  | { readonly kind: 'provider-login'; readonly providerId: string; readonly providerName: string };
 
 export interface TuiProviderManagerOptions {
   snapshot: RigProviderSnapshot;
@@ -39,12 +39,15 @@ export interface TuiProviderManagerOptions {
   onSetRigSource(source: 'token_plan' | 'rig_api_key'): Promise<void>;
   /** Starts the same sign-in flow as `/login`; absent when the host has no auth. */
   onReLogin?(): void;
+  onLoginProvider?(input: {
+    readonly providerId: string;
+    readonly apiKey: string;
+  }): Promise<void>;
   onCancel(): void;
   requestRender(): void;
 }
 
 export class TuiProviderManager implements Component, Focusable {
-  private editor?: TuiProviderEditor;
   private snapshotValue: RigProviderSnapshot;
   private selectedIndex = 0;
   private mode: ProviderManagerMode = { kind: 'list' };
@@ -58,7 +61,7 @@ export class TuiProviderManager implements Component, Focusable {
     this.snapshotValue = options.snapshot;
     const activeIndex = this.providers().findIndex((provider) => provider.active);
     this.selectedIndex = Math.max(0, activeIndex);
-    this.secretInput.onSubmit = (value) => this.submitRigKey(value);
+    this.secretInput.onSubmit = (value) => this.submitSecret(value);
     this.secretInput.onEscape = () => this.exitMode();
   }
 
@@ -73,11 +76,7 @@ export class TuiProviderManager implements Component, Focusable {
 
   handleInput(data: string): void {
     if (this.busy || this.disposed) return;
-    if (this.editor) {
-      this.editor.handleInput(data);
-      return;
-    }
-    if (this.mode.kind === 'rig-key') {
+    if (this.mode.kind === 'rig-key' || this.mode.kind === 'provider-login') {
       this.secretInput.handleInput(data);
       this.requestRender();
       return;
@@ -107,12 +106,10 @@ export class TuiProviderManager implements Component, Focusable {
 
   invalidate(): void {
     this.secretInput.invalidate();
-    this.editor?.invalidate();
   }
 
   dispose(): void {
     this.disposed = true;
-    this.editor?.dispose();
     this.secretInput.focused = false;
     this.secretInput.setValue('');
   }
@@ -120,11 +117,12 @@ export class TuiProviderManager implements Component, Focusable {
   render(width: number): string[] {
     const safeWidth = Math.max(0, width);
     if (safeWidth === 0) return [];
-    if (this.editor) return this.editor.render(safeWidth);
     const lines =
       this.mode.kind === 'rig-key'
         ? this.renderRigKey(safeWidth)
-        : this.renderList(safeWidth);
+        : this.mode.kind === 'provider-login'
+          ? this.renderProviderLogin(safeWidth)
+          : this.renderList(safeWidth);
     return lines.map((line) => truncateToWidth(line, safeWidth, chalk.hex(colors.dim)('…')));
   }
 
@@ -227,6 +225,24 @@ export class TuiProviderManager implements Component, Focusable {
     ];
   }
 
+  private renderProviderLogin(width: number): string[] {
+    const name = this.mode.kind === 'provider-login' ? this.mode.providerName : 'Provider';
+    return [
+      frameTop(width),
+      frameRow(chalk.bold.hex(colors.signal)(`Sign in to ${sanitizeTerminalText(name)}`), width),
+      frameRow(
+        chalk.hex(colors.muted)('Paste the API key. It is validated before anything is saved.'),
+        width,
+      ),
+      frameDivider(width),
+      frameRow(this.secretInput.render(Math.max(1, width - 8))[0] ?? '', width),
+      ...(this.status ? [frameRow(chalk.hex(colors.error)(`! ${this.status.text}`), width)] : []),
+      frameDivider(width),
+      frameRow(renderTuiActionHint('Enter save · Esc cancel'), width),
+      frameBottom(width),
+    ];
+  }
+
   private providers(): readonly RigProviderView[] {
     return this.snapshotValue.providers;
   }
@@ -269,7 +285,7 @@ export class TuiProviderManager implements Component, Focusable {
     });
   }
 
-  /** Custom rows open an editor; selecting them never silently changes credentials. */
+  /** Custom rows sign in through the roster engine; selecting them never silently changes credentials. */
   private async useSelected(): Promise<void> {
     const provider = this.selectedProvider();
     if (!provider) return;
@@ -289,13 +305,13 @@ export class TuiProviderManager implements Component, Focusable {
       await this.setRigSource('rig_api_key');
       return;
     }
-    this.editSelected();
+    this.startProviderLogin(provider);
   }
 
   /**
-   * `e` edits the credential behind the highlighted Rig row. OAuth has no
-   * local secret to type, so it hands off to the same sign-in flow as
-   * `/login`; the API Key row opens the masked input, replacing any saved key.
+   * `e` on a custom row opens the roster key prompt (validated engine +
+   * existing port writes). Read-only rows without a login path keep the
+   * informational message.
    */
   private editSelected(): void {
     const provider = this.selectedProvider();
@@ -316,42 +332,26 @@ export class TuiProviderManager implements Component, Focusable {
       this.setStatus('Use Enter or Space on the Codex row to start sign-in.', 'info');
       return;
     }
-    if (provider.readOnly || !this.options.onSaveCustom) {
-      this.setStatus('This connection cannot be edited in this host.', 'info');
-      return;
-    }
-    if (!provider.configRevision || !provider.baseUrl) {
-      this.setStatus('Connection details are stale. Reopen /provider.', 'error');
-      return;
-    }
-    this.editor = new TuiProviderEditor({
-      provider,
-      onSave: this.options.onSaveCustom,
-      onSaved: (keyChanged) => {
-        this.closeEditor();
-        void this.perform(
-          () =>
-            this.refresh(
-              keyChanged
-                ? 'Connection saved. All its models now use the new API Key.'
-                : 'Connection changes saved.',
-            ),
-          {
-            summary: 'Connection saved, but the list could not refresh.',
-            nextStep: 'Reopen /provider.',
-          },
-        );
-      },
-      onCancel: () => this.closeEditor(),
-      requestRender: () => this.requestRender(),
-    });
-    this.syncFocus();
-    this.requestRender();
+    this.startProviderLogin(provider);
   }
 
-  private closeEditor(): void {
-    this.editor?.dispose();
-    this.editor = undefined;
+  private startProviderLogin(provider: RigProviderView): void {
+    if (!this.options.onLoginProvider) {
+      if (provider.readOnly || !this.options.onSaveCustom) {
+        this.setStatus('This connection cannot be edited in this host.', 'info');
+        return;
+      }
+      this.setStatus('Provider sign-in is unavailable in this host.', 'error');
+      return;
+    }
+    this.mode = {
+      kind: 'provider-login',
+      providerId: provider.providerId.replace(/^custom_provider:/, ''),
+      providerName: provider.name,
+    };
+    this.status = undefined;
+    this.secretInput.setValue('');
+    this.secretInput.moveCursorToEnd();
     this.syncFocus();
     this.requestRender();
   }
@@ -378,6 +378,14 @@ export class TuiProviderManager implements Component, Focusable {
     this.requestRender();
   }
 
+  private submitSecret(value: string): void {
+    if (this.mode.kind === 'provider-login') {
+      void this.submitProviderLogin(value);
+      return;
+    }
+    this.submitRigKey(value);
+  }
+
   private submitRigKey(value: string): void {
     if (this.mode.kind !== 'rig-key') return;
     const replacing = this.mode.replacing;
@@ -396,6 +404,34 @@ export class TuiProviderManager implements Component, Focusable {
       if (this.disposed) return;
       this.mode = { kind: 'list' };
     });
+  }
+
+  private async submitProviderLogin(value: string): Promise<void> {
+    if (this.mode.kind !== 'provider-login') return;
+    const { providerId, providerName } = this.mode;
+    if (!value.trim()) {
+      this.setStatus('API key is required.', 'error');
+      return;
+    }
+    if (!this.options.onLoginProvider) {
+      this.setStatus('Provider sign-in is unavailable in this host.', 'error');
+      return;
+    }
+    const apiKey = value.trim();
+    this.secretInput.setValue('');
+    await this.perform(
+      async () => {
+        await this.options.onLoginProvider?.({ providerId, apiKey });
+        if (this.disposed) return;
+        await this.refresh(`${providerName} signed in.`);
+        if (this.disposed) return;
+        this.mode = { kind: 'list' };
+      },
+      {
+        summary: `${providerName} sign-in failed. Nothing was saved.`,
+        nextStep: 'Check the key, then retry.',
+      },
+    );
   }
 
   private async testSelected(): Promise<void> {
@@ -485,8 +521,8 @@ export class TuiProviderManager implements Component, Focusable {
   }
 
   private syncFocus(): void {
-    this.secretInput.focused = this._focused && this.mode.kind === 'rig-key' && !this.editor;
-    if (this.editor) this.editor.focused = this._focused;
+    this.secretInput.focused =
+      this._focused && (this.mode.kind === 'rig-key' || this.mode.kind === 'provider-login');
   }
 
   private requestRender(): void {

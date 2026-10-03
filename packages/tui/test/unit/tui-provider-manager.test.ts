@@ -317,20 +317,17 @@ describe("TuiProviderManager", () => {
     );
   });
 
-  it("explains when a host does not support editing a custom row", () => {
-    const onReLogin = vi.fn();
+  it("opens the roster sign-in prompt for a custom row", () => {
+    const onLoginProvider = vi.fn(async () => undefined);
     const onSetRigApiKey = vi.fn(async () => undefined);
-    const manager = createManager({ onReLogin, onSetRigApiKey });
+    const manager = createManager({ onLoginProvider, onSetRigApiKey });
 
     manager.handleInput("\u001b[B");
     manager.handleInput("\u001b[B");
     manager.handleInput("e");
-
-    expect(onReLogin).not.toHaveBeenCalled();
+    expect(stripAnsi(manager.render(84).join("\n"))).toContain("Sign in to OpenAI");
+    expect(onLoginProvider).not.toHaveBeenCalled();
     expect(onSetRigApiKey).not.toHaveBeenCalled();
-    expect(stripAnsi(manager.render(84).join("\n"))).toContain(
-      "This connection cannot be edited in this host.",
-    );
   });
 
   it("never marks a custom provider as the in-use source", () => {
@@ -395,18 +392,14 @@ describe("TuiProviderManager", () => {
     expect(rendered).not.toContain("fragment-secret");
   });
 
-  it("keeps custom rows informational instead of toggling them", async () => {
+  it("keeps the read-only message when no roster login is wired", async () => {
     const onRefresh = vi.fn(async () => snapshot);
     const manager = createManager({ onRefresh });
-
     manager.handleInput("\u001b[B");
     manager.handleInput("\u001b[B");
     manager.handleInput(" ");
-
-    await vi.waitFor(() =>
-      expect(stripAnsi(manager.render(84).join("\n"))).toContain(
-        "This connection cannot be edited in this host.",
-      ),
+    expect(stripAnsi(manager.render(84).join("\n"))).toContain(
+      "This connection cannot be edited in this host.",
     );
     expect(onRefresh).not.toHaveBeenCalled();
   });
@@ -477,35 +470,22 @@ describe("TuiProviderManager", () => {
   });
 });
 
-it("opens the custom editor and keeps the provider ID and revision when replacing a Key", async () => {
+it("signs a custom row in through the roster login and masks the key", async () => {
+  const onLoginProvider = vi.fn(async () => undefined);
   const onSaveCustom = vi.fn(async () => ({ success: true }));
-  const manager = createManager({ onSaveCustom });
+  const manager = createManager({ onLoginProvider, onSaveCustom });
   manager.handleInput("\u001b[B");
   manager.handleInput("\u001b[B");
   manager.handleInput("e");
-  expect(stripAnsi(manager.render(100).join("\n"))).toContain("Edit OpenAI");
-  manager.handleInput("\r");
+  expect(stripAnsi(manager.render(100).join("\n"))).toContain("Sign in to OpenAI");
   manager.handleInput("replacement-secret");
   manager.handleInput("\r");
-  expect(stripAnsi(manager.render(100).join("\n"))).not.toContain(
-    "replacement-secret",
+  await vi.waitFor(() => expect(onLoginProvider).toHaveBeenCalledOnce());
+  expect(onLoginProvider).toHaveBeenCalledWith(
+    expect.objectContaining({ providerId: "openai", apiKey: "replacement-secret" }),
   );
-  for (let i = 0; i < 4; i++) manager.handleInput("\u001b[B");
-  manager.handleInput("\r");
-  await vi.waitFor(() => expect(onSaveCustom).toHaveBeenCalledOnce());
-  expect(onSaveCustom).toHaveBeenCalledWith(
-    expect.objectContaining({
-      providerId: "custom_provider:openai",
-      expectedRevision: "rev-1",
-      apiKey: "replacement-secret",
-      saveAndUse: false,
-    }),
-  );
-  await vi.waitFor(() =>
-    expect(stripAnsi(manager.render(110).join("\n"))).toContain(
-      "All its models now use the new API Key.",
-    ),
-  );
+  expect(onSaveCustom).not.toHaveBeenCalled();
+  expect(stripAnsi(manager.render(100).join("\n"))).not.toContain("replacement-secret");
 });
 
 it("refreshes the selected provider once and reports new models", async () => {

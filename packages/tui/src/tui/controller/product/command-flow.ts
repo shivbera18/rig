@@ -9,6 +9,7 @@ import {
 } from '../../commands/catalog.js';
 import type { TuiComposerDraft } from '../../features/composer/draft.js';
 import type { TuiWorkspaceRoots } from '../../features/composer/workspace-roots.js';
+import { TuiLoginProviderPicker } from '../../features/auth/login-provider-picker.js';
 import { TuiLoginRegionPicker } from '../../features/auth/login-region-picker.js';
 import { TuiPermissionModePicker } from '../../features/interaction/permission-mode-picker.js';
 import { TuiSettingsPicker } from '../../features/settings/picker.js';
@@ -162,6 +163,7 @@ type SubmissionReadinessContext = {
 export class TuiCommandFlow {
   readonly catalog: TuiCommandCatalog;
   private preparationTail: Promise<void> = Promise.resolve();
+  private loginProviderPicker: TuiLoginProviderPicker | undefined;
   private loginRegionPicker: TuiLoginRegionPicker | undefined;
   private pendingLoginContinuation: 'checkin' | undefined;
   private permissionModePicker: TuiPermissionModePicker | undefined;
@@ -1269,7 +1271,7 @@ export class TuiCommandFlow {
       },
       login: () => {
         this.pendingLoginContinuation = undefined;
-        this.showLoginRegionPicker();
+        this.showLoginProviderPicker();
       },
       logout: () => this.runAuthCommand('logout'),
       doctor: async () => this.options.featureFlow.showConfigurationInspection(false),
@@ -1515,12 +1517,39 @@ export class TuiCommandFlow {
 
   /**
    * Entry point for surfaces outside the command catalog — currently the
-   * `/provider` OAuth row — so sign-in always runs the same region picker and
-   * auth command as `/login`.
+   * `/provider` OAuth row — so sign-in always runs the same provider picker
+   * and login path as `/login`. Selecting `rig` shows the region picker then
+   * the unchanged device flow; any other provider runs its roster engine.
    */
   startRigLogin(): void {
     this.pendingLoginContinuation = undefined;
-    this.showLoginRegionPicker();
+    this.showLoginProviderPicker();
+  }
+
+  private showLoginProviderPicker(): void {
+    if (this.loginProviderPicker) this.options.surface.close(this.loginProviderPicker);
+    const picker = new TuiLoginProviderPicker(
+      (def) => {
+        if (this.loginProviderPicker !== picker) return;
+        this.options.surface.close(picker);
+        this.loginProviderPicker = undefined;
+        if (def.id === 'rig') {
+          this.showLoginRegionPicker();
+          return;
+        }
+        this.options.append(
+          `Provider login for ${def.name} runs in the terminal: run \`rig login ${def.id}\`.`,
+        );
+        this.options.onChanged();
+      },
+      () => {
+        this.options.surface.close(picker);
+        if (this.loginProviderPicker === picker) this.loginProviderPicker = undefined;
+        this.pendingLoginContinuation = undefined;
+      },
+    );
+    this.loginProviderPicker = picker;
+    this.options.surface.show(picker);
   }
 
   private showLoginRegionPicker(): void {

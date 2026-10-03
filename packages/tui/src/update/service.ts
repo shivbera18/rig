@@ -340,13 +340,28 @@ async function defaultFetchBytes(
   }
 }
 
-function resolveAdjacentOrShimNpm(): string {
+function resolveAdjacentOrShimNpm(environment: NodeJS.ProcessEnv = process.env): string {
   if (process.platform === 'win32') {
     try {
       const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
       if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
     } catch {
-      // Fall through to the PATH shim below.
+      // Fall through below: the wrapper-root npm.cmd on PATH (test) wins
+      // over a bare name, which cross-spawn cannot resolve there.
+    }
+    for (const key of Object.keys(environment)) {
+      if (key.toLowerCase() !== 'path') continue;
+      const entry = String(environment[key] ?? '')
+        .split(path.delimiter)
+        .map((part) => path.join(part, 'npm.cmd'))
+        .find((candidate) => {
+          try {
+            return existsSync(candidate) && statSync(candidate).isFile();
+          } catch {
+            return false;
+          }
+        });
+      if (entry) return entry;
     }
     return 'npm.cmd';
   }
@@ -359,7 +374,7 @@ async function defaultInstallArtifact(input: {
   registry: string;
   proxyEnvironment: NodeJS.ProcessEnv;
 }): Promise<void> {
-  const npm = resolveAdjacentOrShimNpm();
+  const npm = resolveAdjacentOrShimNpm(input.proxyEnvironment);
   await runRigUpdateCommand(
     npm,
     [

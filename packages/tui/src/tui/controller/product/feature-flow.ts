@@ -70,10 +70,9 @@ import { isRuntimeErrorCode, isRuntimeMethodNotImplemented } from '../support.js
 import { resolveTuiThinkingChoice } from '../../features/model/thinking.js';
 import { RigProviderApplication } from '../../../provider/application.js';
 import type { RigCodexOAuthStatus, RigProviderTemplate } from '../../../provider/contract.js';
+import { getRigLoginProvider } from '../../../login/provider-login-registry.js';
+import { runApiKeyLogin } from '../../../login/engines/api-key-login.js';
 import { RigPluginApplication } from '../../../plugin/application.js';
-import type { RigPluginRuntimeAccess, RigPluginView } from '../../../plugin/contract.js';
-import { formatTuiActionFailure } from '../../../user-facing-failure.js';
-import type { TuiTranscriptExporter } from '../../../host/transcript-export.js';
 import { TuiSessionForkFlow } from '../session-fork-flow.js';
 import { hyperlink } from '../../engine/public.js';
 import { sanitizeTerminalText } from '../../rendering/terminal-text.js';
@@ -945,6 +944,17 @@ export class TuiFeatureFlow {
       onSetRigApiKey: (apiKey) => this.providerApplication.setRigApiKey(apiKey),
       onSetRigSource: (source) =>
         this.providerApplication.setRigSource(source).then(() => undefined),
+      onLoginProvider: async ({ providerId, apiKey }) => {
+        const def = getRigLoginProvider(providerId);
+        const validated = def
+          ? await runApiKeyLogin(def.kind === 'custom' ? { ...def, kind: 'api-key' } : def, {
+              onPrompt: async () => apiKey,
+            })
+          : apiKey.trim();
+        await this.providerApplication.loginProvider({ providerId, apiKey: validated });
+        await this.modelState.refresh();
+        this.options.controller.refreshStatusMetricsNow();
+      },
       ...(this.options.onStartRigLogin
         ? {
             // Sign-in takes over the surface, so the panel closes first and the

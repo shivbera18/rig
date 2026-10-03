@@ -82,6 +82,52 @@ export class RigProviderApplication {
     await this.port.upsertRigApiKey({ apiKey, saveAndUse });
   }
 
+  /** Step-5 roster login: validated api-key in, existing port writes out. */
+  async loginProvider(input: {
+    readonly providerId: string;
+    readonly apiKey: string;
+    readonly baseUrl?: string;
+    readonly apiFormat?: 'anthropic-messages' | 'openai-completions' | 'openai-responses';
+    readonly name?: string;
+  }): Promise<void> {
+    const providerId = input.providerId.trim();
+    const apiKey = input.apiKey.trim();
+    if (!providerId) throw new Error('Provider id is required.');
+    if (!apiKey) throw new Error('API key is required.');
+    if (providerId === 'rig' || providerId === 'rig_api') {
+      await this.setRigApiKey(apiKey);
+      return;
+    }
+    const existing = await this.port.listUserModelProviders();
+    const match = existing.find(
+      (provider) =>
+        provider.providerId === `custom_provider:${providerId}` ||
+        provider.providerId === providerId,
+    );
+    if (match) {
+      await this.port.updateUserModelProvider({
+        providerId: match.providerId,
+        apiKey,
+        saveAndUse: false,
+      });
+      return;
+    }
+    const templates = await this.port.listProviderPresets();
+    const template = templates.find((candidate) => candidate.providerId === providerId);
+    await this.port.createUserModelProvider({
+      ...(template
+        ? { name: template.name, baseUrl: template.baseUrl, apiFormat: template.apiFormat }
+        : {
+            ...(input.name ? { name: input.name } : {}),
+            ...(input.baseUrl ? { baseUrl: input.baseUrl } : {}),
+            ...(input.apiFormat ? { apiFormat: input.apiFormat } : {}),
+          }),
+      apiKey,
+      models: [],
+      saveAndUse: false,
+    });
+  }
+
   async create(input: RigCreateProviderInput): Promise<void> {
     await this.port.createUserModelProvider(input);
   }

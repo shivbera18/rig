@@ -10,6 +10,7 @@ import {
 import type { TuiComposerDraft } from '../../features/composer/draft.js';
 import type { TuiWorkspaceRoots } from '../../features/composer/workspace-roots.js';
 import { TuiLoginProviderPicker } from '../../features/auth/login-provider-picker.js';
+import { TuiLoginRegionPicker } from '../../features/auth/login-region-picker.js';
 import { TuiPermissionModePicker } from '../../features/interaction/permission-mode-picker.js';
 import { TuiSettingsPicker } from '../../features/settings/picker.js';
 import { TuiHotkeysPicker } from '../../features/settings/hotkeys-picker.js';
@@ -163,6 +164,7 @@ export class TuiCommandFlow {
   readonly catalog: TuiCommandCatalog;
   private preparationTail: Promise<void> = Promise.resolve();
   private loginProviderPicker: TuiLoginProviderPicker | undefined;
+  private loginRegionPicker: TuiLoginRegionPicker | undefined;
   private pendingLoginContinuation: 'checkin' | undefined;
   private permissionModePicker: TuiPermissionModePicker | undefined;
   private settingsPicker: TuiSettingsPicker | undefined;

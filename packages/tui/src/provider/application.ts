@@ -112,13 +112,17 @@ export class RigProviderApplication {
       } else {
         const templates = await this.port.listProviderPresets();
         const template = templates.find((candidate) => candidate.providerId === providerId);
+        const baseUrl = template?.baseUrl ?? input.baseUrl;
+        if (!baseUrl) {
+          throw new Error(`No endpoint configured for provider '${providerId}'.`);
+        }
         await this.port.createUserModelProvider({
           ...(template
             ? { name: template.name, baseUrl: template.baseUrl, apiFormat: template.apiFormat }
             : {
                 ...(input.name ? { name: input.name } : {}),
-                ...(input.baseUrl ? { baseUrl: input.baseUrl } : {}),
-                ...(input.apiFormat ? { apiFormat: input.apiFormat } : {}),
+                baseUrl,
+                ...(input.apiFormat ? { apiFormat: input.apiFormat } : { apiFormat: 'openai-completions' as const }),
               }),
           apiKey,
           models: [],

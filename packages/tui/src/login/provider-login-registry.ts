@@ -36,6 +36,8 @@ export interface RigLoginProviderDef {
   readonly authorizeParams?: Record<string, string>;
   readonly scopes?: readonly string[];
   readonly clientId?: string;
+  readonly portFallback?: boolean;
+  readonly manualOnly?: boolean;
   readonly hookId?: string;
 }
 

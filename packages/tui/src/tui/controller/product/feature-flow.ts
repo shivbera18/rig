@@ -73,6 +73,9 @@ import type { RigCodexOAuthStatus, RigProviderTemplate } from '../../../provider
 import { getRigLoginProvider } from '../../../login/provider-login-registry.js';
 import { runApiKeyLogin } from '../../../login/engines/api-key-login.js';
 import { RigPluginApplication } from '../../../plugin/application.js';
+import type { RigPluginRuntimeAccess, RigPluginView } from '../../../plugin/contract.js';
+import { formatTuiActionFailure } from '../../../user-facing-failure.js';
+import type { TuiTranscriptExporter } from '../../../host/transcript-export.js';
 import { TuiSessionForkFlow } from '../session-fork-flow.js';
 import { hyperlink } from '../../engine/public.js';
 import { sanitizeTerminalText } from '../../rendering/terminal-text.js';

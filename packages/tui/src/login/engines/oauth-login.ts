@@ -9,6 +9,7 @@
  */
 
 import { createServer } from "node:http";
+import { generatePKCE } from "./pkce.js";
 import type { RigLoginController } from "./api-key-login.js";
 import { RigLoginCancelledError } from "./api-key-login.js";
 import type { RigLoginProviderDef } from "../provider-login-registry.js";
@@ -163,9 +164,12 @@ async function exchangeOAuthCode(
         : `${def.name} token exchange returned an empty response`,
     );
   }
-  const access = tokenBody["access_token"];
-  const refresh = tokenBody["refresh_token"];
-  const expiresIn = tokenBody["expires_in"];
+  const access: unknown = tokenBody["access_token"];
+  if (typeof access !== "string" || !access) {
+    throw new Error(`${def.name} token exchange returned no access token`);
+  }
+  const refresh: unknown = tokenBody["refresh_token"];
+  const expiresIn: unknown = tokenBody["expires_in"];
   return {
     access,
     refresh: typeof refresh === "string" ? refresh : "",
@@ -343,6 +347,7 @@ export async function runDeviceCodeLogin(
   const userCode = device["user_code"];
   const deviceCode = device["device_code"];
   const verificationUri = device["verification_uri"];
+  const verificationUriComplete = device["verification_uri_complete"];
   if (typeof userCode !== "string" || !userCode || typeof deviceCode !== "string" || !deviceCode) {
     throw new Error(`${def.name} device authorization returned an invalid response`);
   }

@@ -954,7 +954,20 @@ export class TuiFeatureFlow {
               onPrompt: async () => apiKey,
             })
           : apiKey.trim();
-        await this.providerApplication.loginProvider({ providerId, apiKey: validated });
+        const baseUrl =
+          def?.validate?.baseUrl ??
+          (def?.validate?.url ? def.validate.url.replace(/\/models(?:\?.*)?$/, '') : undefined);
+        const apiFormat =
+          def?.validate?.kind === 'anthropic-messages'
+            ? ('anthropic-messages' as const)
+            : ('openai-completions' as const);
+        await this.providerApplication.loginProvider({
+          providerId,
+          apiKey: validated,
+          ...(def?.name ? { name: def.name } : {}),
+          ...(baseUrl ? { baseUrl } : {}),
+          apiFormat,
+        });
         await this.modelState.refresh();
         this.options.controller.refreshStatusMetricsNow();
       },

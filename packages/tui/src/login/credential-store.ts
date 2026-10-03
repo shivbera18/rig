@@ -10,7 +10,7 @@ import { dirname, join, resolve } from "node:path";
 import { chmod, mkdir, open, readFile, rename, unlink, writeFile } from "node:fs/promises";
 
 import type { RigProviderRuntimePort } from "../provider/contract.js";
-import type { RigLoginProviderDef } from "./provider-login-registry.js";
+import { getRigLoginProvider, type RigLoginProviderDef } from "./provider-login-registry.js";
 import type { RigOAuthCredentials } from "./engines/oauth-login.js";
 
 async function ensurePrivateDirectory(directory: string): Promise<void> {
@@ -108,10 +108,16 @@ export function createPortCredentialWriter(
         } else {
           const templates = (await options.listTemplates?.()) ?? [];
           const template = templates.find((candidate) => candidate.providerId === providerId);
+          const def = getRigLoginProvider(providerId);
+          const name = template?.name ?? def?.name ?? providerId;
+          const baseUrl = template?.baseUrl ?? deriveLoginBaseUrl(providerId, def);
+          const apiFormat =
+            template?.apiFormat ??
+            (def?.validate?.kind === "anthropic-messages" ? "anthropic-messages" : "openai-completions");
           await port.createUserModelProvider({
-            ...(template
-              ? { name: template.name, baseUrl: template.baseUrl, apiFormat: template.apiFormat }
-              : { baseUrl: deriveLoginBaseUrl(providerId), apiFormat: "openai-completions" as const }),
+            name,
+            baseUrl,
+            apiFormat,
             apiKey,
             models: [],
             saveAndUse: false,
@@ -161,7 +167,11 @@ export function formatLoginIdentity(
   return org;
 }
 
-function deriveLoginBaseUrl(providerId: string): string {
+function deriveLoginBaseUrl(providerId: string, def?: RigLoginProviderDef): string {
+  if (def?.validate?.baseUrl) return def.validate.baseUrl;
+  if (def?.validate?.url) {
+    return def.validate.url.replace(/\/models(?:\?.*)?$/, "");
+  }
   return `https://${providerId}.example.invalid/v1`;
 }
 

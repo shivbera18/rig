@@ -1234,6 +1234,10 @@ export class TuiCommandFlow {
         this.runLoginProtectedAction(() =>
           this.options.featureFlow.compactSession(args, this.hasLiveRun()),
         ),
+      shake: async ({ args }) =>
+        this.runLoginProtectedAction(() =>
+          this.options.featureFlow.shakeSession(args, this.hasLiveRun()),
+        ),
       status: () => this.options.featureFlow.showAccountStatus(),
       tasks: async () => {
         if (!this.options.showTasks) {

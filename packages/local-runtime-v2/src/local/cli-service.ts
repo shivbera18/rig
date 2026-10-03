@@ -56,6 +56,8 @@ import type {
   RewindSessionResult as RewindSessionResp,
   RequestCompactionInput as RequestCompactionReq,
   RequestCompactionResult as RequestCompactionResp,
+  RequestShakeInput as RequestShakeReq,
+  RequestShakeResult as RequestShakeResp,
   MutatePluginInput as MutatePluginReq,
   MutatePluginResult as MutatePluginResp,
   ReplyPermissionInput as ReplyPermissionReq,
@@ -326,6 +328,10 @@ export class CliService {
     ctx: ProcessLocalContext = {},
   ): Promise<RequestCompactionResp> {
     return this.options.conversation.requestCompaction(ctx, req);
+  }
+
+  requestShake(req: RequestShakeReq, ctx: ProcessLocalContext = {}): Promise<RequestShakeResp> {
+    return this.options.conversation.requestShake(ctx, req);
   }
 
   async getPendingQuestionnaire(

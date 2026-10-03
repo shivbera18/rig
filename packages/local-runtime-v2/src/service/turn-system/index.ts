@@ -15,6 +15,8 @@ export type {
   InitializeTurnSystemOptions,
   InspectTurnContinuationResult,
   RequestCompactionResult,
+  RequestShakeInput,
+  RequestShakeResult,
   QueueDispatchDisposition,
   QueueSteerConsumeOutcome,
   QueueSteerControl,

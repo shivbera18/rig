@@ -17,6 +17,8 @@ import type {
   QueueTurnSubmission,
   RequestCompactionInput,
   RequestCompactionResult,
+  RequestShakeInput,
+  RequestShakeResult,
 } from '../contracts.js';
 import type { TurnBusyReason } from '../persistence/contracts.js';
 
@@ -91,6 +93,7 @@ export interface TurnExecutionService {
   /** Requires the caller to hold the matching Session exclusive mutation lease. */
   submitTrusted(input: TurnExecutionSubmission): Promise<ActivateTurnResult>;
   requestCompaction(input: RequestCompactionInput): Promise<RequestCompactionResult>;
+  requestShake(input: RequestShakeInput): Promise<RequestShakeResult>;
   steerActiveTurn(input: {
     readonly sessionId: string;
     readonly turnId: string;

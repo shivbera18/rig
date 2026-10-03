@@ -1013,6 +1013,29 @@ export interface RequestCompactionResult {
   code?: string;
 }
 
+export type RequestShakeMode = 'elide' | 'images' | 'thinking';
+
+export interface RequestShakeInput {
+  name: string;
+  id: string;
+  mode?: RequestShakeMode;
+}
+
+export interface RequestShakeResult {
+  success: boolean;
+  sessionId?: string;
+  mode?: RequestShakeMode;
+  toolResultsDropped?: number;
+  blocksDropped?: number;
+  imagesDropped?: number;
+  thinkingBlocksDropped?: number;
+  tokensFreed?: number;
+  messagesBefore?: number;
+  messagesAfter?: number;
+  error?: string;
+  code?: string;
+}
+
 export interface RevertTurnDiffInput {
   id: string;
   changeSetId?: string;

@@ -75,6 +75,7 @@ import { runApiKeyLogin } from '../../../login/engines/api-key-login.js';
 import { RigPluginApplication } from '../../../plugin/application.js';
 import type { RigPluginRuntimeAccess, RigPluginView } from '../../../plugin/contract.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
+import { formatShakeSummary, parseShakeMode } from '../../../application/shake-modes.js';
 import type { TuiTranscriptExporter } from '../../../host/transcript-export.js';
 import { TuiSessionForkFlow } from '../session-fork-flow.js';
 import { hyperlink } from '../../engine/public.js';
@@ -1421,6 +1422,85 @@ export class TuiFeatureFlow {
         formatTuiActionFailure(error, {
           summary: "Couldn't compact this conversation.",
           nextStep: 'Retry /compact later.',
+          preservation: 'Your messages are unchanged.',
+        }),
+        'error',
+      );
+    } finally {
+      if (compactionSequence === this.compactionSequence) this.setCompacting(false);
+    }
+  }
+
+  async shakeSession(rawArgs: string, hasLiveRun: boolean): Promise<void> {
+    if (this.isStopped()) return;
+    if (hasLiveRun) {
+      this.options.append('Stop the running turn before shaking this Session.', 'warning');
+      return;
+    }
+    if (!this.requireActiveSession()) return;
+    const parsed = parseShakeMode(rawArgs);
+    if (typeof parsed !== 'string') {
+      this.options.append(parsed.error, 'warning');
+      return;
+    }
+    const session = this.requireActiveSession();
+    if (!session) return;
+    const sessionGeneration = this.sessionGeneration;
+    const compactionSequence = ++this.compactionSequence;
+    this.setCompacting(true);
+    try {
+      const result = await this.options.runtime.requestShake(
+        session.sessionId,
+        session.agentName ?? this.options.defaultAgentName,
+        parsed,
+      );
+      if (!this.isCurrentSession(session.sessionId, sessionGeneration)) return;
+      if (result.success) {
+        this.options.append(
+          formatShakeSummary({
+            mode: result.mode ?? parsed,
+            toolResultsDropped: result.toolResultsDropped ?? 0,
+            blocksDropped: result.blocksDropped ?? 0,
+            tokensFreed: result.tokensFreed ?? 0,
+            ...(result.imagesDropped !== undefined ? { imagesDropped: result.imagesDropped } : {}),
+            ...(result.thinkingBlocksDropped !== undefined
+              ? { thinkingBlocksDropped: result.thinkingBlocksDropped }
+              : {}),
+          }),
+        );
+        return;
+      }
+      if (result.code === 'NOTHING_TO_SHAKE') {
+        this.options.append(
+          formatShakeSummary({
+            mode: parsed,
+            toolResultsDropped: 0,
+            blocksDropped: 0,
+            tokensFreed: 0,
+          }),
+        );
+        return;
+      }
+      this.options.append(
+        formatTuiActionFailure(result.error ?? result.code ?? 'Runtime rejected the request', {
+          summary: "Couldn't shake this conversation.",
+          nextStep: 'Retry /shake later.',
+          preservation: 'Your messages are unchanged.',
+        }),
+        'error',
+      );
+    } catch (error) {
+      if (!this.isCurrentSession(session.sessionId, sessionGeneration)) return;
+      if (isRuntimeErrorCode(error, 'NOTHING_TO_SHAKE')) {
+        this.options.append(
+          formatShakeSummary({ mode: parsed, toolResultsDropped: 0, blocksDropped: 0, tokensFreed: 0 }),
+        );
+        return;
+      }
+      this.options.append(
+        formatTuiActionFailure(error, {
+          summary: "Couldn't shake this conversation.",
+          nextStep: 'Retry /shake later.',
           preservation: 'Your messages are unchanged.',
         }),
         'error',

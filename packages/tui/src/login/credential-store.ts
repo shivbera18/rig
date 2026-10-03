@@ -97,27 +97,27 @@ export function createPortCredentialWriter(
     async saveApiKey(providerId: string, apiKey: string): Promise<void> {
       if (providerId === "rig") {
         await port.upsertRigApiKey({ apiKey, saveAndUse: true });
-        return;
+      } else {
+        const existing = await port.listUserModelProviders();
+        const match = existing.find(
+          (provider) =>
+            provider.providerId === `custom_provider:${providerId}` || provider.providerId === providerId,
+        );
+        if (match) {
+          await port.updateUserModelProvider({ providerId: match.providerId, apiKey, saveAndUse: false });
+        } else {
+          const templates = (await options.listTemplates?.()) ?? [];
+          const template = templates.find((candidate) => candidate.providerId === providerId);
+          await port.createUserModelProvider({
+            ...(template
+              ? { name: template.name, baseUrl: template.baseUrl, apiFormat: template.apiFormat }
+              : { baseUrl: deriveLoginBaseUrl(providerId), apiFormat: "openai-completions" as const }),
+            apiKey,
+            models: [],
+            saveAndUse: false,
+          });
+        }
       }
-      const existing = await port.listUserModelProviders();
-      const match = existing.find(
-        (provider) =>
-          provider.providerId === `custom_provider:${providerId}` || provider.providerId === providerId,
-      );
-      if (match) {
-        await port.updateUserModelProvider({ providerId: match.providerId, apiKey, saveAndUse: false });
-        return;
-      }
-      const templates = (await options.listTemplates?.()) ?? [];
-      const template = templates.find((candidate) => candidate.providerId === providerId);
-      await port.createUserModelProvider({
-        ...(template
-          ? { name: template.name, baseUrl: template.baseUrl, apiFormat: template.apiFormat }
-          : { baseUrl: deriveLoginBaseUrl(providerId), apiFormat: "openai-completions" as const }),
-        apiKey,
-        models: [],
-        saveAndUse: false,
-      });
     },
     async saveOAuth(providerId: string, credential: RigOAuthCredentials): Promise<void> {
       const dataDir = await options.prepareDataDir();

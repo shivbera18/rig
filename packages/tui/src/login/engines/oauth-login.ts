@@ -221,19 +221,20 @@ async function startOAuthCallbackListener(options: {
       const url = new URL(req.url ?? "/", "http://localhost");
       if (url.pathname !== options.path) {
         res.writeHead(404, { "Content-Type": "text/plain" }).end("Not found");
-        return;
+      } else {
+        const code = url.searchParams.get("code");
+        const state = url.searchParams.get("state");
+        if (!code || (state !== null && state !== options.expectedState)) {
+          res.writeHead(400, { "Content-Type": "text/plain" }).end("Invalid callback");
+        } else {
+          res.writeHead(200, { "Content-Type": "text/html" }).end("<h1>Signed in. Return to Rig.</h1>");
+          if (!settled) {
+            settled = true;
+            options.signal?.removeEventListener("abort", onAbort);
+            resolveCode(code);
+          }
+        }
       }
-      const code = url.searchParams.get("code");
-      const state = url.searchParams.get("state");
-      if (!code || (state !== null && state !== options.expectedState)) {
-        res.writeHead(400, { "Content-Type": "text/plain" }).end("Invalid callback");
-        return;
-      }
-      res.writeHead(200, { "Content-Type": "text/html" }).end("<h1>Signed in. Return to Rig.</h1>");
-      if (settled) return;
-      settled = true;
-      options.signal?.removeEventListener("abort", onAbort);
-      resolveCode(code);
     } catch (error) {
       if (settled) return;
       settled = true;
@@ -381,9 +382,9 @@ export async function runDeviceCodeLogin(
       if (options.signal?.aborted) {
         clearTimeout(timer);
         reject(new RigLoginCancelledError());
-        return;
+      } else {
+        options.signal?.addEventListener("abort", onAbort, { once: true });
       }
-      options.signal?.addEventListener("abort", onAbort, { once: true });
     });
     const poll = await fetchImpl(options.tokenUrl, {
       method: "POST",

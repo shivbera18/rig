@@ -38,15 +38,13 @@ export class RigApiKeyRequiredError extends Error {
 }
 
 export class RigApiKeyValidationError extends Error {
+  readonly code: string;
   readonly status: number;
-  constructor(
-    message: string,
-    status: number,
-    readonly code = "API_KEY_VALIDATION_FAILED",
-  ) {
+  constructor(message: string, status: number, code = "API_KEY_VALIDATION_FAILED") {
     super(message);
     this.name = "RigApiKeyValidationError";
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -195,7 +193,7 @@ async function runValidation(
         if (!validate.optional) throw error;
         options.onProgress?.("Validation unavailable; keeping the supplied key.");
       }
-      return;
+      break;
     case "anthropic-messages":
       if (!validate.baseUrl || !validate.model) {
         throw new RigApiKeyValidationError(`${provider} API key validation is misconfigured`, 500);
@@ -213,7 +211,7 @@ async function runValidation(
         if (!validate.optional) throw error;
         options.onProgress?.("Validation unavailable; keeping the supplied key.");
       }
-      return;
+      break;
     case "models-endpoint":
       if (!validate.url) {
         throw new RigApiKeyValidationError(`${provider} API key validation is misconfigured`, 500);
@@ -230,7 +228,7 @@ async function runValidation(
         if (!validate.optional) throw error;
         options.onProgress?.("Validation unavailable; keeping the supplied key.");
       }
-      return;
+      break;
   }
 }
 

@@ -96,36 +96,36 @@ export class RigProviderApplication {
     if (!apiKey) throw new Error('API key is required.');
     if (providerId === 'rig' || providerId === 'rig_api') {
       await this.setRigApiKey(apiKey);
-      return;
+    } else {
+      const existing = await this.port.listUserModelProviders();
+      const match = existing.find(
+        (provider) =>
+          provider.providerId === `custom_provider:${providerId}` ||
+          provider.providerId === providerId,
+      );
+      if (match) {
+        await this.port.updateUserModelProvider({
+          providerId: match.providerId,
+          apiKey,
+          saveAndUse: false,
+        });
+      } else {
+        const templates = await this.port.listProviderPresets();
+        const template = templates.find((candidate) => candidate.providerId === providerId);
+        await this.port.createUserModelProvider({
+          ...(template
+            ? { name: template.name, baseUrl: template.baseUrl, apiFormat: template.apiFormat }
+            : {
+                ...(input.name ? { name: input.name } : {}),
+                ...(input.baseUrl ? { baseUrl: input.baseUrl } : {}),
+                ...(input.apiFormat ? { apiFormat: input.apiFormat } : {}),
+              }),
+          apiKey,
+          models: [],
+          saveAndUse: false,
+        });
+      }
     }
-    const existing = await this.port.listUserModelProviders();
-    const match = existing.find(
-      (provider) =>
-        provider.providerId === `custom_provider:${providerId}` ||
-        provider.providerId === providerId,
-    );
-    if (match) {
-      await this.port.updateUserModelProvider({
-        providerId: match.providerId,
-        apiKey,
-        saveAndUse: false,
-      });
-      return;
-    }
-    const templates = await this.port.listProviderPresets();
-    const template = templates.find((candidate) => candidate.providerId === providerId);
-    await this.port.createUserModelProvider({
-      ...(template
-        ? { name: template.name, baseUrl: template.baseUrl, apiFormat: template.apiFormat }
-        : {
-            ...(input.name ? { name: input.name } : {}),
-            ...(input.baseUrl ? { baseUrl: input.baseUrl } : {}),
-            ...(input.apiFormat ? { apiFormat: input.apiFormat } : {}),
-          }),
-      apiKey,
-      models: [],
-      saveAndUse: false,
-    });
   }
 
   async create(input: RigCreateProviderInput): Promise<void> {

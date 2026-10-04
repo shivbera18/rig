@@ -15,6 +15,7 @@ import {
   isInternalRigPackageName,
   resolveRigNpmDistribution,
   resolveRigNpmDistTag,
+  resolveRigNpmExecution,
   resolveRigNpmPrefixInstall,
   resolveRigPackageName,
   resolveInstalledRigPackageVersion,
@@ -166,6 +167,73 @@ describe('installer-owned npm runtime binding', () => {
       write('node_modules/npm/bin/npm-cli.js');
       expect(() => bind(path.join(root, 'npm'))).toThrow();
     });
+  });
+});
+
+describe('npm-global update without node on PATH', () => {
+  const npmBinPath = String.raw`C:\Users\Shiv\AppData\Roaming\npm`;
+  it('resolves the registry version through the running Node instead of the npm.cmd shim', async () => {
+    const run = vi.fn(async () => '"1.2.4"');
+    await expect(
+      resolveLatestRigRegistryVersion('latest', {
+        platform: 'win32',
+        run,
+        distribution: resolveRigNpmDistribution('@shivcdhry/rig'),
+        environment: { PATH: npmBinPath },
+        runtimeExecutable: process.execPath,
+      }),
+    ).resolves.toBe('1.2.4');
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(run.mock.calls[0]?.[0]).toBe(process.execPath);
+    expect(String(run.mock.calls[0]?.[1]?.[0])).toMatch(/npm-cli\.js$/u);
+    expect(run.mock.calls[0]?.[1]).toEqual(
+      expect.arrayContaining(['view', '@shivcdhry/rig@latest']),
+    );
+  });
+
+  it('fixes PATH from the runtime dir even when npm-cli.js is missing', () => {
+    const execution = resolveRigNpmExecution({
+      platform: 'win32',
+      environment: { PATH: npmBinPath },
+      runtimeExecutable: path.join('C:', 'nope', 'node.exe'),
+      npmExecutableHint: path.join('C:', 'nope', 'npm.cmd'),
+    });
+    expect(execution.executable).toBe(path.join('C:', 'nope', 'npm.cmd'));
+    expect(execution.argsPrefix).toEqual([]);
+    expect(execution.environment.PATH?.startsWith(path.join('C:', 'nope'))).toBe(true);
+  });
+
+  it('routes the application check through the running Node with a PATH-fixed env', async () => {
+    const run = vi.fn(async () => '"1.2.4"');
+    const application = createApplication(
+      {
+        detectInstallSource: async () => 'npm-global',
+        resolveLatestPackageVersion: (tag) =>
+          resolveLatestRigRegistryVersion(tag, {
+            platform: 'win32',
+            run,
+            distribution: resolveRigNpmDistribution('@shivcdhry/rig'),
+            environment: { PATH: npmBinPath },
+            runtimeExecutable: process.execPath,
+          }),
+        runPackageManager: async () => undefined,
+      },
+      {
+        platform: 'win32',
+        environment: { PATH: npmBinPath },
+        runtimeExecutable: process.execPath,
+      },
+    );
+    await expect(application.inspect()).resolves.toMatchObject({
+      kind: 'package-manager',
+      source: 'npm-global',
+    });
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(run.mock.calls[0]?.[0]).toBe(process.execPath);
+    expect(String(run.mock.calls[0]?.[1]?.[0])).toMatch(/npm-cli\.js$/u);
+    expect(run.mock.calls[0]?.[1]).toEqual(
+      expect.arrayContaining(['view', '@shivcdhry/rig@latest']),
+    );
   });
 });
 
@@ -1416,6 +1484,9 @@ function createApplication(
     currentVersion?: string;
     packageTag?: 'latest' | 'test' | 'preview';
     packageName?: '@shivcdhry/rig' | '@shivcdhry/rig';
+    platform?: NodeJS.Platform;
+    environment?: NodeJS.ProcessEnv;
+    runtimeExecutable?: string;
     prefixInstall?: {
       executable: string;
       packageName: '@shivcdhry/rig' | '@shivcdhry/rig';

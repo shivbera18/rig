@@ -1,10 +1,14 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import spawn from 'cross-spawn';
 import { retryWindowsFileSystemOperation } from '@rig/shared';
-import { resolveRigNpmDistribution } from './install-source.js';
+import {
+  resolveRigNpmDistribution,
+  resolveRigNpmExecution,
+  withRigNodeMissingHint,
+} from './install-source.js';
 import { readRigBinEntry, resolveRigPrefixPackageRoot } from './prefix-update.js';
 import {
   RigUpdateCancelledError,
@@ -340,46 +344,17 @@ async function defaultFetchBytes(
   }
 }
 
-function resolveAdjacentOrShimNpm(environment: NodeJS.ProcessEnv = process.env): string {
-  if (process.platform === 'win32') {
-    // A wrapper-root npm.cmd on PATH (installer-owned or test shim) wins over
-    // the runtime-adjacent copy: cross-spawn resolves bare names via PATH, and
-    // preferring the adjacent copy here would bypass the wrapper entirely.
-    for (const key of Object.keys(environment)) {
-      if (key.toLowerCase() !== 'path') continue;
-      const entry = String(environment[key] ?? '')
-        .split(path.delimiter)
-        .map((part) => path.join(part, 'npm.cmd'))
-        .find((candidate) => {
-          try {
-            return existsSync(candidate) && statSync(candidate).isFile();
-          } catch {
-            return false;
-          }
-        });
-      if (entry) return entry;
-    }
-    try {
-      const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
-      if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
-    } catch {
-      // Fall through to the PATH shim below.
-    }
-    return 'npm.cmd';
-  }
-  return 'npm';
-}
-
 async function defaultInstallArtifact(input: {
   artifact: string;
   prefix: string;
   registry: string;
   proxyEnvironment: NodeJS.ProcessEnv;
 }): Promise<void> {
-  const npm = resolveAdjacentOrShimNpm(input.proxyEnvironment);
+  const npm = resolveRigNpmExecution({ platform: process.platform, environment: input.proxyEnvironment, executeShim: true });
   await runRigUpdateCommand(
-    npm,
+    npm.executable,
     [
+      ...npm.argsPrefix,
       'install',
       '--global',
       '--prefix',
@@ -391,7 +366,7 @@ async function defaultInstallArtifact(input: {
       '--no-fund',
       '--package-lock=false',
     ],
-    input.proxyEnvironment,
+    npm.environment,
     true,
   );
 }
@@ -448,9 +423,12 @@ export function runRigUpdateCommand(
       const details = Buffer.concat(stderr).toString('utf8').trim();
       reject(
         new Error(
-          `${command} failed (${
-            exitSignal ? `signal ${exitSignal}` : `exit ${String(code)}`
-          })${details ? `: ${details}` : ''}`,
+          withRigNodeMissingHint(
+            `${command} failed (${
+              exitSignal ? `signal ${exitSignal}` : `exit ${String(code)}`
+            })${details ? `: ${details}` : ''}`,
+            command,
+          ),
         ),
       );
     });

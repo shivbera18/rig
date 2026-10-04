@@ -72,6 +72,7 @@ import { RigProviderApplication } from '../../../provider/application.js';
 import type { RigCodexOAuthStatus, RigProviderTemplate } from '../../../provider/contract.js';
 import { RIG_LOGIN_PROVIDERS, getRigLoginProvider } from '../../../login/provider-login-registry.js';
 import { runApiKeyLogin } from '../../../login/engines/api-key-login.js';
+import { prepareTuiDataDir } from '../../../runtime/data-dir.js';
 import { RigPluginApplication } from '../../../plugin/application.js';
 import type { RigPluginRuntimeAccess, RigPluginView } from '../../../plugin/contract.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
@@ -150,6 +151,16 @@ export interface TuiSessionManagerOpenOptions {
 }
 
 export class TuiFeatureFlow {
+  /** Port surface for in-session provider login persistence (command-flow). */
+  get providerPort() {
+    return this.options.runtime;
+  }
+
+  /** Data-dir for OAuth credential file (command-flow login writer). */
+  prepareLoginDataDir(): Promise<string> {
+    return prepareTuiDataDir();
+  }
+
   private readonly modelState: TuiModelState;
   private readonly providerApplication: RigProviderApplication;
   private readonly pluginApplication: RigPluginApplication;

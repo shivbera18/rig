@@ -10,6 +10,11 @@ import {
 import type { TuiComposerDraft } from '../../features/composer/draft.js';
 import type { TuiWorkspaceRoots } from '../../features/composer/workspace-roots.js';
 import { TuiLoginProviderPicker } from '../../features/auth/login-provider-picker.js';
+import { TuiProviderOAuthLogin } from '../../features/auth/provider-oauth-login.js';
+import { getRigLoginProvider } from '../../../login/provider-login-registry.js';
+import { runProviderLogin, resolveOAuthExchangeProxyUrl } from '../../../login/run-provider-login.js';
+import { createPortCredentialWriter } from '../../../login/credential-store.js';
+import { prepareTuiDataDir } from '../../../runtime/data-dir.js';
 import { TuiLoginRegionPicker } from '../../features/auth/login-region-picker.js';
 import { TuiPermissionModePicker } from '../../features/interaction/permission-mode-picker.js';
 import { TuiSettingsPicker } from '../../features/settings/picker.js';
@@ -164,6 +169,7 @@ export class TuiCommandFlow {
   readonly catalog: TuiCommandCatalog;
   private preparationTail: Promise<void> = Promise.resolve();
   private loginProviderPicker: TuiLoginProviderPicker | undefined;
+  private providerOAuthLogin: TuiProviderOAuthLogin | undefined;
   private loginRegionPicker: TuiLoginRegionPicker | undefined;
   private pendingLoginContinuation: 'checkin' | undefined;
   private permissionModePicker: TuiPermissionModePicker | undefined;
@@ -1541,10 +1547,7 @@ export class TuiCommandFlow {
           this.showLoginRegionPicker();
           return;
         }
-        this.options.append(
-          `Provider login for ${def.name} runs in the terminal: run \`rig login ${def.id}\`.`,
-        );
-        this.options.onChanged();
+        void this.runInSessionProviderLogin(def.id);
       },
       () => {
         this.options.surface.close(picker);
@@ -1554,6 +1557,128 @@ export class TuiCommandFlow {
     );
     this.loginProviderPicker = picker;
     this.options.surface.show(picker);
+  }
+
+  /**
+   * In-session OAuth/API-key provider login (OMP parity: /login runs inside
+   * the TUI session, no separate terminal). Shows a progress panel, opens the
+   * browser best-effort, runs the roster engine against the loopback
+   * callback, and persists via the port credential writer.
+   */
+  async runInSessionProviderLogin(providerId: string): Promise<void> {
+    const def = getRigLoginProvider(providerId);
+    if (!def) {
+      this.options.append(`Unknown provider '${providerId}'.`, 'warning');
+      this.options.onChanged();
+      return;
+    }
+    if (this.providerOAuthLogin) this.options.surface.close(this.providerOAuthLogin);
+    let panel: TuiProviderOAuthLogin | undefined;
+    const abort = new AbortController();
+    const closePanel = () => {
+      abort.abort();
+      if (panel) {
+        if (this.providerOAuthLogin === panel) this.providerOAuthLogin = undefined;
+        this.options.surface.close(panel);
+        panel.dispose();
+      }
+      this.options.onChanged();
+    };
+    panel = new TuiProviderOAuthLogin({
+      providerName: def.name,
+      openExternalTarget: this.openExternalTarget,
+      onClose: closePanel,
+      requestRender: this.options.onChanged,
+    });
+    this.providerOAuthLogin = panel;
+    this.options.surface.show(panel);
+    try {
+      const writer = createPortCredentialWriter(this.options.featureFlow.providerPort, {
+        prepareDataDir: () => this.options.featureFlow.prepareLoginDataDir(),
+      });
+      const result = await runProviderLogin(providerId, {
+          onAuth: (info) => panel?.showAuth(info.url, info.instructions),
+          onProgress: (message) => panel?.showProgress(message),
+          onPrompt: async (prompt) =>
+            this.promptForLoginInput(prompt.message, prompt.placeholder, abort.signal),
+          signal: abort.signal,
+        },
+        writer,
+        {
+          startCodexOAuth: async () => {
+            throw new Error('Codex sign-in runs from /model or /provider.');
+          },
+        },
+      );
+      if (this.providerOAuthLogin !== panel) return;
+      panel.succeed();
+      this.options.append(result.message);
+      this.options.controller.refreshStatusMetricsNow();
+    } catch (error) {
+      if (this.providerOAuthLogin !== panel) return;
+      const cancelled =
+        (error instanceof Error && error.name === 'RigLoginCancelledError') ||
+        abort.signal.aborted;
+      if (cancelled) {
+        closePanel();
+        return;
+      }
+      panel.fail(error);
+      this.options.append(
+        `Sign-in to ${def.name} wasn't completed: ${error instanceof Error ? error.message : String(error)}`,
+        'error',
+      );
+    } finally {
+      this.options.onChanged();
+    }
+  }
+
+  /**
+   * Reads one line of login input (API key / manual auth code) from the
+   * session composer: parks the current draft, focuses the editor, resolves
+   * on Enter with the typed text.
+   */
+  private promptForLoginInput(message: string, placeholder: string | undefined, signal: AbortSignal): Promise<string> {
+    const editor = this.options.editor;
+    const previous = editor.getText();
+    editor.setText('');
+    this.options.setHint(`${message}${placeholder ? ` (${placeholder})` : ''} — Enter submit · Esc cancel`);
+    this.options.surfaceHost.setChatFocus(editor);
+    this.options.onChanged();
+    return new Promise<string>((resolve, reject) => {
+      let settled = false;
+      const cleanup = () => {
+        if (settled) return;
+        settled = true;
+        signal.removeEventListener('abort', onAbort);
+        editor.onSubmit = prevSubmit;
+        editor.handleInput = prevInput;
+      };
+      const onAbort = () => {
+        cleanup();
+        editor.setText(previous);
+        reject(new Error('Login cancelled'));
+      };
+      if (signal.aborted) {
+        onAbort();
+        return;
+      }
+      const prevSubmit = editor.onSubmit;
+      editor.onSubmit = (text: string) => {
+        cleanup();
+        editor.setText(previous);
+        resolve(text);
+      };
+      const prevInput = editor.handleInput.bind(editor);
+      editor.handleInput = (data: string) => {
+        if (data === '\x1b') {
+          onAbort();
+          return;
+        }
+        return prevInput(data);
+      };
+      signal.addEventListener('abort', onAbort, { once: true });
+    });
   }
 
   private showLoginRegionPicker(): void {

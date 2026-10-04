@@ -28,8 +28,6 @@
     ".gitignore",
     ".gitleaks.toml",
     ".npmrc",
-    ".vercel/README.txt",
-    ".vercel/project.json",
     "AGENTS.md",
     "CONTRIBUTING.md",
     "LICENSE",

@@ -194,7 +194,15 @@ export async function executeTuiAcpCommand(options: {
     if (typeof parsed !== 'string') {
       throw acp.RequestError.invalidParams(undefined, parsed.error);
     }
-    const result = await options.runtime.requestShake(options.sessionId, options.agentName, parsed);
+    let result: Awaited<ReturnType<typeof options.runtime.requestShake>>;
+    try {
+      result = await options.runtime.requestShake(options.sessionId, options.agentName, parsed);
+    } catch (error) {
+      if (isShakeNothingError(error)) {
+        return { handled: true, output: formatShake({ success: false, code: 'NOTHING_TO_SHAKE', mode: parsed }) };
+      }
+      throw error;
+    }
     if (result.success) return { handled: true, output: formatShake(result) };
     if (result.code === 'NOTHING_TO_SHAKE') {
       return { handled: true, output: formatShake({ success: false, code: result.code, mode: parsed }) };
@@ -234,6 +242,11 @@ function formatCompaction(result: Awaited<ReturnType<TuiAcpRuntime['requestCompa
       ? [`Tokens: ${formatInteger(result.tokensBefore)} → ${formatInteger(result.tokensAfter)}`]
       : []),
   ].join('\n');
+}
+
+function isShakeNothingError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  return Reflect.get(error, "key") === "NOTHING_TO_SHAKE" || Reflect.get(error, "code") === "NOTHING_TO_SHAKE";
 }
 
 function formatShake(result: TuiShakeResult): string {

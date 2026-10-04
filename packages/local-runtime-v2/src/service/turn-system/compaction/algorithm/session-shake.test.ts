@@ -93,6 +93,22 @@ describe("planSessionShake", () => {
     expect(JSON.stringify(plan.messages[0])).not.toContain("hmm");
   });
 
+  it("images strips media blocks", () => {
+    const messages = [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "look" },
+          { type: "image", data: "abc", mimeType: "image/png" },
+        ],
+        timestamp: 1,
+      } as unknown as AgentMessage,
+    ];
+    const plan = planSessionShake({ messages, mode: "images" });
+    expect(plan.changed).toBe(true);
+    expect(plan.imagesDropped).toBe(1);
+  });
+
   it("thinking clears top-level thinking_content fields", () => {
     const messages = [
       {

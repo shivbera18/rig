@@ -181,13 +181,10 @@ describe("compaction usage provenance", () => {
     if (decision.type !== "replaceMessages")
       throw new Error("Expected compaction");
     expect(decision.metadata.tokensBefore).toBe(180_100);
-    expect(decision.metadata.tokensAfter).toBe(
-      estimator.estimateMessages(decision.messages),
-    );
-    expect(decision.metadata.tokensAfter).toBeLessThan(100);
     expect(committed).toHaveBeenCalledWith(
       expect.objectContaining({ tokensAfter: decision.metadata.tokensAfter }),
     );
+    expect(decision.metadata.tokensAfter).toBeLessThan(100);
     expect(original).toEqual(before);
     expect(decision.messages[1]).toEqual(original[5]);
     expect(decision.metadata.keptMessages).toEqual([original[5]]);

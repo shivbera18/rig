@@ -110,19 +110,37 @@ function planThinking(messages: readonly AgentMessage[]): ShakePlan {
   let freedBytes = 0;
   messages.forEach((message, index) => {
     if (message.role !== "assistant") return;
-    const content = Reflect.get(message, "content");
-    if (!Array.isArray(content)) return;
-    const kept = content.filter((block) => {
-      if (typeof block !== "object" || block === null || Reflect.get(block, "type") !== "thinking")
-        return true;
-      thinkingBlocksDropped += 1;
-      freedBytes += Buffer.byteLength(JSON.stringify(block), "utf8");
-      return false;
-    });
-    if (kept.length === content.length) return;
+    let changed = false;
     const replacement = { ...message };
-    Reflect.set(replacement, "content", kept.length > 0 ? kept : [{ ...EMPTY_TEXT_BLOCK }]);
-    replacements.set(index, replacement);
+    for (const field of ["thinking_content", "thinking", "thinkingContent"] as const) {
+      const value = Reflect.get(message, field);
+      if (typeof value === "string" && value.length > 0) {
+        thinkingBlocksDropped += 1;
+        freedBytes += Buffer.byteLength(value, "utf8");
+        Reflect.deleteProperty(replacement, field);
+        changed = true;
+      }
+    }
+    const duration = Reflect.get(message, "thinking_duration_ms");
+    if (typeof duration === "number") {
+      Reflect.deleteProperty(replacement, "thinking_duration_ms");
+      changed = true;
+    }
+    const content = Reflect.get(message, "content");
+    if (Array.isArray(content)) {
+      const kept = content.filter((block) => {
+        if (typeof block !== "object" || block === null || Reflect.get(block, "type") !== "thinking")
+          return true;
+        thinkingBlocksDropped += 1;
+        freedBytes += Buffer.byteLength(JSON.stringify(block), "utf8");
+        return false;
+      });
+      if (kept.length !== content.length) {
+        Reflect.set(replacement, "content", kept.length > 0 ? kept : [{ ...EMPTY_TEXT_BLOCK }]);
+        changed = true;
+      }
+    }
+    if (changed) replacements.set(index, replacement);
   });
   if (replacements.size === 0) return emptyPlan(messages);
   return {
@@ -195,6 +213,7 @@ function elideTextSpans(text: string): { text: string; blocks: number; freedByte
   let cursor = 0;
   let freedBytes = 0;
   for (const range of ranges) {
+    out += text.slice(cursor, range.start);
     out += BLOCK_REMOVED_TEXT;
     freedBytes +=
       Buffer.byteLength(text.slice(range.start, range.end), "utf8") - BLOCK_REMOVED_TEXT.length;

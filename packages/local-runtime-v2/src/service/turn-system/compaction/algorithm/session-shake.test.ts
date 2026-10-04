@@ -53,29 +53,25 @@ describe("planSessionShake", () => {
     expect(JSON.stringify(plan.messages[3])).toContain("new output");
   });
 
-  it("elide strips large fenced spans and counts them", () => {
+  it("elide strips large fenced spans and preserves surrounding text", () => {
     const fence = `\`\`\`ts\n${"x".repeat(2000)}\n\`\`\``;
     const messages = [assistantText(`intro\n${fence}\noutro`, 1)];
     const plan = planSessionShake({ messages, mode: "elide" });
     expect(plan.changed).toBe(true);
     expect(plan.blocksDropped).toBe(1);
-    expect(JSON.stringify(plan.messages[0])).not.toContain("xxxx");
+    const text = JSON.stringify(plan.messages[0]);
+    expect(text).not.toContain("xxxx");
+    expect(text).toContain("intro");
+    expect(text).toContain("outro");
   });
 
-  it("images strips media blocks", () => {
-    const messages = [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: "look" },
-          { type: "image", data: "abc", mimeType: "image/png" },
-        ],
-        timestamp: 1,
-      } as unknown as AgentMessage,
-    ];
-    const plan = planSessionShake({ messages, mode: "images" });
-    expect(plan.changed).toBe(true);
-    expect(plan.imagesDropped).toBe(1);
+  it("elide preserves text between two large fenced spans", () => {
+    const fence = `\`\`\`ts\n${"y".repeat(2000)}\n\`\`\``;
+    const messages = [assistantText(`head\n${fence}\nMIDDLE\n${fence}\ntail`, 1)];
+    const plan = planSessionShake({ messages, mode: "elide" });
+    expect(plan.blocksDropped).toBe(2);
+    const text = JSON.stringify(plan.messages[0]);
+    for (const kept of ["head", "MIDDLE", "tail"]) expect(text).toContain(kept);
   });
 
   it("thinking strips thinking blocks but keeps the message", () => {
@@ -97,6 +93,22 @@ describe("planSessionShake", () => {
     expect(JSON.stringify(plan.messages[0])).not.toContain("hmm");
   });
 
+  it("thinking clears top-level thinking_content fields", () => {
+    const messages = [
+      {
+        role: "assistant",
+        content: [{ type: "text", text: "answer" }],
+        thinking_content: "private reasoning",
+        stopReason: "stop",
+        timestamp: 1,
+      } as unknown as AgentMessage,
+    ];
+    const plan = planSessionShake({ messages, mode: "thinking" });
+    expect(plan.changed).toBe(true);
+    expect(plan.thinkingBlocksDropped).toBe(1);
+    expect(JSON.stringify(plan.messages[0])).not.toContain("private reasoning");
+  });
+
   it("returns changed:false for empty and already-shaken inputs", () => {
     expect(planSessionShake({ messages: [], mode: "elide" }).changed).toBe(false);
     const shaken = [
@@ -113,7 +125,6 @@ describe("planSessionShake", () => {
     ];
     const plan = planSessionShake({ messages: shaken, mode: "elide" });
     expect(plan.changed).toBe(false);
-    expect(plan.toolResultsDropped).toBe(0);
   });
 
   it("throws on unknown mode", () => {

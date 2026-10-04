@@ -178,4 +178,13 @@ describe("shakeSession", () => {
     await harness.flow.shakeSession("thinking", false);
     expect(harness.append).toHaveBeenCalledWith("No thinking blocks found in this session.");
   });
+
+  it("maps a thrown NOTHING_TO_SHAKE key to the no-op line", async () => {
+    const harness = createHarness();
+    harness.requestShake.mockRejectedValueOnce(
+      Object.assign(new Error("Nothing to shake"), { key: "NOTHING_TO_SHAKE" }),
+    );
+    await harness.flow.shakeSession("thinking", false);
+    expect(harness.append).toHaveBeenCalledWith("No thinking blocks found in this session.");
+  });
 });

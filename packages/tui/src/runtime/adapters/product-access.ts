@@ -322,12 +322,19 @@ export class TuiProductAccess {
     agentName = this.defaultAgentName,
     mode?: ShakeMode,
   ): Promise<TuiShakeResult> {
-    const response = await this.context.service("session.shake").requestShake({
-      name: agentName,
-      id: sessionId,
-      ...(mode ? { mode } : {}),
-    });
-    return response as TuiShakeResult;
+    try {
+      const response = await this.context.service("session.shake").requestShake({
+        name: agentName,
+        id: sessionId,
+        ...(mode ? { mode } : {}),
+      });
+      return response as TuiShakeResult;
+    } catch (error) {
+      if (isShakeNothingError(error)) {
+        return { success: false, code: "NOTHING_TO_SHAKE", ...(mode ? { mode } : {}) };
+      }
+      throw error;
+    }
   }
 
   async getContextSnapshot(
@@ -483,4 +490,9 @@ function projectTuiModelCatalogEntry(input: unknown): TuiModel {
           : {}),
     },
   };
+}
+
+function isShakeNothingError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  return Reflect.get(error, "key") === "NOTHING_TO_SHAKE" || Reflect.get(error, "code") === "NOTHING_TO_SHAKE";
 }

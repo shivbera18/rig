@@ -36,7 +36,8 @@ export function createSessionShakeService(options: SessionShakeServiceOptions) {
               }
             : { kind: "new" as const, seed: `shake:${input.mode}:${String(index)}` },
       }));
-      const turnId = `shake-${input.mode}-${nowMs()}`;
+      const stamp = nowMs();
+      const turnId = `shake-${input.mode}-${stamp}`;
       await options.history.replace({
         sessionId: input.sessionId,
         turnId,
@@ -44,7 +45,7 @@ export function createSessionShakeService(options: SessionShakeServiceOptions) {
         messages: plan.messages,
         replacementEntries,
         operation: {
-          id: `shake:${input.mode}:${String(nowMs())}`,
+          id: `shake:${input.mode}:${String(stamp)}`,
           kind: "replace",
         },
         metadata: { replacementId: turnId },

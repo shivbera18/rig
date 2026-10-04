@@ -1085,9 +1085,9 @@ function shakeResponse(result: RequestShakeResult, sessionId: string): RequestSh
   if (outcome.status === "unchanged") {
     throw new ApplicationError(400, "NOTHING_TO_SHAKE", "Nothing to shake");
   }
-  throw new ApplicationError(500, "local_shake_failed", String(outcome.error));
+  const message = outcome.error instanceof Error ? outcome.error.message : String(outcome.error);
+  throw new ApplicationError(500, "local_shake_failed", message);
 }
-
 function lifecycleSucceeded(result: unknown): boolean {
   if (!result || typeof result !== "object") return true;
   if ("status" in result)

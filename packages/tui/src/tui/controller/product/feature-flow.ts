@@ -1491,7 +1491,7 @@ export class TuiFeatureFlow {
       );
     } catch (error) {
       if (!this.isCurrentSession(session.sessionId, sessionGeneration)) return;
-      if (isRuntimeErrorCode(error, 'NOTHING_TO_SHAKE')) {
+      if (isRuntimeErrorCode(error, 'NOTHING_TO_SHAKE') || isShakeNothingError(error)) {
         this.options.append(
           formatShakeSummary({ mode: parsed, toolResultsDropped: 0, blocksDropped: 0, tokensFreed: 0 }),
         );
@@ -1678,4 +1678,9 @@ function parseExportPath(rawPath: string): string | undefined {
     throw new Error('Usage: /export [path.md]');
   }
   return path;
+}
+
+function isShakeNothingError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  return Reflect.get(error, "key") === "NOTHING_TO_SHAKE";
 }

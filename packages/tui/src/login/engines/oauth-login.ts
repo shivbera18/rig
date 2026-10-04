@@ -50,6 +50,8 @@ export async function runOAuthCodeLogin(
       verifier: string;
       redirectUri: string;
     }) => Record<string, string>;
+    readonly clientSecret?: string;
+    readonly exchangeProxyUrl?: string;
     readonly openBrowser?: (url: string) => void;
     readonly onManualCodeInput?: (signal?: AbortSignal) => Promise<string>;
   },
@@ -127,32 +129,92 @@ async function exchangeOAuthCode(
       verifier: string;
       redirectUri: string;
     }) => Record<string, string>;
+    readonly clientSecret?: string;
+    readonly exchangeProxyUrl?: string;
   },
 ): Promise<RigOAuthCredentials> {
   const fetchImpl = options.fetch ?? fetch;
+  const clientSecret = options.clientSecret ?? resolveOAuthClientSecret(def);
+  if (!clientSecret && options.exchangeProxyUrl) {
+    return exchangeOAuthCodeViaProxy(def, code, params, options.exchangeProxyUrl, options);
+  }
   const body = options.exchangeBody
     ? options.exchangeBody({ code, verifier: params.verifier, redirectUri: params.redirectUri })
-    : {
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: params.redirectUri,
-        client_id: def.clientId ?? "",
-        code_verifier: params.verifier,
-      };
+    : buildOAuthExchangeBody(
+        def,
+        { code, verifier: params.verifier, redirectUri: params.redirectUri },
+        clientSecret,
+      );
   const tokenResponse = await fetchImpl(options.tokenUrl, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams(body).toString(),
     signal: options.signal,
   });
-  if (!tokenResponse.ok) {
-    const details = await tokenResponse.text().catch(() => "");
+  return parseTokenResponse(def, tokenResponse);
+}
+
+/**
+ * OAuth client secret resolved from the environment (never committed to
+ * git). Providers that need one name the variable via `clientSecretEnv`.
+ */
+export function resolveOAuthClientSecret(def: RigLoginProviderDef): string | undefined {
+  const name = def.clientSecretEnv;
+  if (!name) return undefined;
+  const value = process.env[name];
+  return value || undefined;
+}
+
+/** Standard authorization_code form body; includes client_secret only when set. */
+export function buildOAuthExchangeBody(
+  def: RigLoginProviderDef,
+  params: { code: string; verifier: string; redirectUri: string },
+  clientSecret?: string,
+): Record<string, string> {
+  return {
+    grant_type: "authorization_code",
+    code: params.code,
+    redirect_uri: params.redirectUri,
+    client_id: def.clientId ?? "",
+    ...(clientSecret ? { client_secret: clientSecret } : {}),
+    code_verifier: params.verifier,
+  };
+}
+
+async function exchangeOAuthCodeViaProxy(
+  def: RigLoginProviderDef,
+  code: string,
+  params: { verifier: string; redirectUri: string },
+  proxyUrl: string,
+  options: RigLoginController,
+): Promise<RigOAuthCredentials> {
+  const fetchImpl = options.fetch ?? fetch;
+  const proxyResponse = await fetchImpl(proxyUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      provider: def.id,
+      code,
+      code_verifier: params.verifier,
+      redirect_uri: params.redirectUri,
+    }),
+    signal: options.signal,
+  });
+  if (!proxyResponse.ok) {
+    const details = await proxyResponse.text().catch(() => "");
     throw new Error(
       details.trim()
-        ? `${def.name} token exchange failed (${tokenResponse.status}): ${details.trim()}`
-        : `${def.name} token exchange failed (${tokenResponse.status})`,
+        ? `${def.name} token exchange failed (${proxyResponse.status}): ${details.trim().slice(0, 300)}`
+        : `${def.name} token exchange failed (${proxyResponse.status})`,
     );
   }
+  return parseTokenResponse(def, proxyResponse);
+}
+
+async function parseTokenResponse(
+  def: RigLoginProviderDef,
+  tokenResponse: Response,
+): Promise<RigOAuthCredentials> {
   const tokenText = await tokenResponse.text().catch(() => "");
   let tokenBody: Record<string, unknown>;
   try {

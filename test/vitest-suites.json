@@ -35,6 +35,7 @@
       "packages/tui/test/unit/acp-agent.test.ts",
       "packages/tui/test/unit/shake-modes.test.ts",
       "packages/tui/test/unit/tui-shake-command.test.ts",
+      "packages/tui/test/unit/oauth-exchange.test.ts",
       "packages/rig-tools-host/test/unit/lease-broker.test.ts",
       "packages/rig-tools-host/test/unit/resource.test.ts",
       "packages/local-runtime-v2/src/service/plugin-system/cloud-transport.test.ts",

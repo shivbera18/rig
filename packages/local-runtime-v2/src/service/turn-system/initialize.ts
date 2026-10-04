@@ -29,6 +29,7 @@ import {
 import { createSteeringTeardownCommit } from './execution/steering/steering-teardown-commit.js';
 import { createTurnSubmissionService } from './turn-submission.service.js';
 import { createHistoryMutationCapability } from './lifecycle/history-mutation-capability.js';
+import { createSessionShakeService } from './execution/session-shake.service.js';
 import type { SessionMaintenanceGuard, SessionMaintenanceLease } from '../session-system/index.js';
 import { createUserMessageId, SessionMaintenanceService } from '../session-system/index.js';
 import type { TurnRepository } from './persistence/contracts.js';
@@ -85,6 +86,7 @@ export async function initializeTurnSystem(
     sessions: {
       has: (sessionId) => options.sessions.sessions.repository.has(sessionId),
     },
+    shake: createSessionShakeService({ history: options.sessions.canonicalHistory }),
     ...turnExecutionOverrides(options),
   });
   const continuation = createRuntimeTurnContinuation(options, execution);
@@ -495,6 +497,7 @@ function createTurnFacade(input: {
     inspectContinuation: (sessionId) => input.continuation.inspect(sessionId),
     continueTurn: (request) => input.continuation.continueTurn(request),
     requestCompaction: (request) => input.execution.requestCompaction(request),
+    requestShake: (request) => input.execution.requestShake(request),
     abort: async (request) => {
       const pending = request.turnId
         ? input.completions.requestCancellation(request.sessionId, request.turnId, request.reason)

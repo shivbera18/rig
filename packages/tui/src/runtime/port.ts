@@ -1,4 +1,5 @@
 import type { TuiAttachment, TuiTransportAttachment } from '../types/invocation.js';
+import type { ShakeMode } from '../application/shake-modes.js';
 import type { GlobalThreadGoal } from '@rig/shared/global-events';
 import type {
   TuiCompactionResult,
@@ -11,6 +12,7 @@ import type {
   TuiQueueReceipt,
   TuiSessionUsage,
   TuiSessionUsageSummary,
+  TuiShakeResult,
   TuiSkillList,
 } from '../types/runtime-models.js';
 import type { TuiRuntimeEvent } from '../types/runtime-events.js';
@@ -296,6 +298,7 @@ export interface TuiInspectionPort {
     agentName?: string,
     customInstructions?: string,
   ): Promise<TuiCompactionResult>;
+  requestShake(sessionId: string, agentName?: string, mode?: ShakeMode): Promise<TuiShakeResult>;
   listSkills(agentName?: string, keyword?: string, workspaceDir?: string): Promise<TuiSkillList>;
   listMcpServers(keyword?: string, sessionId?: string): Promise<TuiMcpServer[]>;
   inspectProjectMcp(sessionId: string): Promise<TuiProjectMcpPreview | undefined>;
@@ -656,6 +659,7 @@ export type {
   TuiSessionUsage,
   TuiSessionUsageRow,
   TuiSessionUsageSummary,
+  TuiShakeResult,
   TuiSkillList,
 } from '../types/runtime-models.js';
 

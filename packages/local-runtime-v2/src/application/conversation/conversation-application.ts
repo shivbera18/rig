@@ -8,6 +8,8 @@ import type {
   ModelSelectionInput,
   RequestCompactionInput as RequestCompactionReq,
   RequestCompactionResult as RequestCompactionResp,
+  RequestShakeInput as RequestShakeReq,
+  RequestShakeResult as RequestShakeResp,
   InspectTurnContinuationInput as InspectTurnContinuationReq,
   InspectTurnContinuationResult as InspectTurnContinuationResp,
   ResumeSessionInput as ResumeSessionReq,
@@ -41,6 +43,7 @@ import {
 import type {
   AgentHostInputAttachment,
   RequestCompactionResult,
+  RequestShakeResult,
   TurnOutputContract,
   TurnService,
   TurnSystemOwner,
@@ -92,6 +95,7 @@ export interface ConversationApplicationOptions {
     | "submit"
     | "abort"
     | "requestCompaction"
+    | "requestShake"
     | "dispatchSessionQueue"
     | "dispatchQueue"
     | "inspectContinuation"
@@ -442,6 +446,18 @@ export class ConversationApplication {
     });
   }
 
+  async requestShake(_ctx: ProcessLocalContext, req: RequestShakeReq): Promise<RequestShakeResp> {
+    return this.countBuiltinCommand("shake", async () => {
+      validateShakeName(req);
+      await validateShakeSession(req, this.options.sessionReader);
+      const result = await this.options.turn.requestShake({
+        sessionId: req.id,
+        ...(req.mode ? { mode: req.mode } : {}),
+      });
+      return shakeResponse(result, req.id);
+    });
+  }
+
   private async withSessionLifecycle<T>(
     action: "resume" | "abort",
     run: () => T | Promise<T>,
@@ -463,7 +479,7 @@ export class ConversationApplication {
   }
 
   private async countBuiltinCommand<T>(
-    command: "compact",
+    command: "compact" | "shake",
     operation: () => Promise<T>,
   ): Promise<T> {
     countApplicationMetric(this.options.metrics, "builtin_command_total", {
@@ -977,6 +993,15 @@ function validateCompactionName(req: RequestCompactionReq): void {
   }
 }
 
+function validateShakeName(req: RequestShakeReq): void {
+  if (!requireNonEmpty(req.name)) {
+    throw new ApplicationError(400, "VALIDATION_ERROR", "name is required");
+  }
+  if (req.mode !== undefined && req.mode !== "elide" && req.mode !== "images" && req.mode !== "thinking") {
+    throw new ApplicationError(400, "VALIDATION_ERROR", "mode must be elide, images, or thinking");
+  }
+}
+
 async function validateCompactionSession(
   req: RequestCompactionReq,
   sessionReader: ConversationApplicationOptions["sessionReader"],
@@ -991,6 +1016,17 @@ async function validateCompactionSession(
       "FORBIDDEN",
       "sessionId does not belong to this agent",
     );
+  }
+}
+
+async function validateShakeSession(
+  req: RequestShakeReq,
+  sessionReader: ConversationApplicationOptions["sessionReader"],
+): Promise<void> {
+  const session = await sessionReader.find(req.id);
+  if (!session) throw sessionNotFound(req.id);
+  if (!isSameSessionAgentName(session.agentName, req.name)) {
+    throw new ApplicationError(403, "FORBIDDEN", "sessionId does not belong to this agent");
   }
 }
 
@@ -1029,6 +1065,29 @@ function compactionResponse(
   );
 }
 
+function shakeResponse(result: RequestShakeResult, sessionId: string): RequestShakeResp {
+  if (!result.accepted) throw compactionRejectionError(result.reason, sessionId);
+  const outcome = result.outcome;
+  if (outcome.status === "completed") {
+    return {
+      success: true,
+      sessionId,
+      mode: outcome.mode,
+      toolResultsDropped: outcome.toolResultsDropped,
+      blocksDropped: outcome.blocksDropped,
+      imagesDropped: outcome.imagesDropped,
+      thinkingBlocksDropped: outcome.thinkingBlocksDropped,
+      tokensFreed: outcome.tokensFreed,
+      messagesBefore: outcome.messagesBefore,
+      messagesAfter: outcome.messagesAfter,
+    };
+  }
+  if (outcome.status === "unchanged") {
+    throw new ApplicationError(400, "NOTHING_TO_SHAKE", "Nothing to shake");
+  }
+  const message = outcome.error instanceof Error ? outcome.error.message : String(outcome.error);
+  throw new ApplicationError(500, "local_shake_failed", message);
+}
 function lifecycleSucceeded(result: unknown): boolean {
   if (!result || typeof result !== "object") return true;
   if ("status" in result)

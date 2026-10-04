@@ -44,6 +44,10 @@ export const TUI_COMMAND_DESCRIPTORS = {
     name: 'compact',
     description: 'Shorten the active conversation',
   },
+  shake: {
+    name: 'shake',
+    description: 'Drop heavy content from context (tool results, large blocks)',
+  },
   export: {
     name: 'export',
     description: 'Export the current Session as Markdown',

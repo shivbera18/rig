@@ -11,6 +11,7 @@ import {
   createRigNpmRuntimeEnvironment,
   detectRigInstallSource,
   resolveRigNpmDistribution,
+  resolveRigNpmExecution,
   resolveRigNpmDistTag,
   resolveRigNpmPrefixInstall,
   resolveInstalledRigPackageVersion,
@@ -166,9 +167,12 @@ export class RigUpdateApplication {
     this.runtimeExecutable = options.runtimeExecutable ?? process.execPath;
     this.prefixInstall =
       options.prefixInstall ?? resolveRigNpmPrefixInstall(this.entryFile, platform);
+    const npmGlobalExecution = this.prefixInstall
+      ? undefined
+      : resolveRigNpmExecution({ platform, environment, runtimeExecutable: this.runtimeExecutable });
     const packageManagerEnvironment = this.prefixInstall
       ? createRigNpmRuntimeEnvironment(environment, this.runtimeExecutable, platform)
-      : environment;
+      : (npmGlobalExecution?.environment ?? environment);
     this.packageTag = options.packageTag ?? resolveRigNpmDistTag();
     this.distribution = resolveRigNpmDistribution(
       options.packageName,
@@ -198,23 +202,40 @@ export class RigUpdateApplication {
             platform,
             distribution: this.distribution,
             environment: packageManagerEnvironment,
+            runtimeExecutable: this.runtimeExecutable,
             ...(this.prefixInstall
-              ? {
-                  npmExecutable: this.prefixInstall.executable,
-                  runtimeExecutable: this.runtimeExecutable,
-                }
-              : {}),
+              ? { npmExecutable: this.prefixInstall.executable }
+              : npmGlobalExecution
+                ? {
+                    npmExecutable:
+                      npmGlobalExecution.argsPrefix[0] ?? npmGlobalExecution.executable,
+                  }
+                : {}),
           })),
       runPackageManager:
         dependencies.runPackageManager ??
-        ((command, progress) =>
-          runRigPackageManagerCommand(
-            this.prefixInstall
-              ? bindRigNpmCommandToRuntime(command, this.runtimeExecutable)
-              : command,
-            packageManagerEnvironment,
-            progress,
-          )),
+        ((command, progress) => {
+          if (this.prefixInstall) {
+            return runRigPackageManagerCommand(
+              bindRigNpmCommandToRuntime(command, this.runtimeExecutable),
+              packageManagerEnvironment,
+              progress,
+            );
+          }
+          const base = command.executable.toLowerCase().replaceAll('\\', '/').split('/').pop();
+          if (base !== 'npm.cmd' && base !== 'npm' && base !== 'npm-cli.js') {
+            return runRigPackageManagerCommand(command, packageManagerEnvironment, progress);
+          }
+          try {
+            return runRigPackageManagerCommand(
+              bindRigNpmCommandToRuntime(command, this.runtimeExecutable),
+              packageManagerEnvironment,
+              progress,
+            );
+          } catch {
+            return runRigPackageManagerCommand(command, packageManagerEnvironment, progress);
+          }
+        }),
       readInstalledPackageVersion:
         dependencies.readInstalledPackageVersion ?? resolveInstalledRigPackageVersion,
       readPrefixPackageMetadata:

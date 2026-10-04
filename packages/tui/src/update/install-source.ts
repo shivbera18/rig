@@ -104,12 +104,14 @@ export async function detectRigInstallSource(
     packageRoot: dependencies.packageRoot ?? resolveRigPackageRoot,
     npmGlobalPrefix:
       dependencies.npmGlobalPrefix ??
-      (() =>
-        runText(
-          resolveNodeAdjacentNpm(platform, environment) ?? (platform === 'win32' ? 'npm.cmd' : 'npm'),
-          ['prefix', '--global'],
-          environment,
-        )),
+      (() => {
+        const execution = resolveRigNpmExecution({ platform, environment });
+        return runText(
+          execution.executable,
+          [...execution.argsPrefix, 'prefix', '--global'],
+          execution.environment,
+        );
+      }),
     managedInstall: dependencies.managedInstall ?? isManagedRigInstallRoot,
     prefixInstall: dependencies.prefixInstall ?? resolveRigNpmPrefixInstall,
   };
@@ -308,32 +310,77 @@ export async function resolveLatestRigRegistryVersion(
 ): Promise<string> {
   const platform = dependencies.platform ?? process.platform;
   const distribution = dependencies.distribution ?? resolveRigNpmDistribution();
-  const run =
-    dependencies.run ??
-    ((executable, args) => {
-      const command = { executable, args, display: executable };
-      const bound = dependencies.runtimeExecutable
-        ? bindRigNpmCommandToRuntime(command, dependencies.runtimeExecutable)
-        : command;
-      return runText(bound.executable, bound.args, dependencies.environment);
+  const runtimeExecutable = dependencies.runtimeExecutable ?? process.execPath;
+  if (dependencies.run) {
+    // nvm4w/npm shims run `node` from PATH; a stale PATH entry breaks every
+    // npm call even when node.exe sits next to npm.cmd. Prefer the adjacent
+    // runtime first, then the npm.cmd shim, then bare `npm` from PATH.
+    // Callers without a runtime keep the historical bare-shim behavior.
+    if (!dependencies.runtimeExecutable) {
+      const npmExecutable =
+        dependencies.npmExecutable ??
+        resolveNodeAdjacentNpm(platform, dependencies.environment, runtimeExecutable) ??
+        (platform === 'win32' ? 'npm.cmd' : 'npm');
+      return parseRigRegistryVersion(
+        tag,
+        await dependencies.run(npmExecutable, [
+          'view',
+          `${distribution.packageName}@${tag}`,
+          'version',
+          '--json',
+          '--registry',
+          distribution.registry,
+          '--fetch-timeout',
+          String(REGISTRY_FETCH_TIMEOUT_MS),
+        ]),
+      );
+    }
+    const execution = resolveRigNpmExecution({
+      platform,
+      environment: dependencies.environment,
+      runtimeExecutable: dependencies.runtimeExecutable,
+      ...(dependencies.npmExecutable ? { npmExecutableHint: dependencies.npmExecutable } : {}),
     });
-  // nvm4w/npm shims run `node` from PATH; a stale PATH entry breaks every
-  // npm call even when node.exe sits next to npm.cmd. Prefer the adjacent
-  // runtime first, then the npm.cmd shim, then bare `npm` from PATH.
-  const npmExecutable =
-    dependencies.npmExecutable ??
-    resolveNodeAdjacentNpm(platform, dependencies.environment) ??
-    (platform === 'win32' ? 'npm.cmd' : 'npm');
-  const output = await run(npmExecutable, [
-    'view',
-    `${distribution.packageName}@${tag}`,
-    'version',
-    '--json',
-    '--registry',
-    distribution.registry,
-    '--fetch-timeout',
-    String(REGISTRY_FETCH_TIMEOUT_MS),
-  ]);
+    return parseRigRegistryVersion(
+      tag,
+      await dependencies.run(execution.executable, [
+        ...execution.argsPrefix,
+        'view',
+        `${distribution.packageName}@${tag}`,
+        'version',
+        '--json',
+        '--registry',
+        distribution.registry,
+        '--fetch-timeout',
+        String(REGISTRY_FETCH_TIMEOUT_MS),
+      ]),
+    );
+  }
+  const execution = resolveRigNpmExecution({
+    platform,
+    environment: dependencies.environment,
+    runtimeExecutable,
+    ...(dependencies.npmExecutable ? { npmExecutableHint: dependencies.npmExecutable } : {}),
+  });
+  const output = await runText(
+    execution.executable,
+    [
+      ...execution.argsPrefix,
+      'view',
+      `${distribution.packageName}@${tag}`,
+      'version',
+      '--json',
+      '--registry',
+      distribution.registry,
+      '--fetch-timeout',
+      String(REGISTRY_FETCH_TIMEOUT_MS),
+    ],
+    execution.environment,
+  );
+  return parseRigRegistryVersion(tag, output);
+}
+
+function parseRigRegistryVersion(tag: RigNpmDistTag, output: string): string {
   let version: unknown;
   try {
     version = JSON.parse(output);
@@ -390,10 +437,23 @@ export function bindRigNpmCommandToRuntime(
 function resolveNodeAdjacentNpm(
   platform: NodeJS.Platform,
   environment: NodeJS.ProcessEnv = process.env,
+  runtimeExecutable: string = process.execPath,
 ): string | undefined {
   if (platform !== 'win32') return undefined;
   // A wrapper-root npm.cmd on PATH (installer-owned or test shim) wins over
   // the runtime-adjacent copy, matching cross-spawn PATH resolution.
+  const onPath = findNpmCmdOnPath(environment);
+  if (onPath) return onPath;
+  try {
+    const adjacent = runtimeExecutable.replace(/node\.exe$/i, 'npm.cmd');
+    if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
+  } catch {
+    // Fall through to undefined below.
+  }
+  return undefined;
+}
+
+function findNpmCmdOnPath(environment: NodeJS.ProcessEnv): string | undefined {
   for (const key of Object.keys(environment)) {
     if (key.toLowerCase() !== 'path') continue;
     const entry = String(environment[key] ?? '')
@@ -407,12 +467,6 @@ function resolveNodeAdjacentNpm(
         }
       });
     if (entry) return entry;
-  }
-  try {
-    const adjacent = process.execPath.replace(/node\.exe$/i, 'npm.cmd');
-    if (existsSync(adjacent) && statSync(adjacent).isFile()) return adjacent;
-  } catch {
-    // Fall through to undefined below.
   }
   return undefined;
 }
@@ -440,6 +494,109 @@ function resolvePnpmNpmShim(npmExecutable: string): string | undefined {
     return undefined;
   }
 }
+export interface RigNpmExecution {
+  readonly executable: string;
+  readonly argsPrefix: readonly string[];
+  readonly environment: NodeJS.ProcessEnv;
+}
+
+export interface ResolveRigNpmExecutionOptions {
+  readonly platform?: NodeJS.Platform;
+  readonly environment?: NodeJS.ProcessEnv;
+  readonly runtimeExecutable?: string;
+  readonly npmExecutableHint?: string;
+  readonly executeShim?: boolean;
+}
+
+export function resolveRigNpmExecution(
+  options: ResolveRigNpmExecutionOptions = {},
+): RigNpmExecution {
+  const platform = options.platform ?? process.platform;
+  const environment = options.environment ?? process.env;
+  const runtimeExecutable = options.runtimeExecutable ?? process.execPath;
+  const fixedEnvironment = createRigNpmRuntimeEnvironment(environment, runtimeExecutable, platform);
+  // Explicit hints bind to the running Node through npm-cli.js derivation;
+  // unresolvable hints fall back to executing as located with fixed PATH.
+  if (options.npmExecutableHint) {
+    const hint = options.npmExecutableHint;
+    const hintBase = hint.toLowerCase().replaceAll('\\', '/').split('/').pop();
+    if (hintBase === 'npm-cli.js') {
+      return {
+        executable: runtimeExecutable,
+        argsPrefix: [hint],
+        environment: fixedEnvironment,
+      };
+    }
+    try {
+      const bound = bindRigNpmCommandToRuntime(
+        { executable: hint, args: [], display: hint },
+        runtimeExecutable,
+      );
+      return { executable: bound.executable, argsPrefix: bound.args, environment: fixedEnvironment };
+    } catch {
+      return { executable: hint, argsPrefix: [], environment: fixedEnvironment };
+    }
+  }
+  if (platform !== 'win32' || options.executeShim) {
+    // Managed-installer npm must execute the shim itself: installer-owned
+    // wrappers perform work (env setup, invocation markers) around npm-cli.js.
+    const shim =
+      platform === 'win32'
+        ? (resolveNodeAdjacentNpm(platform, environment, runtimeExecutable) ?? 'npm.cmd')
+        : 'npm';
+    return { executable: shim, argsPrefix: [], environment: fixedEnvironment };
+  }
+  // (a) npm-cli.js adjacent to the running Node.
+  const runtimeCli = findRuntimeAdjacentNpmCli(runtimeExecutable);
+  if (runtimeCli) {
+    return { executable: runtimeExecutable, argsPrefix: [runtimeCli], environment: fixedEnvironment };
+  }
+  // (b) npm-cli.js derived from the PATH/adjacent npm.cmd shim, else the shim
+  // itself with the runtime dir first on PATH as the last resort.
+  const shim = resolveNodeAdjacentNpm(platform, environment, runtimeExecutable) ?? 'npm.cmd';
+  try {
+    const bound = bindRigNpmCommandToRuntime(
+      { executable: shim, args: [], display: shim },
+      runtimeExecutable,
+    );
+    return { executable: bound.executable, argsPrefix: bound.args, environment: fixedEnvironment };
+  } catch {
+    return { executable: shim, argsPrefix: [], environment: fixedEnvironment };
+  }
+}
+
+// ponytail: duplicate candidate list with bindRigNpmCommandToRuntime (minus the
+// pnpm-shim parse, which needs an on-disk shim); unify if a third copy appears.
+function findRuntimeAdjacentNpmCli(runtimeExecutable: string): string | undefined {
+  try {
+    const runtime = realpathSync(runtimeExecutable);
+    const runtimeDirectory = path.dirname(runtime);
+    const candidates = [
+      path.join(runtimeDirectory, 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+      path.join(runtimeDirectory, '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    ];
+    return candidates.find((file) => {
+      try {
+        return existsSync(file) && statSync(file).isFile();
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+export function withRigNodeMissingHint(message: string, executable: string): string {
+  const base = executable.toLowerCase().replaceAll('\\', '/').split('/').pop();
+  if (base !== 'npm.cmd' && base !== 'npm' && base !== 'npm-cli.js') return message;
+  if (!/"node" is not recognized/u.test(message)) return message;
+  const hint =
+    'Node.js was not found on PATH; reinstall Node.js or add its directory to PATH, then retry';
+  if (message.includes(hint)) return message;
+  return `${message}. ${hint}`;
+}
+
 
 export function createRigNpmRuntimeEnvironment(
   environment: NodeJS.ProcessEnv,
@@ -501,9 +658,12 @@ export function runRigPackageManagerCommand(
         .trim();
       reject(
         new Error(
-          `${command.executable} failed (${
-            signal ? `signal ${signal}` : `exit ${String(code)}`
-          })${details ? `: ${details}` : ''}`,
+          withRigNodeMissingHint(
+            `${command.executable} failed (${
+              signal ? `signal ${signal}` : `exit ${String(code)}`
+            })${details ? `: ${details}` : ''}`,
+            command.executable,
+          ),
         ),
       );
     });
@@ -799,9 +959,12 @@ function runText(
         .trim();
       reject(
         new Error(
-          `${command} failed (${
-            signal ? `signal ${signal}` : `exit ${String(code)}`
-          })${details ? `: ${details}` : ''}`,
+          withRigNodeMissingHint(
+            `${command} failed (${
+              signal ? `signal ${signal}` : `exit ${String(code)}`
+            })${details ? `: ${details}` : ''}`,
+            command,
+          ),
         ),
       );
     });

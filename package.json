@@ -1,6 +1,6 @@
 {
   "name": "@shivcdhry/rig",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "type": "module",
   "description": "Rig — terminal coding agent with managed accounts, BYOK models, cloud tools, plugins and ACP.",
   "packageManager": "pnpm@9.12.0",

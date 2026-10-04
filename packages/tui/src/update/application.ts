@@ -170,9 +170,9 @@ export class RigUpdateApplication {
     const npmGlobalExecution = this.prefixInstall
       ? undefined
       : resolveRigNpmExecution({ platform, environment, runtimeExecutable: this.runtimeExecutable });
-    const packageManagerEnvironment = this.prefixInstall
-      ? createRigNpmRuntimeEnvironment(environment, this.runtimeExecutable, platform)
-      : (npmGlobalExecution?.environment ?? environment);
+    const packageManagerEnvironment =
+      npmGlobalExecution?.environment ??
+      createRigNpmRuntimeEnvironment(environment, this.runtimeExecutable, platform);
     this.packageTag = options.packageTag ?? resolveRigNpmDistTag();
     this.distribution = resolveRigNpmDistribution(
       options.packageName,

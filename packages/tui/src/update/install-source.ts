@@ -311,6 +311,17 @@ export async function resolveLatestRigRegistryVersion(
   const platform = dependencies.platform ?? process.platform;
   const distribution = dependencies.distribution ?? resolveRigNpmDistribution();
   const runtimeExecutable = dependencies.runtimeExecutable ?? process.execPath;
+  const viewArgs = (prefix: readonly string[] = []): readonly string[] => [
+    ...prefix,
+    'view',
+    `${distribution.packageName}@${tag}`,
+    'version',
+    '--json',
+    '--registry',
+    distribution.registry,
+    '--fetch-timeout',
+    String(REGISTRY_FETCH_TIMEOUT_MS),
+  ];
   if (dependencies.run) {
     // nvm4w/npm shims run `node` from PATH; a stale PATH entry breaks every
     // npm call even when node.exe sits next to npm.cmd. Prefer the adjacent
@@ -321,19 +332,7 @@ export async function resolveLatestRigRegistryVersion(
         dependencies.npmExecutable ??
         resolveNodeAdjacentNpm(platform, dependencies.environment, runtimeExecutable) ??
         (platform === 'win32' ? 'npm.cmd' : 'npm');
-      return parseRigRegistryVersion(
-        tag,
-        await dependencies.run(npmExecutable, [
-          'view',
-          `${distribution.packageName}@${tag}`,
-          'version',
-          '--json',
-          '--registry',
-          distribution.registry,
-          '--fetch-timeout',
-          String(REGISTRY_FETCH_TIMEOUT_MS),
-        ]),
-      );
+      return parseRigRegistryVersion(tag, await dependencies.run(npmExecutable, viewArgs()));
     }
     const execution = resolveRigNpmExecution({
       platform,
@@ -343,17 +342,7 @@ export async function resolveLatestRigRegistryVersion(
     });
     return parseRigRegistryVersion(
       tag,
-      await dependencies.run(execution.executable, [
-        ...execution.argsPrefix,
-        'view',
-        `${distribution.packageName}@${tag}`,
-        'version',
-        '--json',
-        '--registry',
-        distribution.registry,
-        '--fetch-timeout',
-        String(REGISTRY_FETCH_TIMEOUT_MS),
-      ]),
+      await dependencies.run(execution.executable, viewArgs(execution.argsPrefix)),
     );
   }
   const execution = resolveRigNpmExecution({
@@ -364,17 +353,7 @@ export async function resolveLatestRigRegistryVersion(
   });
   const output = await runText(
     execution.executable,
-    [
-      ...execution.argsPrefix,
-      'view',
-      `${distribution.packageName}@${tag}`,
-      'version',
-      '--json',
-      '--registry',
-      distribution.registry,
-      '--fetch-timeout',
-      String(REGISTRY_FETCH_TIMEOUT_MS),
-    ],
+    viewArgs(execution.argsPrefix),
     execution.environment,
   );
   return parseRigRegistryVersion(tag, output);

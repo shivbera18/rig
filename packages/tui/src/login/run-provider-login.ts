@@ -64,6 +64,7 @@ export async function runProviderLogin(
     ...controller,
     tokenUrl: endpoints.tokenUrl,
     ...(endpoints.exchangeBody ? { exchangeBody: endpoints.exchangeBody } : {}),
+    exchangeProxyUrl: resolveOAuthExchangeProxyUrl(),
   });
   // OpenRouter mints a durable key (`result "api-key"`): store the key, not
   // the OAuth envelope, so /provider rows and validation see a plain api_key.
@@ -78,6 +79,17 @@ export async function runProviderLogin(
     credential,
     message: `Logged in to ${def.name}${who ? ` as ${who}` : ""}.`,
   };
+}
+
+/**
+ * Server-side token-exchange proxy (secrets live in Vercel env, never in
+ * git). Used only when no local client secret resolves; overridable via
+ * RIG_OAUTH_EXCHANGE_PROXY_URL.
+ */
+export function resolveOAuthExchangeProxyUrl(): string | undefined {
+  const override = process.env.RIG_OAUTH_EXCHANGE_PROXY_URL;
+  if (override) return override;
+  return "https://rig-cli.vercel.app/api/oauth-exchange";
 }
 
 /**

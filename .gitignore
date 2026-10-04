@@ -11,3 +11,5 @@ dist/
 
 .tmp-*
 .tmp_rig_review
+
+.vercel

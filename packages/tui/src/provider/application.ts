@@ -83,6 +83,46 @@ export class RigProviderApplication {
     await this.port.upsertRigApiKey({ apiKey, saveAndUse });
   }
 
+  /** Login-time OAuth provisioning: seed row on first login, then explicit refresh. */
+  async loginOAuth(input: {
+    readonly providerId: string;
+    readonly access: string;
+    readonly name?: string;
+    readonly baseUrl?: string;
+    readonly apiFormat?: 'anthropic-messages' | 'openai-completions' | 'openai-responses';
+  }): Promise<{ refreshError?: string }> {
+    const providerId = input.providerId.trim();
+    if (!providerId) throw new Error('Provider id is required.');
+    const def = getRigLoginProvider(providerId);
+    const existing = await this.port.listUserModelProviders();
+    const match = existing.find(
+      (provider) =>
+        provider.providerId === `custom_provider:${providerId}` ||
+        provider.providerId === providerId ||
+        (def?.name !== undefined && provider.name === def.name),
+    );
+    if (!match) {
+      const templates = await this.port.listProviderPresets();
+      const template = templates.find((candidate) => candidate.providerId === providerId);
+      const name = input.name ?? template?.name ?? def?.name ?? providerId;
+      const baseUrl = input.baseUrl ?? template?.baseUrl;
+      if (!baseUrl) throw new Error(`No endpoint configured for provider '${providerId}'.`);
+      await this.port.createUserModelProvider({
+        name,
+        baseUrl,
+        apiFormat: input.apiFormat ?? template?.apiFormat ?? 'openai-completions',
+        apiKey: '',
+        models: [{ modelId: providerId, displayName: name }],
+        saveAndUse: false,
+      });
+    }
+    try {
+      return await this.port.syncOAuthProviderModels({ providerId, access: input.access });
+    } catch (error) {
+      return { refreshError: error instanceof Error ? error.message : String(error) };
+    }
+  }
+
   /** Step-5 roster login: validated api-key in, existing port writes out. */
   async loginProvider(input: {
     readonly providerId: string;

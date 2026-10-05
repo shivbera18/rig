@@ -182,6 +182,7 @@ async function defaultRunProviderLogin(
     const writer = createPortCredentialWriter(runtime.adapter, {
       prepareDataDir: prepareTuiDataDir,
       listTemplates: async () => runtime.adapter.listProviderPresets(),
+      loginOAuth: (input) => application.loginOAuth(input),
     });
     return runProviderLogin(providerId, controller, writer, {
       startCodexOAuth: async () => {

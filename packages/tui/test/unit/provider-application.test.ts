@@ -54,6 +54,7 @@ function createPort() {
       success: true,
       status: { state: 'available' },
     })),
+    syncOAuthProviderModels: vi.fn(async () => ({})),
   };
 }
 
@@ -351,4 +352,23 @@ it('forwards unsaved discovery credentials without saving the candidate', async 
   ]);
   expect(port.discoverUserModelsCandidate).toHaveBeenCalledWith(candidate);
   expect(port.saveUserModelProviderCandidate).not.toHaveBeenCalled();
+});
+
+it('routes OAuth login through seed-then-refresh without touching API keys', async () => {
+  const port = createPort();
+  port.listUserModelProviders.mockResolvedValueOnce([]);
+  port.syncOAuthProviderModels = vi.fn(async () => ({}));
+  const application = new RigProviderApplication(port);
+
+  await expect(
+    application.loginOAuth({ providerId: 'google-antigravity', access: 'tok', baseUrl: 'https://x.example/v1' }),
+  ).resolves.toEqual({});
+  expect(port.createUserModelProvider).toHaveBeenCalledWith(
+    expect.objectContaining({ apiKey: '', models: [{ modelId: 'google-antigravity', displayName: 'Antigravity (Gemini 3, Claude, GPT-OSS)' }] }),
+  );
+  expect(port.syncOAuthProviderModels).toHaveBeenCalledWith({
+    providerId: 'google-antigravity',
+    access: 'tok',
+  });
+  expect(port.updateUserModelProvider).not.toHaveBeenCalled();
 });

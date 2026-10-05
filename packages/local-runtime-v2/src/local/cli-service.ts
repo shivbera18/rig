@@ -831,6 +831,16 @@ export class CliService {
     );
   }
 
+  syncOAuthProviderModels(
+    input: Parameters<
+      NonNullable<LocalRuntimeApplication["modelProviders"]>["syncOAuth"]
+    >[0],
+  ) {
+    return this.requireCapability("modelProviders", "Model Provider").syncOAuth(
+      input,
+    );
+  }
+
   listSkills(
     input: Parameters<LocalRuntimeApplication["skills"]["listSkills"]>[0],
   ) {

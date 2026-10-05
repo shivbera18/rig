@@ -161,6 +161,11 @@ export class TuiFeatureFlow {
     return prepareTuiDataDir();
   }
 
+  /** Login-time OAuth provisioning (seed row + explicit refresh) for command-flow. */
+  loginOAuth(input: { providerId: string; access: string }): Promise<{ refreshError?: string }> {
+    return this.providerApplication.loginOAuth(input);
+  }
+
   private readonly modelState: TuiModelState;
   private readonly providerApplication: RigProviderApplication;
   private readonly pluginApplication: RigPluginApplication;

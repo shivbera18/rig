@@ -275,6 +275,13 @@ export class TuiProductAccess {
       .testUserModel({ providerId, modelId })) as RigProviderTestResult;
   }
 
+  async syncOAuthProviderModels(input: {
+    readonly providerId: string;
+    readonly access: string;
+  }): Promise<{ refreshError?: string }> {
+    return this.context.service("provider.sync-oauth").syncOAuthProviderModels(input);
+  }
+
   async getSessionUsage(sessionId: string): Promise<TuiSessionUsage> {
     const response = await this.context
       .service("session.usage")

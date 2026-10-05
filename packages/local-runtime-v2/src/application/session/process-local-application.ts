@@ -180,6 +180,8 @@ export function createProcessLocalApplication(
         const outcome = await options.modelProvider.providers.testModel(providerId, modelId);
         return { success: outcome.ok, status: outcome.status };
       },
+      syncOAuth: ({ providerId, access }) =>
+        options.modelProvider.providers.refreshOAuthModels({ providerId, access }),
     },
     workspace: options.workspace,
   };

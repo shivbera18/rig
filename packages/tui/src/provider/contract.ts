@@ -193,4 +193,8 @@ export interface RigProviderRuntimePort {
   deleteUserModelProvider(providerId: string): Promise<void>;
   testUserModelProvider(providerId: string): Promise<RigProviderTestResult>;
   testUserModel(providerId: string, modelId: string): Promise<RigProviderTestResult>;
+  syncOAuthProviderModels(input: {
+    readonly providerId: string;
+    readonly access: string;
+  }): Promise<{ refreshError?: string }>;
 }

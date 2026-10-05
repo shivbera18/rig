@@ -138,6 +138,36 @@ describe('ModelDiscoveryClient', () => {
     });
   });
 
+  it.each(['models', 'result', 'items'] as const)('accepts the %s envelope', async (key) => {
+    const fetchImpl = vi.fn(
+      async () => new Response(JSON.stringify({ [key]: [{ id: 'm1' }] }), { status: 200 }),
+    );
+    const client = new ModelDiscoveryClient(fetchImpl as unknown as typeof fetch);
+
+    await expect(
+      client.discover({
+        api: 'openai-completions',
+        baseUrl: 'https://api.example.com/v1',
+        apiKey: 'sk-secret',
+      }),
+    ).resolves.toEqual({ ok: true, models: [{ modelId: 'm1' }] });
+  });
+
+  it('still rejects a bare array without an envelope', async () => {
+    const fetchImpl = vi.fn(
+      async () => new Response(JSON.stringify([{ id: 'm1' }]), { status: 200 }),
+    );
+    const client = new ModelDiscoveryClient(fetchImpl as unknown as typeof fetch);
+
+    await expect(
+      client.discover({
+        api: 'openai-completions',
+        baseUrl: 'https://api.example.com/v1',
+        apiKey: 'sk-secret',
+      }),
+    ).resolves.toMatchObject({ ok: false, errorCode: 'invalid_response' });
+  });
+
   it('distinguishes aborts from network failures', async () => {
     const abortError = Object.assign(new Error('aborted'), { name: 'AbortError' });
     const abortingJson = vi.fn(

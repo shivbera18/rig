@@ -311,6 +311,7 @@ export interface LocalRuntimeApplication {
     delete(input: { providerId: string }): Promise<void>;
     testProvider(input: { providerId: string }): Promise<unknown>;
     testModel(input: { providerId: string; modelId: string }): Promise<unknown>;
+    syncOAuth(input: { providerId: string; access: string }): Promise<{ refreshError?: string }>;
   };
 }
 

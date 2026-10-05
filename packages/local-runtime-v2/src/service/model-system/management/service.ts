@@ -1,5 +1,6 @@
 import type { DiscoveredModel } from '../connectivity/discover-models.js';
 import { enabledCustomProviders, type ModelCacheStatusView } from '../catalog/list-models.js';
+import { syncOAuthProviderModels } from '../oauth-provider-refresh.js';
 import type { ModelCacheData } from '../catalog/model-cache.js';
 import { RIG_API_PROVIDER_ID } from '../identity.js';
 import { LocalModelProviderError } from '../contracts.js';
@@ -239,6 +240,19 @@ export class LocalModelProviderService {
 
   async discoverModels(providerId: string): Promise<DiscoveredModel[]> {
     return discoverModelsOperation(this.context, providerId);
+  }
+
+  async refreshOAuthModels(input: {
+    providerId: string;
+    access: string;
+  }): Promise<{ refreshError?: string }> {
+    return syncOAuthProviderModels(
+      {
+        configGetter: this.context.deps.configGetter,
+        updateByokConfig: this.context.deps.updateByokConfig,
+      },
+      input,
+    );
   }
 
   assertModelSelectable(providerId: string, modelId: string): void {

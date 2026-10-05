@@ -106,30 +106,39 @@ async function readJson(response: Response): Promise<unknown> {
 
 function readModels(payload: unknown): DiscoveredModel[] | undefined {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined;
-  const data = (payload as { data?: unknown }).data;
-  if (!Array.isArray(data)) return undefined;
-  const models = data.flatMap((item): DiscoveredModel[] => {
+  const record = payload as Record<string, unknown>;
+  for (const key of ['data', 'models', 'result', 'items'] as const) {
+    const list: unknown = record[key];
+    if (Array.isArray(list)) return normalizeModelItems(list);
+  }
+  return undefined;
+}
+
+function normalizeModelItems(items: unknown[]): DiscoveredModel[] {
+  return items.flatMap((item): DiscoveredModel[] => {
     if (!item || typeof item !== 'object' || Array.isArray(item)) return [];
-    const record = item as { id?: unknown; name?: unknown; display_name?: unknown };
-    if (typeof record.id !== 'string' || !record.id.trim()) return [];
-    const displayName = readDisplayName(record);
+    if (!('id' in item)) return [];
+    const id: unknown = item.id;
+    if (typeof id !== 'string' || !id.trim()) return [];
+    const displayName = readDisplayName(item);
     return [
       {
-        modelId: record.id,
+        modelId: id,
         ...(displayName ? { displayName } : {}),
       },
     ];
   });
-  return models;
 }
 
-function readDisplayName(record: { name?: unknown; display_name?: unknown }): string | undefined {
-  if (typeof record.display_name === 'string') return record.display_name;
-  return typeof record.name === 'string' ? record.name : undefined;
+function readDisplayName(record: object): string | undefined {
+  const displayName: unknown = 'display_name' in record ? record.display_name : undefined;
+  if (typeof displayName === 'string') return displayName;
+  const name: unknown = 'name' in record ? record.name : undefined;
+  return typeof name === 'string' ? name : undefined;
 }
 
 function isAbortError(error: unknown): boolean {
   return Boolean(
-    error && typeof error === 'object' && (error as { name?: unknown }).name === 'AbortError',
+    error && typeof error === 'object' && 'name' in error && error.name === 'AbortError',
   );
 }

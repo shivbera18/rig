@@ -1595,6 +1595,7 @@ export class TuiCommandFlow {
     try {
       const writer = createPortCredentialWriter(this.options.featureFlow.providerPort, {
         prepareDataDir: () => this.options.featureFlow.prepareLoginDataDir(),
+        loginOAuth: (input) => this.options.featureFlow.loginOAuth(input),
       });
       const result = await runProviderLogin(providerId, {
           onAuth: (info) => panel?.showAuth(info.url, info.instructions),

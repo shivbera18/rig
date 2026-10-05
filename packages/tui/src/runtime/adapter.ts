@@ -511,6 +511,9 @@ export class TuiRuntimeAdapter implements TuiRuntime {
   testUserModel(providerId: string, modelId: string) {
     return this.productAccess.testUserModel(providerId, modelId);
   }
+  syncOAuthProviderModels(input: { providerId: string; access: string }) {
+    return this.productAccess.syncOAuthProviderModels(input);
+  }
   getSessionUsage(sessionId: string): Promise<TuiSessionUsage> {
     return this.productAccess.getSessionUsage(sessionId);
   }

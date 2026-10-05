@@ -39,7 +39,10 @@ async function atomicWritePrivateFile(path: string, content: string): Promise<vo
 
 export interface RigLoginCredentialWriter {
   readonly saveApiKey: (providerId: string, apiKey: string) => Promise<void>;
-  readonly saveOAuth: (providerId: string, credential: RigOAuthCredentials) => Promise<void>;
+  readonly saveOAuth: (
+    providerId: string,
+    credential: RigOAuthCredentials,
+  ) => Promise<{ refreshError?: string }>;
   readonly deleteCredential: (providerId: string) => Promise<void>;
 }
 
@@ -73,9 +76,12 @@ export async function saveLoginCredential(
   writer: RigLoginCredentialWriter,
   providerId: string,
   credential: string | RigOAuthCredentials,
-): Promise<void> {
-  if (typeof credential === "string") await writer.saveApiKey(providerId, credential);
-  else await writer.saveOAuth(providerId, credential);
+): Promise<{ refreshError?: string }> {
+  if (typeof credential === "string") {
+    await writer.saveApiKey(providerId, credential);
+    return {};
+  }
+  return writer.saveOAuth(providerId, credential);
 }
 
 export interface RigLoginTemplate {
@@ -91,6 +97,10 @@ export function createPortCredentialWriter(
   options: {
     readonly prepareDataDir: () => Promise<string>;
     readonly listTemplates?: () => Promise<readonly RigLoginTemplate[]>;
+    readonly loginOAuth?: (input: {
+      readonly providerId: string;
+      readonly access: string;
+    }) => Promise<{ refreshError?: string }>;
   },
 ): RigLoginCredentialWriter {
   return {
@@ -100,12 +110,7 @@ export function createPortCredentialWriter(
       } else {
         const def = getRigLoginProvider(providerId);
         const existing = await port.listUserModelProviders();
-        const match = existing.find(
-          (provider) =>
-            provider.providerId === `custom_provider:${providerId}` ||
-            provider.providerId === providerId ||
-            (def?.name && provider.name === def.name),
-        );
+        const match = findProviderRow(existing, providerId, def);
         if (match) {
           await port.updateUserModelProvider({ providerId: match.providerId, apiKey, saveAndUse: false });
         } else {
@@ -116,18 +121,27 @@ export function createPortCredentialWriter(
           const apiFormat =
             template?.apiFormat ??
             (def?.validate?.kind === "anthropic-messages" ? "anthropic-messages" : "openai-completions");
+          const discovered = await discoverApiKeyModels(port, {
+            name,
+            apiKey,
+            apiFormat,
+            baseUrl,
+          });
           await port.createUserModelProvider({
             name,
             baseUrl,
             apiFormat,
             apiKey,
-            models: [],
+            models: discovered,
             saveAndUse: false,
           });
         }
       }
     },
-    async saveOAuth(providerId: string, credential: RigOAuthCredentials): Promise<void> {
+    async saveOAuth(
+      providerId: string,
+      credential: RigOAuthCredentials,
+    ): Promise<{ refreshError?: string }> {
       const dataDir = await options.prepareDataDir();
       const { credentialPath } = resolveRigLoginOAuthPaths(dataDir);
       const stored: RigStoredOAuthCredential = {
@@ -137,17 +151,38 @@ export function createPortCredentialWriter(
         ...credential,
       };
       await writeProviderRecord(credentialPath, providerKey(providerId), stored);
+      const def = getRigLoginProvider(providerId);
+      const existing = await port.listUserModelProviders();
+      if (!findProviderRow(existing, providerId, def)) {
+        const templates = (await options.listTemplates?.()) ?? [];
+        const template = templates.find((candidate) => candidate.providerId === providerId);
+        const name = template?.name ?? def?.name ?? providerId;
+        await port.createUserModelProvider({
+          name,
+          baseUrl: template?.baseUrl ?? deriveLoginBaseUrl(providerId, def),
+          apiFormat:
+            template?.apiFormat ??
+            (def?.validate?.kind === "anthropic-messages" ? "anthropic-messages" : "openai-completions"),
+          apiKey: "",
+          models: [{ modelId: providerId, displayName: name }],
+          saveAndUse: false,
+        });
+      }
+      const loginOAuth = options.loginOAuth ?? port.syncOAuthProviderModels.bind(port);
+      try {
+        return await loginOAuth({
+          providerId,
+          access: credential.access,
+        });
+      } catch (error) {
+        return { refreshError: error instanceof Error ? error.message : String(error) };
+      }
     },
     async deleteCredential(providerId: string): Promise<void> {
       if (providerId !== "rig") {
         const def = getRigLoginProvider(providerId);
         const existing = await port.listUserModelProviders();
-        const match = existing.find(
-          (provider) =>
-            provider.providerId === `custom_provider:${providerId}` ||
-            provider.providerId === providerId ||
-            (def?.name && provider.name === def.name),
-        );
+        const match = findProviderRow(existing, providerId, def);
         if (match) await port.deleteUserModelProvider(match.providerId);
         try {
           const dataDir = await options.prepareDataDir();
@@ -159,6 +194,35 @@ export function createPortCredentialWriter(
       }
     },
   };
+}
+
+function findProviderRow(
+  existing: readonly { providerId: string; name?: string }[],
+  providerId: string,
+  def: RigLoginProviderDef | undefined,
+) {
+  return existing.find(
+    (provider) =>
+      provider.providerId === `custom_provider:${providerId}` ||
+      provider.providerId === providerId ||
+      (def?.name !== undefined && provider.name === def.name),
+  );
+}
+
+async function discoverApiKeyModels(
+  port: RigProviderRuntimePort,
+  candidate: { name: string; apiKey: string; apiFormat: "anthropic-messages" | "openai-completions" | "openai-responses"; baseUrl: string },
+) {
+  try {
+    const discovered = await port.discoverUserModelsCandidate(candidate);
+    return discovered.map((model) => ({
+      modelId: model.modelId,
+      ...(model.displayName ? { displayName: model.displayName } : {}),
+      configurationSource: "discovered" as const,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 /** Human label for a stored login: `email (org)` / `email` / org; undefined for API keys. */

@@ -52,12 +52,12 @@ export async function runProviderLogin(
     const deviceUrl = endpoints.extraDeviceParams?.["device_url"];
     if (!deviceUrl) throw new Error(`${def.name} sign-in needs manual setup; paste a key via /provider.`);
     const credential = await runDeviceCodeLogin(def, { ...controller, deviceUrl, tokenUrl: endpoints.tokenUrl });
-    await saveLoginCredential(writer, providerId, credential);
+    const { refreshError } = await saveLoginCredential(writer, providerId, credential);
     const who = formatLoginIdentity(credential);
     return {
       provider: def,
       credential,
-      message: `Logged in to ${def.name}${who ? ` as ${who}` : ""}.`,
+      message: `Logged in to ${def.name}${who ? ` as ${who}` : ""}.${withRefreshNote(refreshError)}`,
     };
   }
   const credential = await runOAuthCodeLogin(def, {
@@ -72,13 +72,17 @@ export async function runProviderLogin(
     await saveLoginCredential(writer, providerId, credential.access);
     return { provider: def, credential: credential.access, message: `Logged in to ${def.name}.` };
   }
-  await saveLoginCredential(writer, providerId, credential);
+  const { refreshError } = await saveLoginCredential(writer, providerId, credential);
   const who = formatLoginIdentity(credential);
   return {
     provider: def,
     credential,
-    message: `Logged in to ${def.name}${who ? ` as ${who}` : ""}.`,
+    message: `Logged in to ${def.name}${who ? ` as ${who}` : ""}.${withRefreshNote(refreshError)}`,
   };
+}
+
+function withRefreshNote(refreshError: string | undefined): string {
+  return refreshError ? " Model list refresh failed — retry from /model." : "";
 }
 
 /**
